@@ -209,8 +209,6 @@ typedef struct hiOVERLAYEX_CHN_ATTR_S
     HI_U32 u32BgAlpha;
 
     HI_U32 u32Layer;   /* OVERLAYEX region layer range:[0,15]*/
-
-    HI_U16 u16ColorLUT[RGN_COLOR_LUT_NUM];
 }OVERLAYEX_CHN_ATTR_S;
 
 typedef union hiRGN_ATTR_U

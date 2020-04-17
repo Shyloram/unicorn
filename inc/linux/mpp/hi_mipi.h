@@ -17,17 +17,19 @@ typedef unsigned int sns_rst_source_t;
 typedef unsigned int sns_clk_source_t;
 
 
-#define MIPI_LANE_NUM           4
-#define LVDS_LANE_NUM           4
+#define MIPI_LANE_NUM           8
+#define LVDS_LANE_NUM           12
+#define SLVS_LANE_NUM           8
 
-#define WDR_VC_NUM              2
+#define WDR_VC_NUM              4
 #define SYNC_CODE_NUM           4
 
-#define MIPI_RX_MAX_DEV_NUM     1
-#define CMOS_MAX_DEV_NUM        1
+#define MIPI_RX_MAX_DEV_NUM     5
+#define SLVS_MAX_DEV_NUM        1
+#define CMOS_MAX_DEV_NUM        2
 
-#define SNS_MAX_CLK_SOURCE_NUM  1
-#define SNS_MAX_RST_SOURCE_NUM  1
+#define SNS_MAX_CLK_SOURCE_NUM  3
+#define SNS_MAX_RST_SOURCE_NUM  3
 
 
 #ifdef HI_MIPI_DEBUG
@@ -60,6 +62,12 @@ typedef unsigned int sns_clk_source_t;
 typedef enum
 {
     LANE_DIVIDE_MODE_0    = 0,
+    LANE_DIVIDE_MODE_1    = 1,
+    LANE_DIVIDE_MODE_2    = 2,
+    LANE_DIVIDE_MODE_3    = 3,
+    LANE_DIVIDE_MODE_4    = 4,
+    LANE_DIVIDE_MODE_5    = 5,
+    LANE_DIVIDE_MODE_6    = 6,
     LANE_DIVIDE_MODE_BUTT
 } lane_divide_mode_t;
 
@@ -79,11 +87,13 @@ typedef enum
     INPUT_MODE_SUBLVDS      = 0x1,              /* SUB_LVDS */
     INPUT_MODE_LVDS         = 0x2,              /* LVDS */
     INPUT_MODE_HISPI        = 0x3,              /* HISPI */
-    INPUT_MODE_CMOS         = 0x4,              /* CMOS */
-    INPUT_MODE_BT601        = 0x5,              /* BT601 */
-    INPUT_MODE_BT656        = 0x6,              /* BT656 */
-    INPUT_MODE_BT1120       = 0x7,              /* BT1120 */
-    INPUT_MODE_BYPASS       = 0x8,              /* MIPI Bypass */
+    INPUT_MODE_SLVS         = 0x4,              /* SLVS */
+    INPUT_MODE_CMOS         = 0x5,              /* CMOS */
+    INPUT_MODE_BT601        = 0x6,              /* BT601 */
+    INPUT_MODE_BT656        = 0x7,              /* BT656 */
+    INPUT_MODE_BT1120       = 0x8,              /* BT1120 */
+    INPUT_MODE_BYPASS       = 0x9,              /* MIPI Bypass */
+
     INPUT_MODE_BUTT
 } input_mode_t;
 
@@ -132,7 +142,13 @@ typedef enum
     HI_MIPI_WDR_MODE_BUTT
 } mipi_wdr_mode_t;
 
+typedef enum
+{
+    SLVS_LANE_RATE_LOW = 0,         /* 1152Mbps */
+    SLVS_LANE_RATE_HIGH = 1,        /* 2304Mbps */
 
+    SLVS_LANE_RATE_BUTT
+} slvs_lane_rate_t;
 
 typedef struct
 {
@@ -228,6 +244,15 @@ typedef struct
 
 typedef struct
 {
+    data_type_t           input_data_type;          /* data type: 8/10/12/14/16 bit */
+    wdr_mode_t            wdr_mode;                 /* WDR mode */
+    slvs_lane_rate_t      lane_rate;
+    int                   sensor_valid_width;
+    short                 lane_id[SLVS_LANE_NUM];   /* lane_id: -1 - disable */
+} slvs_dev_attr_t;
+
+typedef struct
+{
     combo_dev_t         devno;              /* device number */
     input_mode_t        input_mode;         /* input mode: MIPI/LVDS/SUBLVDS/HISPI/DC */
     mipi_data_rate_t    data_rate;
@@ -237,6 +262,7 @@ typedef struct
     {
         mipi_dev_attr_t     mipi_attr;
         lvds_dev_attr_t     lvds_attr;
+        slvs_dev_attr_t     slvs_attr;
     };
 } combo_dev_attr_t;
 

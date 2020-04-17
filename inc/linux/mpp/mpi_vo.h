@@ -62,11 +62,6 @@ HI_S32 HI_MPI_VO_GetVideoLayerBoundary(VO_LAYER VoLayer, VO_LAYER_BOUNDARY_S *ps
 HI_S32 HI_MPI_VO_SetVideoLayerParam(VO_LAYER VoLayer,  const VO_LAYER_PARAM_S *pstLayerParam);
 HI_S32 HI_MPI_VO_GetVideoLayerParam(VO_LAYER VoLayer, VO_LAYER_PARAM_S *pstLayerParam);
 
-HI_S32 HI_MPI_VO_SetVideoLayerDecompress(VO_LAYER VoLayer, HI_BOOL bSupportDecompress);
-HI_S32 HI_MPI_VO_GetVideoLayerDecompress(VO_LAYER VoLayer, HI_BOOL *pbSupportDecompress);
-
-HI_S32 HI_MPI_VO_SetVideoLayerCrop(VO_LAYER VoLayer, const CROP_INFO_S *pstCropInfo);
-HI_S32 HI_MPI_VO_GetVideoLayerCrop(VO_LAYER VoLayer, CROP_INFO_S *pstCropInfo);
 
 /* Display relative operations */
 HI_S32 HI_MPI_VO_SetPlayToleration(VO_LAYER VoLayer, HI_U32 u32Toleration);

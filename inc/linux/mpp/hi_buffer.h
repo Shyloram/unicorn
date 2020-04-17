@@ -24,22 +24,21 @@ extern "C" {
 #include "hi_type.h"
 #include "hi_common.h"
 #include "hi_comm_video.h"
-#ifndef __HuaweiLite__
-#ifdef __KERNEL__
-#include "hi_osal.h"
-#endif
-#endif
+
 
 __inline static HI_VOID COMMON_GetPicBufferConfig(HI_U32 u32Width, HI_U32 u32Height,PIXEL_FORMAT_E enPixelFormat,
             DATA_BITWIDTH_E enBitWidth, COMPRESS_MODE_E enCmpMode, HI_U32 u32Align, VB_CAL_CONFIG_S* pstCalConfig)
 {
     HI_U32 u32BitWidth = 0;
+    HI_U32 u32HeadStride  = 0;
     HI_U32 u32VBSize      = 0;
     HI_U32 u32HeadSize    = 0;
     HI_U32 u32AlignHeight = 0;
     HI_U32 u32MainStride  = 0;
     HI_U32 u32MainSize    = 0;
-    HI_U32 u32HeadStride  = 0;
+    HI_U32 u32ExtStride   = 0;
+    HI_U32 u32ExtSize     = 0;
+    HI_U32 u32ExtYSize    = 0;
     HI_U32 u32HeadYSize   = 0;
     HI_U32 u32YSize       = 0;
 
@@ -83,35 +82,17 @@ __inline static HI_VOID COMMON_GetPicBufferConfig(HI_U32 u32Width, HI_U32 u32Hei
         u32MainStride = ALIGN_UP((u32Width * u32BitWidth + 7) >> 3, u32Align);
         u32YSize = u32MainStride * u32AlignHeight;
 
-        if(PIXEL_FORMAT_YVU_SEMIPLANAR_420 == enPixelFormat ||
-           PIXEL_FORMAT_YUV_SEMIPLANAR_420 == enPixelFormat)
+        if(PIXEL_FORMAT_YVU_SEMIPLANAR_420 == enPixelFormat || PIXEL_FORMAT_YUV_SEMIPLANAR_420 == enPixelFormat)
         {
             u32MainSize = (u32MainStride * u32AlignHeight)*3 >> 1;
         }
-        else if (PIXEL_FORMAT_YVU_SEMIPLANAR_422 == enPixelFormat ||
-                 PIXEL_FORMAT_YUV_SEMIPLANAR_422 == enPixelFormat)
+        else if (PIXEL_FORMAT_YVU_SEMIPLANAR_422 == enPixelFormat || PIXEL_FORMAT_YUV_SEMIPLANAR_422 == enPixelFormat)
         {
             u32MainSize = u32MainStride * u32AlignHeight * 2;
         }
-        else if ((PIXEL_FORMAT_YUV_400 == enPixelFormat) ||
-                  (PIXEL_FORMAT_S16C1 == enPixelFormat) ||
-                  (PIXEL_FORMAT_U16C1 == enPixelFormat) ||
-                  (PIXEL_FORMAT_S8C1 == enPixelFormat) ||
-                  (PIXEL_FORMAT_U8C1 == enPixelFormat) )
+        else if ((PIXEL_FORMAT_YUV_400 == enPixelFormat) || (PIXEL_FORMAT_S16C1 == enPixelFormat))
         {
             u32MainSize = u32MainStride * u32AlignHeight;
-        }
-        else if(PIXEL_FORMAT_YUYV_PACKAGE_422 == enPixelFormat ||
-                PIXEL_FORMAT_YVYU_PACKAGE_422 == enPixelFormat ||
-                PIXEL_FORMAT_UYVY_PACKAGE_422 == enPixelFormat ||
-                PIXEL_FORMAT_VYUY_PACKAGE_422 == enPixelFormat ||
-                PIXEL_FORMAT_YYUV_PACKAGE_422 == enPixelFormat ||
-                PIXEL_FORMAT_YYVU_PACKAGE_422 == enPixelFormat ||
-                PIXEL_FORMAT_UVYY_PACKAGE_422 == enPixelFormat ||
-                PIXEL_FORMAT_VUYY_PACKAGE_422 == enPixelFormat)
-        {
-             u32MainStride = ALIGN_UP((u32Width * u32BitWidth + 7) >> 3, u32Align) * 2;
-             u32MainSize   = u32MainStride  * u32AlignHeight;
         }
         else
         {
@@ -122,82 +103,73 @@ __inline static HI_VOID COMMON_GetPicBufferConfig(HI_U32 u32Width, HI_U32 u32Hei
     }
     else
     {
-        HI_U32 u32CmpRatioLuma   = 1450;
-        HI_U32 u32CmpRatioChroma = 1800;
-
-        u32HeadStride = 16;
-        u32HeadYSize = u32HeadStride * u32AlignHeight;
-
-#ifndef __HuaweiLite__
-#ifdef __KERNEL__
-
-        u32YSize     =  osal_div64_u64(u32Width * u32AlignHeight * 1000ULL, u32CmpRatioLuma);
-#else
-        u32YSize     =  u32Width * u32AlignHeight * 1000ULL / u32CmpRatioLuma;
-
-#endif
-#else
-        u32YSize     =  u32Width * u32AlignHeight * 1000ULL / u32CmpRatioLuma;
-#endif
-
-        u32YSize     = ALIGN_UP(u32YSize, DEFAULT_ALIGN);
-
-        if( PIXEL_FORMAT_YVU_SEMIPLANAR_420 == enPixelFormat || PIXEL_FORMAT_YUV_SEMIPLANAR_420 == enPixelFormat )
+        if (u32Width <= 4096)
         {
-            HI_U32 u32CSize;
-
-            u32HeadSize  = u32HeadYSize + u32HeadYSize/2;
-#ifndef __HuaweiLite__
-#ifdef __KERNEL__
-            u32CSize     = osal_div64_u64(u32Width * u32AlignHeight * 1000ULL, u32CmpRatioChroma*2);
-#else
-            u32CSize     = u32Width * u32AlignHeight * 1000ULL / u32CmpRatioChroma;
-#endif
-#else
-            u32CSize     = u32Width * u32AlignHeight * 1000ULL / u32CmpRatioChroma;
-#endif
-
-            u32CSize     = ALIGN_UP(u32CSize, DEFAULT_ALIGN);
-            u32MainSize  = u32YSize + u32CSize;
+            u32HeadStride = 16;
         }
-        else if ( PIXEL_FORMAT_YVU_SEMIPLANAR_422 == enPixelFormat || PIXEL_FORMAT_YUV_SEMIPLANAR_422 == enPixelFormat)
+        else if (u32Width <= 8192)
         {
-            u32HeadSize  = u32HeadYSize * 2;
-            u32MainSize  = u32YSize * 2;
-        }
-        else if (PIXEL_FORMAT_YUV_400 == enPixelFormat)
-        {
-            u32HeadSize  = u32HeadYSize;
-            u32MainSize  = u32YSize;
+            u32HeadStride = 32;
         }
         else
         {
-            u32HeadSize = u32HeadYSize * 3;
-            u32MainSize = u32YSize * 3;
+            u32HeadStride = 64;
         }
 
-        if(u32Width <= VPSS_LINE_BUFFER)
+        if (u32BitWidth == 8)
         {
-            u32HeadSize = 64 + ALIGN_UP(u32HeadSize, u32Align);
-            u32VBSize   = u32HeadSize + u32MainSize;
+            u32MainStride  = ALIGN_UP(u32Width, u32Align);
+            u32HeadYSize   = u32HeadStride * u32AlignHeight;
+            u32YSize       = u32MainStride * u32AlignHeight;
+
+            if(PIXEL_FORMAT_YVU_SEMIPLANAR_420 == enPixelFormat || PIXEL_FORMAT_YUV_SEMIPLANAR_420 == enPixelFormat)
+            {
+                u32HeadSize = (u32HeadStride * u32AlignHeight * 3) >> 1;
+                u32MainSize = (u32MainStride * u32AlignHeight * 3) >> 1;
+            }
+            else if (PIXEL_FORMAT_YVU_SEMIPLANAR_422 == enPixelFormat || PIXEL_FORMAT_YUV_SEMIPLANAR_422 == enPixelFormat)
+            {
+                u32HeadSize = u32HeadStride * u32AlignHeight * 2;
+                u32MainSize = u32MainStride * u32AlignHeight * 2;
+            }
+            else if (PIXEL_FORMAT_YUV_400 == enPixelFormat)
+            {
+                u32HeadSize = u32HeadStride * u32AlignHeight;
+                u32MainSize = u32MainStride * u32AlignHeight;
+            }
+            else
+            {
+                u32HeadSize = u32HeadStride * u32AlignHeight * 3;
+                u32MainSize = u32MainStride * u32AlignHeight * 3;
+            }
         }
         else
         {
-            u32HeadSize = (64 + ALIGN_UP(u32HeadSize, u32Align)) * 2;
-            u32VBSize   = u32HeadSize + u32MainSize + 2*DEFAULT_ALIGN;
+            u32VBSize     = 0;
+            u32HeadYSize  = 0;
+            u32HeadSize   = 0;
+            u32HeadStride = 0;
+            u32MainStride = 0;
+            u32YSize      = 0;
+            u32MainSize   = 0;
+            u32ExtStride  = 0;
+            u32ExtYSize   = 0;
         }
 
+        u32HeadSize = ALIGN_UP(u32HeadSize, u32Align);
+
+        u32VBSize = u32HeadSize + u32MainSize + u32ExtSize;
     }
 
     pstCalConfig->u32VBSize     = u32VBSize;
-    pstCalConfig->u32HeadStride = u32HeadStride;
     pstCalConfig->u32HeadYSize  = u32HeadYSize;
     pstCalConfig->u32HeadSize   = u32HeadSize;
+    pstCalConfig->u32HeadStride = u32HeadStride;
     pstCalConfig->u32MainStride = u32MainStride;
     pstCalConfig->u32MainYSize  = u32YSize;
     pstCalConfig->u32MainSize   = u32MainSize;
-    pstCalConfig->u32ExtStride  = 0;
-    pstCalConfig->u32ExtYSize   = 0;
+    pstCalConfig->u32ExtStride  = u32ExtStride;
+    pstCalConfig->u32ExtYSize   = u32ExtYSize;
 
     return;
 }
@@ -212,53 +184,30 @@ __inline static HI_U32 COMMON_GetPicBufferSize(HI_U32 u32Width, HI_U32 u32Height
     return stCalConfig.u32VBSize;
 }
 
-
-
-__inline static HI_U32 VPSS_GetWrapBufferSize(HI_U32 u32Width, HI_U32 u32Height, HI_U32 u32BufLine,
-        PIXEL_FORMAT_E enPixelFormat, DATA_BITWIDTH_E enBitWidth, COMPRESS_MODE_E enCmpMode, HI_U32 u32Align)
-{
-    VB_CAL_CONFIG_S stCalConfig;
-
-    if((0 != u32BufLine) && (u32BufLine < u32Height))
-    {
-        COMMON_GetPicBufferConfig(u32Width, u32BufLine,enPixelFormat,enBitWidth, enCmpMode, u32Align, &stCalConfig);
-
-        stCalConfig.u32HeadYSize  = stCalConfig.u32HeadStride * ALIGN_UP(u32Height, 2);;
-        if( PIXEL_FORMAT_YVU_SEMIPLANAR_420 == enPixelFormat || PIXEL_FORMAT_YUV_SEMIPLANAR_420 == enPixelFormat )
-        {
-            stCalConfig.u32HeadSize  = stCalConfig.u32HeadYSize + stCalConfig.u32HeadYSize/2;
-        }
-        else if ( PIXEL_FORMAT_YVU_SEMIPLANAR_422 == enPixelFormat || PIXEL_FORMAT_YUV_SEMIPLANAR_422 == enPixelFormat)
-        {
-            stCalConfig.u32HeadSize  = stCalConfig.u32HeadYSize * 2;
-        }
-        else if (PIXEL_FORMAT_YUV_400 == enPixelFormat)
-        {
-            stCalConfig.u32HeadSize  = stCalConfig.u32HeadYSize;
-        }
-        else
-        {
-            stCalConfig.u32HeadSize = stCalConfig.u32HeadYSize * 3;
-        }
-        stCalConfig.u32VBSize  = stCalConfig.u32HeadSize + stCalConfig.u32MainSize;
-
-    }
-    else
-    {
-        COMMON_GetPicBufferConfig(u32Width, u32Height,enPixelFormat,enBitWidth, enCmpMode, u32Align, &stCalConfig);
-    }
-
-    return stCalConfig.u32VBSize;
-}
-
-__inline static HI_U32 VI_GetRawBufferSize(HI_U32 u32Width, HI_U32 u32Height,
-                PIXEL_FORMAT_E enPixelFormat, COMPRESS_MODE_E enCmpMode, HI_U32 u32Align)
+__inline static HI_U32 VI_GetRawBufferSizeEx(HI_U32 u32Width, HI_U32 u32Height,
+                PIXEL_FORMAT_E enPixelFormat, COMPRESS_MODE_E enCmpMode, HI_U32 u32CmpRatio, HI_U32 u32Align)
 {
     HI_U32 u32BitWidth;
     HI_U32 u32Size = 0;
     HI_U32 u32Stride = 0;
-    HI_U32 u32CmpRatioLine  = 1600;
-    HI_U32 u32CmpRatioFrame = 2000;
+    HI_U32 u32RawCmpRatio = 1600;
+
+    if(COMPRESS_MODE_LINE == enCmpMode)
+    {
+        u32RawCmpRatio = 1600;
+
+    }
+    else if(COMPRESS_MODE_FRAME == enCmpMode)
+    {
+        if(0 == u32CmpRatio)
+        {
+            u32RawCmpRatio = 2000;
+        }
+        else
+        {
+            u32RawCmpRatio = u32CmpRatio;
+        }
+    }
 
     /* u32Align: 0 is automatic mode, alignment size following system. Non-0 for specified alignment size */
     if(0 == u32Align)
@@ -321,17 +270,102 @@ __inline static HI_U32 VI_GetRawBufferSize(HI_U32 u32Width, HI_U32 u32Height,
     else if(COMPRESS_MODE_LINE == enCmpMode)
     {
         HI_U32 u32Tmp;
-        u32Tmp    = ALIGN_UP( (16 + u32Width*u32BitWidth*1000UL/u32CmpRatioLine + 8192 + 127)/128, 2);
+        u32Tmp    = ALIGN_UP( (16 + u32Width*u32BitWidth*1000ULL/u32RawCmpRatio + 8192 + 127)/128, 2);
         u32Stride = ALIGN_UP(u32Tmp * 16, u32Align);
         u32Size   = u32Stride * u32Height;
     }
     else if(COMPRESS_MODE_FRAME == enCmpMode)
     {
-        u32Size = ALIGN_UP(u32Height*u32Width*u32BitWidth*1000UL/(u32CmpRatioFrame*8), u32Align);
+        u32Size = ALIGN_UP(u32Height*u32Width*u32BitWidth*1000ULL/(u32RawCmpRatio*8), u32Align);
     }
 
     return u32Size;
 }
+
+__inline static HI_U32 VI_GetRawBufferSize(HI_U32 u32Width, HI_U32 u32Height,
+                PIXEL_FORMAT_E enPixelFormat, COMPRESS_MODE_E enCmpMode, HI_U32 u32Align)
+{
+    HI_U32 u32Size = 0;
+
+    u32Size = VI_GetRawBufferSizeEx(u32Width, u32Height, enPixelFormat, enCmpMode, 0, u32Align);
+
+    return u32Size;
+}
+
+
+__inline static HI_U32 AVS_GetPicBufferSize(HI_U32 u32Width, HI_U32 u32Height, COMPRESS_MODE_E enCmpMode, HI_U32 u32Align)
+{
+    HI_U32 u32Size = 0;
+
+    u32Size =  ALIGN_UP(u32Width, 128) * ALIGN_UP(u32Height, 64) * 2;
+
+    return u32Size;
+}
+
+
+
+__inline static HI_U32 VDEC_GetPicBufferSize(PAYLOAD_TYPE_E enType, HI_U32 u32Width,
+        HI_U32 u32Height, PIXEL_FORMAT_E enPixelFormat, DATA_BITWIDTH_E enBitWidth, HI_U32 u32Align)
+{
+    HI_U32 u32AlignWidth, u32AlignHeight;
+    HI_U32 u32Size = 0;
+
+    if (PT_H264 == enType)
+    {
+        u32AlignWidth  = ALIGN_UP(u32Width, H264D_ALIGN_W);
+        u32AlignHeight = ALIGN_UP(u32Height, H264D_ALIGN_H);
+        u32Size = ( (u32AlignWidth * u32AlignHeight ) * 3 ) >> 1;
+    }
+    else if (PT_H265 == enType)
+    {
+        u32AlignWidth  = ALIGN_UP(u32Width, H265D_ALIGN_W);
+        u32AlignHeight = ALIGN_UP(u32Height, H265D_ALIGN_H);
+        u32Size = ( (u32AlignWidth * u32AlignHeight) * 3 ) >> 1;
+    }
+    else if ( (PT_JPEG == enType) || (PT_MJPEG == enType))
+    {
+        /* for PIXEL_FORMAT_YVU_SEMIPLANAR_420 */
+        u32AlignWidth  = ALIGN_UP(u32Width, JPEGD_ALIGN_W);
+        u32AlignHeight = ALIGN_UP(u32Height, JPEGD_ALIGN_H);
+        u32Size = (u32AlignWidth * u32AlignHeight * 3) >> 1;
+    }
+    else
+    {
+        u32Size = 0;
+    }
+
+    return u32Size;
+}
+
+
+__inline static HI_U32 VDEC_GetTmvBufferSize(PAYLOAD_TYPE_E enType, HI_U32 u32Width, HI_U32 u32Height)
+{
+    HI_U32 WidthInMb, HeightInMb;
+    HI_U32 ColMbSize;
+    HI_U32 u32Size = 0;
+
+    if (PT_H264 == enType)
+    {
+        WidthInMb  = ALIGN_UP(u32Width, 16) >> 4;
+        HeightInMb = ALIGN_UP(u32Height, 16) >> 4;
+        ColMbSize  = 16 * 4;
+        u32Size    = ALIGN_UP((ColMbSize * WidthInMb * HeightInMb), 128);
+    }
+    else if (PT_H265 == enType)
+    {
+        WidthInMb  = ALIGN_UP(u32Width, 64) >> 4;
+        HeightInMb = ALIGN_UP(u32Height, 64) >> 4;
+        ColMbSize  = 4 * 4;
+        u32Size    = ALIGN_UP((ColMbSize * WidthInMb * HeightInMb), 128);
+    }
+    else
+    {
+        u32Size = 0;
+    }
+
+    return u32Size;
+}
+
 
 __inline static HI_U32 VENC_GetRefPicInfoBufferSize(PAYLOAD_TYPE_E enType,HI_U32 u32Width, HI_U32 u32Height, HI_U32 u32Align)
 {
@@ -340,37 +374,39 @@ __inline static HI_U32 VENC_GetRefPicInfoBufferSize(PAYLOAD_TYPE_E enType,HI_U32
     HI_U32 u32TmvSize,u32PmeSize,u32PmeInfoSize;
 
 
-    if ((0 == u32Width) || (0 == u32Height))
+    if( (0 == u32Width) || (0 == u32Height) )
     {
         return 0;
     }
 
     if(PT_H265 == enType)
     {
-        u32AlignWidth  = ALIGN_UP(u32Width,32)>>5;
-        u32AlignHeight = ALIGN_UP(u32Height,32)>>5;
+        u32AlignWidth  = ALIGN_UP(u32Width,64)>>6;
+        u32AlignHeight = ALIGN_UP(u32Height,64)>>6;
 
-        u32TmvSize = ALIGN_UP(u32AlignWidth * u32AlignHeight, 2) * 16;
-        u32PmeSize = (u32AlignWidth<<3) * (u32AlignHeight<<3);
+        u32TmvSize = u32AlignWidth * u32AlignHeight <<8;
+        u32PmeSize = (u32AlignWidth<<4) * (u32AlignHeight<<4);
 
-        u32AlignWidth  = ALIGN_UP(u32Width,512)>>9;
-        u32AlignHeight = ALIGN_UP(u32Height,32)>>5;
-        u32PmeInfoSize = (u32AlignWidth * u32AlignHeight)<<3;
+        u32AlignWidth  = ALIGN_UP(u32Width,1024)>>10;
+        u32AlignHeight = ALIGN_UP(u32Height,64)>>6;
+        u32PmeInfoSize = (u32AlignWidth * u32AlignHeight)<<5;
 
         u32Size = u32TmvSize + u32PmeSize + u32PmeInfoSize;
 
     }
     else if(PT_H264 == enType)
     {
-        u32TmvSize =  0;
-
-        u32AlignWidth  = ALIGN_UP(u32Width,64) / 4;
-        u32AlignHeight = ALIGN_UP(u32Height,16) / 4;
-        u32PmeSize = u32AlignWidth * u32AlignHeight;
-
-        u32AlignWidth  = ALIGN_UP(u32Width,1024)>>10;
+        u32AlignWidth  = ALIGN_UP(u32Width,16)>>4;
         u32AlignHeight = ALIGN_UP(u32Height,16)>>4;
-        u32PmeInfoSize =  (u32AlignWidth*u32AlignHeight)<<3;
+        u32TmvSize =  u32AlignWidth * u32AlignHeight <<5;
+
+        u32AlignWidth  = ALIGN_UP(u32Width,64)>>6;
+        u32AlignHeight = ALIGN_UP(u32Height,64)>>6;
+        u32PmeSize =  (u32AlignWidth<<4)*(u32AlignHeight<<4);
+
+        u32AlignWidth  = ALIGN_UP(u32Width,4096)>>12;
+        u32AlignHeight = ALIGN_UP(u32Height,16)>>4;
+        u32PmeInfoSize =  (u32AlignWidth*u32AlignHeight)<<5;
 
         u32Size =  u32TmvSize + u32PmeSize + u32PmeInfoSize;
     }
@@ -378,7 +414,6 @@ __inline static HI_U32 VENC_GetRefPicInfoBufferSize(PAYLOAD_TYPE_E enType,HI_U32
     {
         u32Size = 0;
     }
-
     return u32Size;
 }
 
@@ -408,9 +443,9 @@ __inline static HI_U32 VENC_GetRefBufferSize(PAYLOAD_TYPE_E enType, HI_U32 u32Wi
     if(PT_H265 == enType)
     {
         u32AlignWidth  = ALIGN_UP(u32Width, 128);
-        u32AlignHeight = ALIGN_UP(u32Height,32);
+        u32AlignHeight = ALIGN_UP(u32Height,64)>>6;
 
-        u32YHeaderSize = ((u32AlignWidth>>7)<<4) * ((u32AlignHeight>>5)+1);
+        u32YHeaderSize = u32AlignWidth/64*32*u32AlignHeight;
         u32CHeaderSize = u32YHeaderSize;
 
         u32AlignWidth  = ALIGN_UP(u32Width, 64);
@@ -418,13 +453,14 @@ __inline static HI_U32 VENC_GetRefBufferSize(PAYLOAD_TYPE_E enType, HI_U32 u32Wi
         u32YSize       = (u32AlignWidth * u32AlignHeight*u32BitWidth)>>3;
         u32CSize       = u32YSize>>1;
 
+
         u32Size = u32YHeaderSize + u32CHeaderSize + u32YSize + u32CSize;
     }
     else if(PT_H264 == enType)
     {
-        u32AlignWidth  = ALIGN_UP(u32Width, 256);
-        u32AlignHeight = ALIGN_UP(u32Height, 16);
-        u32YHeaderSize  = ((u32AlignWidth>>8)<<4) * ((u32AlignHeight>>4)+1);
+        u32AlignWidth  = ALIGN_UP(u32Width, 512);
+        u32AlignHeight = ALIGN_UP(u32Height, 16)>>4;
+        u32YHeaderSize  = ((u32AlignWidth>>8)<<4)*u32AlignHeight ;
         u32CHeaderSize  = u32YHeaderSize;
 
         u32AlignWidth  = ALIGN_UP(u32Width, 64);
@@ -445,7 +481,7 @@ __inline static HI_U32 VENC_GetRefBufferSize(PAYLOAD_TYPE_E enType, HI_U32 u32Wi
 
 __inline static HI_U32  VENC_GetQpmapSizeStride(HI_U32 u32Width)
 {
-    return DIV_UP(u32Width, 128) * 8;
+    return DIV_UP(u32Width, 512) * 32;
 }
 
 __inline static HI_U32  VENC_GetQpmapSize(HI_U32 u32Width,HI_U32 u32Height)
@@ -464,11 +500,11 @@ __inline static HI_U32  VENC_GetSkipWeightSizeStride(PAYLOAD_TYPE_E enType,HI_U3
 
     if(PT_H265 == enType)
     {
-        u32Stride =  DIV_UP(u32Width, 512) * 8;
+        u32Stride =  DIV_UP(u32Width, 2048) * 16;
     }
     else if(PT_H264 == enType)
     {
-        u32Stride =  DIV_UP(u32Width, 256) * 8;
+        u32Stride =  DIV_UP(u32Width, 512) * 16;
     }
     else
     {
@@ -485,7 +521,7 @@ __inline static HI_U32  VENC_GetSkipWeightSize(PAYLOAD_TYPE_E enType,HI_U32 u32W
 
     if(PT_H265 == enType)
     {
-        u32AlignHeight = DIV_UP(u32Height,32);
+        u32AlignHeight = DIV_UP(u32Height,64);
     }
     else if(PT_H264 == enType)
     {

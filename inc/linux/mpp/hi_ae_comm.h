@@ -168,8 +168,6 @@ typedef struct hiAE_SENSOR_DEFAULT_S
 
     HI_U16 u16ISOCalCoef;
     HI_U8  u8AERunInterval;
-    HI_U32 u32ExpRatioMax;
-    HI_U32 u32ExpRatioMin;
 } AE_SENSOR_DEFAULT_S;
 
 typedef struct hiAE_FSWDR_ATTR_S

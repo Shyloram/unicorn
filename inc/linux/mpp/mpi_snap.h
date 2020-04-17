@@ -41,6 +41,13 @@ HI_S32 HI_MPI_SNAP_SetProBNRParam(VI_PIPE ViPipe, const ISP_PRO_BNR_PARAM_S *pst
 HI_S32 HI_MPI_SNAP_GetProBNRParam(VI_PIPE ViPipe, ISP_PRO_BNR_PARAM_S *pstNrParma);
 
 
+HI_S32 HI_MPI_SNAP_SetBNRRawDumpAttr(VI_PIPE ViPipe, const BNR_DUMP_ATTR_S* pstBnrDumpAttr);
+HI_S32 HI_MPI_SNAP_GetBNRRawDumpAttr(VI_PIPE ViPipe, BNR_DUMP_ATTR_S* pstBnrDumpAttr);
+
+HI_S32 HI_MPI_SNAP_GetBNRRaw(VI_PIPE ViPipe, VIDEO_FRAME_INFO_S *pstVideoFrame, HI_S32 s32MilliSec);
+HI_S32 HI_MPI_SNAP_ReleaseBNRRaw(VI_PIPE ViPipe, const VIDEO_FRAME_INFO_S *pstVideoFrame);
+
+
 #ifdef __cplusplus
 #if __cplusplus
 }

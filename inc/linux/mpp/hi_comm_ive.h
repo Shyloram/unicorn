@@ -7,7 +7,7 @@
   Version       : Initial Draft
   Author        : Hisilicon multimedia software (IVE) group
   Created       : 2011/05/16
-  Description   :
+  Description   : 
   1.Date        : 2011/05/16
     Modification: Created file
 
@@ -35,7 +35,6 @@ extern "C"{
 typedef unsigned char           HI_U0Q8;
 typedef unsigned char           HI_U1Q7;
 typedef unsigned char           HI_U5Q3;
-typedef unsigned char           HI_U3Q5;
 
 /*--u16bit---------------------------------------*/
 typedef unsigned short          HI_U0Q16;
@@ -47,8 +46,6 @@ typedef unsigned short          HI_U12Q4;
 typedef unsigned short          HI_U14Q2;
 typedef unsigned short			HI_U5Q11;
 typedef unsigned short 			HI_U1Q15;
-typedef unsigned short 			HI_U2Q14;
-typedef HI_U6Q10                HI_UFP16;
 /*--s16bit---------------------------------------*/
 typedef short                   HI_S9Q7;
 typedef short                   HI_S14Q2;
@@ -59,17 +56,12 @@ typedef unsigned int            HI_U22Q10;
 typedef unsigned int            HI_U25Q7;
 typedef unsigned int			HI_U21Q11;
 typedef unsigned int            HI_U14Q18;
-typedef unsigned int			HI_U8Q24;
-typedef unsigned int			HI_U4Q28;
+
 
 /*--s32bit---------------------------------------*/
 typedef int                     HI_S25Q7;
 typedef int                     HI_S16Q16;
 typedef int                     HI_S14Q18;
-typedef int                     HI_S20Q12;
-
-typedef int                     HI_S24Q8;
-
 
 /*-----------------------------------------------*
  * The fixed-point data type combine with flag_bits.*
@@ -98,7 +90,7 @@ typedef enum hiIVE_IMAGE_TYPE_E
 	IVE_IMAGE_TYPE_U8C3_PACKAGE   =  0xa,
 	IVE_IMAGE_TYPE_U8C3_PLANAR    =  0xb,
 
-	IVE_IMAGE_TYPE_S32C1          =  0xc,
+	IVE_IMAGE_TYPE_S32C1          =  0xc,		
 	IVE_IMAGE_TYPE_U32C1          =  0xd,
 
 	IVE_IMAGE_TYPE_S64C1          =  0xe,
@@ -114,7 +106,7 @@ typedef struct hiIVE_IMAGE_S
     HI_U64  au64PhyAddr[3]; /* RW;The physical address of the image */
 	HI_U64  au64VirAddr[3]; /* RW;The virtual address of the image */
 	HI_U32  au32Stride[3];  /* RW;The stride of the image */
-	HI_U32  u32Width;       /* RW;The width of the image */
+	HI_U32  u32Width;       /* RW;The width of the image */    
 	HI_U32  u32Height;      /* RW;The height of the image */
     IVE_IMAGE_TYPE_E  enType; /* RW;The type of the image */
 }IVE_IMAGE_S;
@@ -155,7 +147,7 @@ typedef union hiIVE_8BIT_U
 {
 	HI_S8 s8Val;
 	HI_U8 u8Val;
-}IVE_8BIT_U;
+}IVE_8BIT_U;	
 
 /* Definition of u16 point */
 typedef struct hiIVE_POINT_U16_S
@@ -182,15 +174,6 @@ typedef struct hiIVE_POINT_S25Q7_S
     HI_S25Q7     s25q7Y;  /* RW;The Y coordinate of the point */
 }IVE_POINT_S25Q7_S;
 
-/*
-*Point u14q2
-*/
-typedef struct hiIVE_POINT_U14Q2_S
-{
-	HI_U14Q2 u14q2X;
-	HI_U14Q2 u14q2Y;
-}IVE_POINT_U14Q2_S;
-
 /* Definition of rectangle */
 typedef struct hiIVE_RECT_U16_S
 {
@@ -199,14 +182,6 @@ typedef struct hiIVE_RECT_U16_S
     HI_U16 u16Width;    /* RW;The width of the rectangle */
     HI_U16 u16Height;   /* RW;The height of the rectangle */
 }IVE_RECT_U16_S;
-
-typedef struct hiIVE_RECT_U32_S
-{
-    HI_U32 u32X;        /* RW;The location of X axis of the rectangle */
-    HI_U32 u32Y;        /* RW;The location of Y axis of the rectangle */
-    HI_U32 u32Width;    /* RW;The width of the rectangle */
-    HI_U32 u32Height;   /* RW;The height of the rectangle */
-}IVE_RECT_U32_S;
 
 typedef struct hiIVE_LOOK_UP_TABLE_S
 {
@@ -219,73 +194,6 @@ typedef struct hiIVE_LOOK_UP_TABLE_S
     HI_S32 s32TabInLower;       /* RW;LUT's original input lower limit*/
     HI_S32 s32TabInUpper;       /* RW;LUT's original input upper limit*/
 }IVE_LOOK_UP_TABLE_S;
-
-/*Blob type*/
-typedef enum hiIVE_BLOB_TYPE_E
-{
-    IVE_BLOB_TYPE_S32       =  0x0,
-
-    IVE_BLOB_TYPE_U8        =  0x1,
-
-    /*channel = 3*/
-    IVE_BLOB_TYPE_YVU420SP  =  0x2,
-    /*channel = 3*/
-    IVE_BLOB_TYPE_YVU422SP  =  0x3,
-
-    IVE_BLOB_TYPE_VEC_S32   =  0x4,
-
-    IVE_BLOB_TYPE_SEQ_S32   =  0x5,
-
-    IVE_BLOB_TYPE_U16       =  0x6,
-
-    IVE_BLOB_TYPE_S8        =  0x7,
-
-    IVE_BLOB_TYPE_F32       =  0x8,
-
-    IVE_BLOB_TYPE_BUTT
-}IVE_BLOB_TYPE_E;
-
-/****************************** Blob struct ******************************
-In Caffe, the blob contain shape info as the following order:
-Image\FeatureMap:               N       C       H       W
-FC(normal vector):              N       C
-RNN\LSTM(Recurrent) vector:     T       N       D
-
-The relationship of the following blob struct with Caffe blob is as follows:
-Image\FeatureMap:               Num    Chn    Height   With
-FC(VEC_S32):                    Num    Width
-RNN\LSTM(SEQ_S32) vector:       Step   Num     Dim
-The stride, which measuring unit is byte, is always algined by the width or
-dim direction.
-**************************************************************************/
-typedef struct hiIVE_BLOB_S
-{
-    IVE_BLOB_TYPE_E enType;     /*Blob type*/
-    HI_U32 u32Stride;           /*Stride, a line bytes num*/
-
-    HI_U64 u64VirAddr;          /*virtual addr*/
-    HI_U64 u64PhyAddr;          /*physical addr*/
-
-    HI_U32      u32Num;         /*N: frame num or sequence num,correspond to caffe blob's n*/
-    union
-    {
-        struct
-        {
-            HI_U32 u32Width;    /*W: frame width, correspond to caffe blob's w*/
-            HI_U32 u32Height;   /*H: frame height, correspond to caffe blob's h*/
-            HI_U32 u32Chn;      /*C: frame channel,correspond to caffe blob's c*/
-        }stWhc;
-        struct
-        {
-            HI_U32 u32Dim;          /*D: vecotr dimension*/
-            HI_U64 u64VirAddrStep;  /*T: virtual adress of   time steps array in each sequence*/
-        }stSeq;
-    }unShape;
-
-}IVE_BLOB_S;
-
-typedef IVE_BLOB_S  IVE_SRC_BLOB_S;
-typedef IVE_BLOB_S  IVE_DST_BLOB_S;
 
 typedef enum hiEN_IVE_ERR_CODE_E
 {

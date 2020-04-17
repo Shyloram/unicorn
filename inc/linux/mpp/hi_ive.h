@@ -7,7 +7,7 @@
   Version       : Initial Draft
   Author        : Hisilicon multimedia software (IVE) group
   Created       : 2014/08/05
-  Description   :
+  Description   : 
   1.Date        : 2013/07/01~2014/08/05
     Modification: Created file
 ******************************************************************************/
@@ -65,13 +65,13 @@ typedef struct hiIVE_FILTER_CTRL_S
     HI_U8 u8Norm;             /*Normalization parameter, by right shift*/
 }IVE_FILTER_CTRL_S;
 
-/*
+/* 
 * CSC working mode.
 * Modified by Tan Bing, 2013-7-22.
 */
 typedef enum hiIVE_CSC_MODE_E
 {
-    IVE_CSC_MODE_VIDEO_BT601_YUV2RGB =  0x0,	/*CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]*/
+    IVE_CSC_MODE_VIDEO_BT601_YUV2RGB =  0x0,	/*CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]*/    
     IVE_CSC_MODE_VIDEO_BT709_YUV2RGB =  0x1,	/*CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]*/
     IVE_CSC_MODE_PIC_BT601_YUV2RGB   =  0x2,	/*CSC: YUV2RGB, picture transfer mode, RGB value range [0, 255]*/
     IVE_CSC_MODE_PIC_BT709_YUV2RGB   =  0x3,	/*CSC: YUV2RGB, picture transfer mode, RGB value range [0, 255]*/
@@ -141,7 +141,7 @@ typedef struct hiIVE_SOBEL_CTRL_S
 */
 typedef enum hiIVE_MAG_AND_ANG_OUT_CTRL_E
 {
-    IVE_MAG_AND_ANG_OUT_CTRL_MAG          =  0x0,      /*Only the magnitude is output.*/
+    IVE_MAG_AND_ANG_OUT_CTRL_MAG          =  0x0,      /*Only the magnitude is output.*/    
     IVE_MAG_AND_ANG_OUT_CTRL_MAG_AND_ANG  =  0x1,      /*The magnitude and angle are output.*/
     IVE_MAG_AND_ANG_OUT_CTRL_BUTT
 }IVE_MAG_AND_ANG_OUT_CTRL_E;
@@ -181,9 +181,9 @@ typedef enum hiIVE_THRESH_MODE_E
     IVE_THRESH_MODE_BINARY       =  0x0,  /*srcVal <= lowThr, dstVal = minVal; srcVal > lowThr, dstVal = maxVal.*/
     IVE_THRESH_MODE_TRUNC        =  0x1,  /*srcVal <= lowThr, dstVal = srcVal; srcVal > lowThr, dstVal = maxVal.*/
     IVE_THRESH_MODE_TO_MINVAL    =  0x2,  /*srcVal <= lowThr, dstVal = minVal; srcVal > lowThr, dstVal = srcVal.*/
-
+	
 	IVE_THRESH_MODE_MIN_MID_MAX  =  0x3,  /*srcVal <= lowThr, dstVal = minVal;  lowThr < srcVal <= highThr, dstVal = midVal; srcVal > highThr, dstVal = maxVal.*/
-	IVE_THRESH_MODE_ORI_MID_MAX  =  0x4,  /*srcVal <= lowThr, dstVal = srcVal;  lowThr < srcVal <= highThr, dstVal = midVal; srcVal > highThr, dstVal = maxVal.*/
+	IVE_THRESH_MODE_ORI_MID_MAX  =  0x4,  /*srcVal <= lowThr, dstVal = srcVal;  lowThr < srcVal <= highThr, dstVal = midVal; srcVal > highThr, dstVal = maxVal.*/     
 	IVE_THRESH_MODE_MIN_MID_ORI  =  0x5,  /*srcVal <= lowThr, dstVal = minVal;  lowThr < srcVal <= highThr, dstVal = midVal; srcVal > highThr, dstVal = srcVal.*/
 	IVE_THRESH_MODE_MIN_ORI_MAX  =  0x6,  /*srcVal <= lowThr, dstVal = minVal;  lowThr < srcVal <= highThr, dstVal = srcVal; srcVal > highThr, dstVal = maxVal.*/
 	IVE_THRESH_MODE_ORI_MID_ORI  =  0x7,  /*srcVal <= lowThr, dstVal = srcVal;  lowThr < srcVal <= highThr, dstVal = midVal; srcVal > highThr, dstVal = srcVal.*/
@@ -197,7 +197,7 @@ typedef enum hiIVE_THRESH_MODE_E
 */
 typedef struct hiIVE_THRESH_CTRL_S
 {
-    IVE_THRESH_MODE_E enMode;
+    IVE_THRESH_MODE_E enMode; 
     HI_U8 u8LowThr;			/*user-defined threshold,  0<=u8LowThr<=255 */
 	HI_U8 u8HighThr;		/*user-defined threshold, if enMode<IVE_THRESH_MODE_MIN_MID_MAX, u8HighThr is not used, else 0<=u8LowThr<=u8HighThr<=255;*/
     HI_U8 u8MinVal;			/*Minimum value when tri-level thresholding*/
@@ -211,7 +211,7 @@ typedef struct hiIVE_THRESH_CTRL_S
 typedef enum hiIVE_SUB_MODE_E
 {
     IVE_SUB_MODE_ABS	=  0x0,	  /*Absolute value of the difference*/
-    IVE_SUB_MODE_SHIFT  =  0x1,   /*The output result is obtained by shifting the result one digit right to reserve the signed bit.*/
+    IVE_SUB_MODE_SHIFT  =  0x1,   /*The output result is obtained by shifting the result one digit right to reserve the signed bit.*/ 
     IVE_SUB_MODE_BUTT
 }IVE_SUB_MODE_E;
 
@@ -239,9 +239,9 @@ typedef enum hiIVE_INTEG_OUT_CTRL_E
 /*
 * Integ control parameters,Create by Chen Quanfu 2013-07-15
 */
-typedef struct hiIVE_INTEG_CTRL_S
-{
-	IVE_INTEG_OUT_CTRL_E enOutCtrl;
+typedef struct hiIVE_INTEG_CTRL_S 
+{ 
+	IVE_INTEG_OUT_CTRL_E enOutCtrl; 
 }IVE_INTEG_CTRL_S;
 
 /*
@@ -287,11 +287,11 @@ typedef enum hiIVE_THRESH_U16_MODE_E
 typedef struct hiIVE_THRESH_U16_CTRL_S
 {
     IVE_THRESH_U16_MODE_E enMode;
-    HI_U16 u16LowThr;
+    HI_U16 u16LowThr; 
     HI_U16 u16HighThr;
-    HI_U8  u8MinVal;
+    HI_U8  u8MinVal; 
     HI_U8  u8MidVal;
-    HI_U8  u8MaxVal;
+    HI_U8  u8MaxVal; 
 }IVE_THRESH_U16_CTRL_S;
 
 /*
@@ -314,41 +314,41 @@ typedef struct hiIVE_16BIT_TO_8BIT_CTRL_S
 {
 	IVE_16BIT_TO_8BIT_MODE_E enMode;
  	HI_U16 u16Denominator;
-	HI_U8  u8Numerator;
+	HI_U8  u8Numerator; 
 	HI_S8  s8Bias;
 }IVE_16BIT_TO_8BIT_CTRL_S;
 
 /*
 *Type of the OrdStaFilter
 */
-typedef enum hiIVE_ORD_STAT_FILTER_MODE_E
-{
+typedef enum hiIVE_ORD_STAT_FILTER_MODE_E 
+{ 
     IVE_ORD_STAT_FILTER_MODE_MEDIAN  =  0x0,
     IVE_ORD_STAT_FILTER_MODE_MAX     =  0x1,
     IVE_ORD_STAT_FILTER_MODE_MIN     =  0x2,
 
-    IVE_ORD_STAT_FILTER_MODE_BUTT
+    IVE_ORD_STAT_FILTER_MODE_BUTT 
 }IVE_ORD_STAT_FILTER_MODE_E;
 
 /*
 *OrdStaFilter control parameters
 */
-typedef struct hiIVE_ORD_STAT_FILTER_CTRL_S
-{
+typedef struct hiIVE_ORD_STAT_FILTER_CTRL_S 
+{ 
     IVE_ORD_STAT_FILTER_MODE_E enMode;
 
-}IVE_ORD_STAT_FILTER_CTRL_S;
+}IVE_ORD_STAT_FILTER_CTRL_S; 
 
 /*
 *Type of the Map
 */
-typedef enum hiIVE_MAP_MODE_E
-{
+typedef enum hiIVE_MAP_MODE_E 
+{ 
     IVE_MAP_MODE_U8  =  0x0,
     IVE_MAP_MODE_S16 =  0x1,
     IVE_MAP_MODE_U16 =  0x2,
 
-    IVE_MAP_MODE_BUTT
+    IVE_MAP_MODE_BUTT 
 }IVE_MAP_MODE_E;
 /*
 * Map control struct
@@ -441,12 +441,12 @@ typedef struct hiIVE_CCBLOB_S
 /*
 *Type of the CCL
 */
-typedef enum hiIVE_CCL_MODE_E
-{
+typedef enum hiIVE_CCL_MODE_E 
+{ 
 	IVE_CCL_MODE_4C  =  0x0,/*4-connected*/
 	IVE_CCL_MODE_8C  =  0x1,/*8-connected*/
 
-	IVE_CCL_MODE_BUTT
+	IVE_CCL_MODE_BUTT 
 }IVE_CCL_MODE_E;
 /*
 *CCL control struct
@@ -476,29 +476,29 @@ typedef struct hiIVE_GMM_CTRL_S
 /*
 *Type of the GMM2 sensitivity factor mode
 */
-typedef enum hiIVE_GMM2_SNS_FACTOR_MODE_E
-{
+typedef enum hiIVE_GMM2_SNS_FACTOR_MODE_E 
+{ 
 	IVE_GMM2_SNS_FACTOR_MODE_GLB   =  0x0,   /*Global sensitivity factor mode*/
 	IVE_GMM2_SNS_FACTOR_MODE_PIX   =  0x1,   /*Pixel sensitivity factor mode*/
 
-	IVE_GMM2_SNS_FACTOR_MODE_BUTT
+	IVE_GMM2_SNS_FACTOR_MODE_BUTT 
 }IVE_GMM2_SNS_FACTOR_MODE_E;
 
 /*
 *Type of the GMM2 life update factor mode
 */
-typedef enum hiIVE_GMM2_LIFE_UPDATE_FACTOR_MODE_E
-{
+typedef enum hiIVE_GMM2_LIFE_UPDATE_FACTOR_MODE_E 
+{ 
 	IVE_GMM2_LIFE_UPDATE_FACTOR_MODE_GLB  =  0x0, /*Global life update factor mode*/
 	IVE_GMM2_LIFE_UPDATE_FACTOR_MODE_PIX  =  0x1, /*Pixel life update factor mode*/
 
-	IVE_GMM2_LIFE_UPDATE_FACTOR_MODE_BUTT
+	IVE_GMM2_LIFE_UPDATE_FACTOR_MODE_BUTT 
 }IVE_GMM2_LIFE_UPDATE_FACTOR_MODE_E ;
 
 /*
 *GMM2 control struct
 */
-typedef struct hiIVE_GMM2_CTRL_S
+typedef struct hiIVE_GMM2_CTRL_S 
 {
 	IVE_GMM2_SNS_FACTOR_MODE_E			enSnsFactorMode;		  /*Sensitivity factor mode*/
 	IVE_GMM2_LIFE_UPDATE_FACTOR_MODE_E	enLifeUpdateFactorMode;   /*Life update factor mode*/
@@ -549,11 +549,11 @@ typedef enum hiIVE_LBP_CMP_MODE_E
 /*
 *LBP control struct
 */
-typedef struct hiIVE_LBP_CTRL_S
-{
+typedef struct hiIVE_LBP_CTRL_S 
+{ 
     IVE_LBP_CMP_MODE_E enMode;
     IVE_8BIT_U un8BitThr;
-}IVE_LBP_CTRL_S;
+}IVE_LBP_CTRL_S; 
 
 /*
 *Type of the GradientFilter output format
@@ -598,7 +598,7 @@ typedef struct hiIVE_LK_OPTICAL_FLOW_PYR_CTRL_S
 {
 	IVE_LK_OPTICAL_FLOW_PYR_OUT_MODE_E enOutMode;
     HI_BOOL     bUseInitFlow;		/*where to use initial flow*/
-    HI_U16	    u16PtsNum;		    /*Number of the feature points,<=500*/
+    HI_U16	    u16PtsNum;		    /*Number of the feature points,<=500*/ 
     HI_U8       u8MaxLevel;         /*0<=u8MaxLevel<=3*/
     HI_U0Q8     u0q8MinEigThr;		/*Minimum eigenvalue threshold*/
     HI_U8	    u8IterCnt;          /*Maximum iteration times, <=20*/
@@ -640,8 +640,8 @@ typedef struct hiIVE_ST_CORNER_CTRL_S
 */
 typedef enum hiIVE_GRAD_FG_MODE_E
 {
-    IVE_GRAD_FG_MODE_USE_CUR_GRAD  =  0x0,
-    IVE_GRAD_FG_MODE_FIND_MIN_GRAD =  0x1,
+    IVE_GRAD_FG_MODE_USE_CUR_GRAD  =  0x0, 
+    IVE_GRAD_FG_MODE_FIND_MIN_GRAD =  0x1, 
 
     IVE_GRAD_FG_MODE_BUTT
 }IVE_GRAD_FG_MODE_E;
@@ -695,20 +695,20 @@ typedef struct hiIVE_BG_MODEL_PIX_S
 
 typedef struct hiIVE_FG_STAT_DATA_S
 {
-    HI_U32 u32PixNum;
+    HI_U32 u32PixNum;			
     HI_U32 u32SumLum;
     HI_U8  u8Reserved[8];
 }IVE_FG_STAT_DATA_S;
 
 typedef struct hiIVE_BG_STAT_DATA_S
 {
-    HI_U32 u32PixNum;
+    HI_U32 u32PixNum;			
     HI_U32 u32SumLum;
     HI_U8  u8Reserved[8];
 }IVE_BG_STAT_DATA_S;
 
 typedef struct hiIVE_MATCH_BG_MODEL_CTRL_S
-{
+{	
     HI_U32 u32CurFrmNum;		/*Current frame timestamp, in frame units */
     HI_U32 u32PreFrmNum;		/*Previous frame timestamp, in frame units */
     HI_U16 u16TimeThr;			/*Potential background replacement time threshold (range: 2 to 100 frames; default: 20) */
@@ -775,16 +775,16 @@ typedef struct hiIVE_ANN_MLP_MODEL_S
     HI_U8 u8Reserved;
 }IVE_ANN_MLP_MODEL_S;
 
-typedef enum hiIVE_SVM_TYPE_E
-{
+typedef enum hiIVE_SVM_TYPE_E 
+{ 
     IVE_SVM_TYPE_C_SVC   = 0x0,
     IVE_SVM_TYPE_NU_SVC  = 0x1,
 
     IVE_SVM_TYPE_BUTT
 }IVE_SVM_TYPE_E;
 
-typedef enum hiIVE_SVM_KERNEL_TYPE_E
-{
+typedef enum hiIVE_SVM_KERNEL_TYPE_E 
+{ 
     IVE_SVM_KERNEL_TYPE_LINEAR  = 0x0,
     IVE_SVM_KERNEL_TYPE_POLY    = 0x1,
     IVE_SVM_KERNEL_TYPE_RBF     = 0x2,
@@ -802,7 +802,7 @@ typedef struct hiIVE_SVM_MODEL_S
     IVE_MEM_INFO_S  stDf;       /*Decision functions memory*/
     HI_U32 u32TotalDfSize;      /*All decision functions coef size in byte*/
 
-    HI_U16 u16FeatureDim;
+    HI_U16 u16FeatureDim;	
     HI_U16 u16SvTotal;
     HI_U8  u8ClassCount;
 }IVE_SVM_MODEL_S;
@@ -815,7 +815,7 @@ typedef enum hiIVE_SAD_MODE_E
 	IVE_SAD_MODE_MB_4X4		= 0x0, /*4x4*/
 	IVE_SAD_MODE_MB_8X8		= 0x1, /*8x8*/
 	IVE_SAD_MODE_MB_16X16	= 0x2, /*16x16*/
-
+	
 	IVE_SAD_MODE_BUTT
 }IVE_SAD_MODE_E;
 /*
@@ -841,7 +841,7 @@ typedef struct hiIVE_SAD_CTRL_S
 	HI_U16 u16Thr;				/*srcVal <= u16Thr, dstVal = minVal; srcVal > u16Thr, dstVal = maxVal.*/
 	HI_U8 u8MinVal;				/*Min value*/
 	HI_U8 u8MaxVal;				/*Max value*/
-}IVE_SAD_CTRL_S;
+}IVE_SAD_CTRL_S; 
 
 /*
 * Resize zoom mode
@@ -859,7 +859,7 @@ typedef enum hiIVE_RESIZE_MODE_E
 */
 typedef struct hiIVE_RESIZE_CTRL_S
 {
-	IVE_RESIZE_MODE_E enMode;
+	IVE_RESIZE_MODE_E enMode;	
     IVE_MEM_INFO_S stMem;
 	HI_U16  u16Num;
 }IVE_RESIZE_CTRL_S;
@@ -899,8 +899,8 @@ typedef struct hiIVE_CNN_CONV_POOLING_S
 	HI_U8  u8FeatureMapNum;	    /*Number of feature maps*/
     HI_U8  u8KernelSize;		/*Kernel size, only support 3 currently*/
     HI_U8  u8ConvStep;			/*Convolution step, only support 1 currently*/
-
-    HI_U8  u8PoolSize;			/*Pooling size, only support 2 currently*/
+    
+    HI_U8  u8PoolSize;			/*Pooling size, only support 2 currently*/ 
     HI_U8  u8PoolStep;			/*Pooling step, only support 2 currently*/
     HI_U8  u8Reserved[3];
 
@@ -914,7 +914,7 @@ typedef struct hiIVE_CNN_FULL_CONNECT_S
     HI_U16 au16LayerCnt[8];		/*Neuron number of every fully connected layers*/
     HI_U16 u16MaxCnt;			/*Max neuron number in all fully connected layers*/
     HI_U8 u8LayerNum;			/*Number of fully connected layer*/
-    HI_U8 u8Reserved;
+    HI_U8 u8Reserved;    
 }IVE_CNN_FULL_CONNECT_S;
 
 /*
@@ -959,164 +959,6 @@ typedef struct hiIVE_CNN_RESULT_S
     HI_S32 s32ClassIdx;     /*The most possible index of the classification*/
     HI_S32 s32Confidence;   /*The confidence of the classification*/
 }IVE_CNN_RESULT_S;
-
-/*
-* Perspective transform algorithm mode
-*/
-typedef enum hiIVE_PERSP_TRANS_ALG_MODE_E
-{
-	IVE_PERSP_TRANS_ALG_MODE_NR_SIM =  0x0,	/*Non-reflective similarity transform mode*/
-	IVE_PERSP_TRANS_ALG_MODE_SIM    =  0x1,	/*Reflective similarity transform mode*/
-	IVE_PERSP_TRANS_ALG_MODE_AFFINE =  0x2,	/*Affine transform mode*/
-
-	IVE_PERSP_TRANS_ALG_MODE_BUTT
-}IVE_PERSP_TRANS_ALG_MODE_E;
-
-/*
-*Point pair
-*/
-typedef struct hiIVE_PERSP_TRANS_POINT_PAIR_S
-{
-	IVE_POINT_U14Q2_S stSrcPoint; /*Source point*/
-	IVE_POINT_U14Q2_S stDstPoint; /*Destination point*/
-}IVE_PERSP_TRANS_POINT_PAIR_S;
-
-/*
-* Perspective transform csc mode
-*/
-typedef enum hiIVE_PERSP_TRANS_CSC_MODE_E
-{
-	IVE_PERSP_TRANS_CSC_MODE_NONE                =  0x0,    /*No do csc*/
-	IVE_PERSP_TRANS_CSC_MODE_VIDEO_BT601_YUV2RGB =  0x1,	/*CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]*/
-	IVE_PERSP_TRANS_CSC_MODE_VIDEO_BT709_YUV2RGB =  0x2,	/*CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]*/
-	IVE_PERSP_TRANS_CSC_MODE_PIC_BT601_YUV2RGB   =  0x3,	/*CSC: YUV2RGB, picture transfer mode, RGB value range [0, 255]*/
-	IVE_PERSP_TRANS_CSC_MODE_PIC_BT709_YUV2RGB   =  0x4,	/*CSC: YUV2RGB, picture transfer mode, RGB value range [0, 255]*/
-
-	IVE_PERSP_TRANS_CSC_MODE_BUTT
-}IVE_PERSP_TRANS_CSC_MODE_E;
-
-/*
-*Perspective transform ctrl
-*/
-typedef struct hiIVE_PERSP_TRANS_CTRL_S
-{
-	IVE_PERSP_TRANS_ALG_MODE_E enAlgMode; /*Alg mode*/
-	IVE_PERSP_TRANS_CSC_MODE_E enCscMode; /*CSC mode*/
-	HI_U16 u16RoiNum;					  /*Roi number*/
-	HI_U16 u16PointPairNum;               /*Point pair number  */
-}IVE_PERSP_TRANS_CTRL_S;
-
-typedef	struct hiIVE_RECT_S24Q8_S
-{
-	HI_S24Q8 s24q8X;
-	HI_S24Q8 s24q8Y;
-	HI_U32 u32Width;
-	HI_U32 u32Height;
-}IVE_RECT_S24Q8_S;
-
-typedef	struct hiIVE_ROI_INFO_S
-{
-	IVE_RECT_S24Q8_S stRoi;
-	HI_U32 u32RoiId;
-}IVE_ROI_INFO_S;
-
-/* Kcf ctrl param */
-typedef struct hiIVE_KCF_PRO_CTRL_S
-{
-	IVE_CSC_MODE_E enCscMode;/* Only support:
-	                               IVE_CSC_MODE_VIDEO_BT601_YUV2RGB  CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]
-    			                      IVE_CSC_MODE_VIDEO_BT709_YUV2RGB  CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]
-                                   IVE_CSC_MODE_PIC_BT601_YUV2RGB  CSC: YUV2RGB, picture transfer mode, RGB value range [0, 255]
-                                   IVE_CSC_MODE_PIC_BT709_YUV2RGB  CSC: YUV2RGB, picture transfer mode, RGB value range [0, 255] */
-    IVE_MEM_INFO_S stTmpBuf;
-    HI_U1Q15 u1q15InterFactor; /* Blend coefficient. [0, 32768] */
-    HI_U0Q16 u0q16Lamda; /* The regularization coefficient. [0, 65535] */
-    HI_U4Q12 u4q12TrancAlfa; /* The normalization thresh. [0, 4095] */
-    HI_U0Q8 u0q8Sigma; /* The gaussian kernel bandwidth. [0, 255]  */
-    HI_U8 u8RespThr;
-}IVE_KCF_PRO_CTRL_S;
-
-typedef struct hiIVE_KCF_OBJ_S
-{
-    IVE_ROI_INFO_S stRoiInfo;
-    IVE_MEM_INFO_S stCosWinX;
-    IVE_MEM_INFO_S stCosWinY;
-    IVE_MEM_INFO_S stGaussPeak;
-    IVE_MEM_INFO_S stHogFeature;
-    IVE_MEM_INFO_S stAlpha;
-    IVE_MEM_INFO_S stDst;
-    HI_U3Q5 u3q5Padding; /* [48, 160]  */
-	HI_U8 au8Reserved[3];
-}IVE_KCF_OBJ_S;
-
-typedef struct hiIVE_LIST_HEAD_S
-{
-    struct hiIVE_LIST_HEAD_S *pstNext, *pstPrev;
-}IVE_LIST_HEAD_S;
-
-typedef struct hiIVE_KCF_OBJ_NODE_S
-{
-    IVE_LIST_HEAD_S stList;
-    IVE_KCF_OBJ_S stKcfObj;
-}IVE_KCF_OBJ_NODE_S;
-
-typedef enum hiIVE_KCF_LIST_STATE_E
-{
-	IVE_KCF_LIST_STATE_CREATE = 0x1,
-	IVE_KCF_LIST_STATE_DESTORY = 0x2,
-	IVE_KCF_LIST_STATE_BUTT
-}IVE_KCF_LIST_STATE_E;
-
-typedef struct hiIVE_KCF_OBJ_LIST_S
-{
-	IVE_KCF_OBJ_NODE_S *pstObjNodeBuf; /* The object list node address */
-	IVE_LIST_HEAD_S stFreeObjList;    /* The free list of object list */
-	IVE_LIST_HEAD_S stTrainObjList;   /* The training list of object list */
-	IVE_LIST_HEAD_S stTrackObjList;   /* The tracking list of object list */
-
-	HI_U32 u32FreeObjNum;           /* The numbers of free list */
-	HI_U32 u32TrainObjNum;          /* The numbers of training list */    
-	HI_U32 u32TrackObjNum;          /* The numbers of tracking list */        
-	HI_U32 u32MaxObjNum;            /* The maximum numbers of object list */
-	IVE_KCF_LIST_STATE_E enListState; /* The object list state */
-    HI_U8 *pu8TmpBuf;                /* Assist buffer */
-}IVE_KCF_OBJ_LIST_S;
-
-typedef struct hiIVE_KCF_BBOX_S
-{
-    IVE_KCF_OBJ_NODE_S *pstNode;
-    HI_S32 s32Response; /* Bbox Response value. */
-
-    IVE_ROI_INFO_S stRoiInfo;
-    HI_BOOL bTrackOk;
-    HI_BOOL bRoiRefresh;
-}IVE_KCF_BBOX_S;
-
-typedef struct hiIVE_KCF_BBOX_CTRL_S
-{
-    HI_U32 u32MaxBboxNum; /* The member numbers of Bbox Array. */
-    HI_S32 s32RespThr;  /* Select Bbox when Bbox'Response value is greater than or equal to RespThr. */
-}IVE_KCF_BBOX_CTRL_S;
-
-typedef enum hiIVE_HOG_MODE_E
-{
-	IVE_HOG_MODE_VERTICAL_TANGENT_PLANE     = 0x1,
-	IVE_HOG_MODE_HORIZONTAL_TANGENT_PLANE   = 0x2,
-	IVE_HOG_MODE_BUTT
-}IVE_HOG_MODE_E;
-
-typedef struct hiIVE_HOG_CTRL_S
-{
-	IVE_CSC_MODE_E enCscMode;/* Only support:
-                               IVE_CSC_MODE_VIDEO_BT601_YUV2RGB  CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]
-			                      IVE_CSC_MODE_VIDEO_BT709_YUV2RGB  CSC: YUV2RGB, video transfer mode, RGB value range [16, 235]
-                               IVE_CSC_MODE_PIC_BT601_YUV2RGB  CSC: YUV2RGB, picture transfer mode, RGB value range [0, 255]
-                               IVE_CSC_MODE_PIC_BT709_YUV2RGB  CSC: YUV2RGB, picture transfer mode, RGB value range [0, 255] */
-    IVE_HOG_MODE_E enHogMode; /* Hog mode */
-    HI_U32 u32RoiNum; /* Roi number. [1, 64] */
-    HI_U4Q12 u4q12TrancAlfa; /* The normalization thresh. [0, 4095] */
-    HI_U8 au8Rsv[2];
-}IVE_HOG_CTRL_S;
 
 #ifdef __cplusplus
 #if __cplusplus

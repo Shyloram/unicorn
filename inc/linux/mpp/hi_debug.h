@@ -54,12 +54,12 @@ typedef struct hiLOG_LEVEL_CONF_S
 #define HI_PRINT printf
 
 /* #ifdef HI_DEBUG */
-#ifdef CONFIG_HI_LOG_TRACE_SUPPORT
+#if 1
     /* Using samples:   HI_ASSERT(x>y); */
     #define HI_ASSERT(expr)               \
     do{                                   \
         if (!(expr)) {                    \
-            printf("\nASSERT at:\n"       \
+            printf("\nASSERT at:\n"\
                    "  >Function : %s\n"   \
                    "  >Line No. : %d\n"   \
                    "  >Condition: %s\n",  \
@@ -89,12 +89,12 @@ extern HI_S32 HI_ChkLogLevel(HI_S32 s32Levle, MOD_ID_E enModId);
 int HI_LOG(HI_S32 level, MOD_ID_E enModId,const char *fmt, ...) __attribute__((format(printf,3,4)));
 
 /* #ifdef HI_DEBUG */
-#ifdef CONFIG_HI_LOG_TRACE_SUPPORT
+#if 1
     /* Using samples:   HI_ASSERT(x>y); */
     #define HI_ASSERT(expr)               \
     do{                                   \
         if (!(expr)) {                    \
-            osal_panic("\nASSERT at:\n"   \
+            osal_panic("\nASSERT at:\n" \
                   "  >Function : %s\n"    \
                   "  >Line No. : %d\n"    \
                   "  >Condition: %s\n",   \

@@ -63,7 +63,7 @@ typedef struct hiSNAP_NORMAL_ATTR_S
 
     /* ZSL struct */
     HI_BOOL bZSL;           /* RW;statical attrs */
-    HI_U32  u32FrameDepth;  /* buffer depth: [1,8] */
+    HI_U32  u32FrameDepth;  /* buffer depth */
     HI_U32  u32RollbackMs;  /* RW;Rollback time, unit(ms), invalid when bZSL is HI_FALSE  */
     HI_U32  u32Interval;    /* RW;For continuous capture, select frame every u32Intercal frames */
 } SNAP_NORMAL_ATTR_S;
@@ -107,6 +107,12 @@ typedef struct hiISP_PRO_SHARPEN_PARAM_S
      HI_U32  u32ParamNum;
      ISP_SHARPEN_AUTO_ATTR_S *pastShpAttr;
 } ISP_PRO_SHARPEN_PARAM_S;
+
+typedef struct hiBNR_DUMP_ATTR_S
+{
+    HI_BOOL bEnable;
+    HI_U32  u32Depth;
+} BNR_DUMP_ATTR_S;
 
 #ifdef __cplusplus
 #if __cplusplus

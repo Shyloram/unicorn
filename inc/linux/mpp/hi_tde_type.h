@@ -27,7 +27,6 @@ extern "C" {
 #endif /* End of #ifdef __cplusplus */
 
 #include "hi_tde_errcode.h"
-
 /****************************************************************************/
 /*                             TDE2 types define                             */
 /****************************************************************************/
@@ -39,10 +38,8 @@ extern "C" {
 /**Definition of the TDE handle*/
 typedef HI_S32 TDE_HANDLE;
 
-
-typedef HI_VOID (* TDE_FUNC_CB) (HI_U32 enCallModId, HI_U32 u32CallDevId, HI_U32 u32CallChnId,
-                            HI_VOID* pJobData);
-
+/**TDE callback functions*/
+typedef HI_VOID (* TDE_FUNC_CB) (HI_VOID *pParaml, HI_VOID *pParamr);
 
 typedef HI_VOID (* TDE_TRIG_SEL)(HI_U32);
 

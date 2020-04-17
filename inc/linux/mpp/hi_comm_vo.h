@@ -426,11 +426,11 @@ typedef struct hiVO_ZOOM_ATTR_S
 
 typedef struct hiVO_CSC_S
 {
-    VO_CSC_MATRIX_E enCscMatrix;     /* CSC matrix */
-    HI_U32          u32Luma;         /* RW; Range:    [0, 100]; luminance, default: 50 */
-    HI_U32          u32Contrast;     /* RW; Range:    [0, 100]; contrast, default: 50 */
-    HI_U32          u32Hue;          /* RW; Range:    [0, 100]; hue, default: 50 */
-    HI_U32          u32Satuature;    /* RW; Range:    [0, 100]; satuature, default: 50 */
+    VO_CSC_MATRIX_E enCscMatrix;        /* CSC matrix */
+    HI_U32          u32Luma;            /* RW; Range: [0, 100]; luminance, default: 50 */
+    HI_U32          u32Contrast;        /* RW; Range: [0, 100]; contrast, default: 50 */
+    HI_U32          u32Hue;             /* RW; Range: [0, 100]; hue, default: 50 */
+    HI_U32          u32Satuature;       /* RW; Range: [0, 100]; satuature, default: 50 */
 } VO_CSC_S;
 
 typedef struct hiVO_REGION_INFO_S

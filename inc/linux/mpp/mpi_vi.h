@@ -97,15 +97,6 @@ HI_S32 HI_MPI_VI_DisablePipeInterrupt(VI_PIPE ViPipe);
 HI_S32 HI_MPI_VI_SetPipeVCNumber(VI_PIPE ViPipe, HI_U32 u32VCNumber);
 HI_S32 HI_MPI_VI_GetPipeVCNumber(VI_PIPE ViPipe, HI_U32 *pu32VCNumber);
 
-HI_S32 HI_MPI_VI_SetPipeFrameInterruptAttr(VI_PIPE ViPipe, const FRAME_INTERRUPT_ATTR_S *pstFrameIntAttr);
-HI_S32 HI_MPI_VI_GetPipeFrameInterruptAttr(VI_PIPE ViPipe, FRAME_INTERRUPT_ATTR_S *pstFrameIntAttr);
-
-HI_S32 HI_MPI_VI_SetPipeBNRRawDumpAttr(VI_PIPE ViPipe, const BNR_DUMP_ATTR_S* pstBnrDumpAttr);
-HI_S32 HI_MPI_VI_GetPipeBNRRawDumpAttr(VI_PIPE ViPipe, BNR_DUMP_ATTR_S* pstBnrDumpAttr);
-
-HI_S32 HI_MPI_VI_GetPipeBNRRaw(VI_PIPE ViPipe, VIDEO_FRAME_INFO_S *pstVideoFrame, HI_S32 s32MilliSec);
-HI_S32 HI_MPI_VI_ReleasePipeBNRRaw(VI_PIPE ViPipe, const VIDEO_FRAME_INFO_S *pstVideoFrame);
-
 HI_S32 HI_MPI_VI_GetPipeFd(VI_PIPE ViPipe);
 
 /* 3 for vi chn */
@@ -129,9 +120,6 @@ HI_S32 HI_MPI_VI_GetChnLDCAttr(VI_PIPE ViPipe, VI_CHN ViChn, VI_LDC_ATTR_S *pstL
 
 HI_S32 HI_MPI_VI_SetChnLDCV2Attr(VI_PIPE ViPipe, VI_CHN ViChn, const VI_LDCV2_ATTR_S *pstLDCV2Attr);
 HI_S32 HI_MPI_VI_GetChnLDCV2Attr(VI_PIPE ViPipe, VI_CHN ViChn, VI_LDCV2_ATTR_S *pstLDCV2Attr);
-
-HI_S32 HI_MPI_VI_SetChnLDCV3Attr(VI_PIPE ViPipe, VI_CHN ViChn, const VI_LDCV3_ATTR_S *pstLDCV3Attr);
-HI_S32 HI_MPI_VI_GetChnLDCV3Attr(VI_PIPE ViPipe, VI_CHN ViChn, VI_LDCV3_ATTR_S *pstLDCV3Attr);
 
 HI_S32 HI_MPI_VI_SetChnSpreadAttr(VI_PIPE ViPipe, VI_CHN ViChn, const SPREAD_ATTR_S *pstSpreadAttr);
 HI_S32 HI_MPI_VI_GetChnSpreadAttr(VI_PIPE ViPipe, VI_CHN ViChn, SPREAD_ATTR_S *pstSpreadAttr);

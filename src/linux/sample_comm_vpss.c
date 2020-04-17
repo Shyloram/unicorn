@@ -40,6 +40,14 @@ HI_S32 SAMPLE_COMM_VPSS_Start(VPSS_GRP VpssGrp, HI_BOOL* pabChnEnable, VPSS_GRP_
         return HI_FAILURE;
     }
 
+    s32Ret = HI_MPI_VPSS_StartGrp(VpssGrp);
+
+    if (s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("HI_MPI_VPSS_StartGrp failed with %#x\n", s32Ret);
+        return HI_FAILURE;
+    }
+
     for (j = 0; j < VPSS_MAX_PHY_CHN_NUM; j++)
     {
         if(HI_TRUE == pabChnEnable[j])
@@ -61,75 +69,6 @@ HI_S32 SAMPLE_COMM_VPSS_Start(VPSS_GRP VpssGrp, HI_BOOL* pabChnEnable, VPSS_GRP_
                 return HI_FAILURE;
             }
         }
-    }
-
-    s32Ret = HI_MPI_VPSS_StartGrp(VpssGrp);
-
-    if (s32Ret != HI_SUCCESS)
-    {
-        SAMPLE_PRT("HI_MPI_VPSS_StartGrp failed with %#x\n", s32Ret);
-        return HI_FAILURE;
-    }
-
-    return HI_SUCCESS;
-}
-
-/*****************************************************************************
-* function : start vpss grp, surport wrap.
-*****************************************************************************/
-HI_S32 SAMPLE_COMM_VPSS_WRAP_Start(VPSS_GRP VpssGrp, HI_BOOL* pabChnEnable, VPSS_GRP_ATTR_S* pstVpssGrpAttr, VPSS_CHN_ATTR_S* pastVpssChnAttr, VPSS_CHN_BUF_WRAP_S* pstVpssChnBufWrap)
-{
-    VPSS_CHN VpssChn;
-    HI_S32 s32Ret;
-    HI_S32 j;
-
-    s32Ret = HI_MPI_VPSS_CreateGrp(VpssGrp, pstVpssGrpAttr);
-
-    if (s32Ret != HI_SUCCESS)
-    {
-        SAMPLE_PRT("HI_MPI_VPSS_CreateGrp(grp:%d) failed with %#x!\n", VpssGrp, s32Ret);
-        return HI_FAILURE;
-    }
-
-    for (j = 0; j < VPSS_MAX_PHY_CHN_NUM; j++)
-    {
-        if(HI_TRUE == pabChnEnable[j])
-        {
-            VpssChn = j;
-            s32Ret = HI_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &pastVpssChnAttr[VpssChn]);
-
-            if (s32Ret != HI_SUCCESS)
-            {
-                SAMPLE_PRT("HI_MPI_VPSS_SetChnAttr failed with %#x\n", s32Ret);
-                return HI_FAILURE;
-            }
-
-            if (VPSS_CHN0 == VpssChn)
-            {
-                s32Ret = HI_MPI_VPSS_SetChnBufWrapAttr(VpssGrp, VpssChn, pstVpssChnBufWrap);
-                if (s32Ret != HI_SUCCESS)
-                {
-                    SAMPLE_PRT("HI_MPI_VPSS_SetChnBufWrapAttr failed with %#x\n", s32Ret);
-                    return HI_FAILURE;
-                }
-            }
-
-            s32Ret = HI_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
-
-            if (s32Ret != HI_SUCCESS)
-            {
-                SAMPLE_PRT("HI_MPI_VPSS_EnableChn failed with %#x\n", s32Ret);
-                return HI_FAILURE;
-            }
-        }
-    }
-
-    s32Ret = HI_MPI_VPSS_StartGrp(VpssGrp);
-
-    if (s32Ret != HI_SUCCESS)
-    {
-        SAMPLE_PRT("HI_MPI_VPSS_StartGrp failed with %#x\n", s32Ret);
-        return HI_FAILURE;
     }
 
     return HI_SUCCESS;

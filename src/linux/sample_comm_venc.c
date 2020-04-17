@@ -542,56 +542,9 @@ HI_S32 SAMPLE_COMM_VENC_SaveStream_PhyAddr(FILE* pFd, VENC_STREAM_BUF_INFO_S *ps
     return HI_SUCCESS;
 }
 
-HI_S32 SAMPLE_COMM_VENC_CloseReEncode(VENC_CHN VencChn)
-{
-    HI_S32 s32Ret;
-    VENC_RC_PARAM_S stRcParam;
-    VENC_CHN_ATTR_S stChnAttr;
 
-    s32Ret = HI_MPI_VENC_GetChnAttr(VencChn,&stChnAttr);
-    if (HI_SUCCESS != s32Ret)
-    {
-        SAMPLE_PRT("GetChnAttr failed!\n");
-        return HI_FAILURE;
-    }
 
-    s32Ret = HI_MPI_VENC_GetRcParam(VencChn,&stRcParam);
-    if (HI_SUCCESS != s32Ret)
-    {
-        SAMPLE_PRT("GetRcParam failed!\n");
-        return HI_FAILURE;
-    }
-
-    if(VENC_RC_MODE_H264CBR == stChnAttr.stRcAttr.enRcMode)
-    {
-        stRcParam.stParamH264Cbr.s32MaxReEncodeTimes = 0;
-    }
-    else if(VENC_RC_MODE_H264VBR == stChnAttr.stRcAttr.enRcMode)
-    {
-        stRcParam.stParamH264Vbr.s32MaxReEncodeTimes = 0;
-    }
-    else if(VENC_RC_MODE_H265CBR == stChnAttr.stRcAttr.enRcMode)
-    {
-        stRcParam.stParamH264Cbr.s32MaxReEncodeTimes = 0;
-    }
-    else if(VENC_RC_MODE_H265VBR == stChnAttr.stRcAttr.enRcMode)
-    {
-        stRcParam.stParamH264Vbr.s32MaxReEncodeTimes = 0;
-    }
-    else
-    {
-        return HI_SUCCESS;
-    }
-    s32Ret = HI_MPI_VENC_SetRcParam(VencChn,&stRcParam);
-    if (HI_SUCCESS != s32Ret)
-    {
-        SAMPLE_PRT("SetRcParam failed!\n");
-        return HI_FAILURE;
-    }
-    return HI_SUCCESS;
-}
-
-HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE_E enSize, SAMPLE_RC_E enRcMode, HI_U32  u32Profile, HI_BOOL bRcnRefShareBuf,VENC_GOP_ATTR_S *pstGopAttr)
+HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE_E enSize, SAMPLE_RC_E enRcMode, HI_U32  u32Profile, VENC_GOP_ATTR_S *pstGopAttr)
 {
     HI_S32 s32Ret;
     SIZE_S stPicSize;
@@ -630,15 +583,7 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
     stVencChnAttr.stVencAttr.u32MaxPicHeight = stPicSize.u32Height;
     stVencChnAttr.stVencAttr.u32PicWidth     = stPicSize.u32Width;/*the picture width*/
     stVencChnAttr.stVencAttr.u32PicHeight    = stPicSize.u32Height;/*the picture height*/
-
-    if (enType == PT_MJPEG || enType == PT_JPEG)
-    {
-        stVencChnAttr.stVencAttr.u32BufSize      = ALIGN_UP(stPicSize.u32Width, 16) * ALIGN_UP(stPicSize.u32Height, 16);
-    }
-    else
-    {
-        stVencChnAttr.stVencAttr.u32BufSize      = ALIGN_UP(stPicSize.u32Width * stPicSize.u32Height * 3 / 4, 64);/*stream buffer size*/
-    }
+    stVencChnAttr.stVencAttr.u32BufSize      = stPicSize.u32Width * stPicSize.u32Height * 2;/*stream buffer size*/
     stVencChnAttr.stVencAttr.u32Profile      = u32Profile;
     stVencChnAttr.stVencAttr.bByFrame        = HI_TRUE;/*get stream mode is slice mode or frame mode?*/
 
@@ -678,8 +623,14 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
                     case PIC_3840x2160:
                         stH265Cbr.u32BitRate = 1024 * 5  + 5120*u32FrameRate/30;
                         break;
-                    default : //other small resolution
-                        stH265Cbr.u32BitRate = 256;
+                    case PIC_4000x3000:
+                        stH265Cbr.u32BitRate = 1024 * 10 + 5120*u32FrameRate/30;
+                        break;
+                    case PIC_7680x4320:
+                        stH265Cbr.u32BitRate = 1024 * 20 + 5120*u32FrameRate/30;
+                        break;
+                    default :
+                        stH265Cbr.u32BitRate = 1024 * 15 + 2048*u32FrameRate/30;
                         break;
                 }
                 memcpy(&stVencChnAttr.stRcAttr.stH265Cbr, &stH265Cbr, sizeof(VENC_H265_CBR_S));
@@ -717,6 +668,15 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
                     case PIC_2592x1944:
                         stH265Vbr.u32MaxBitRate = 1024 * 3 + 3072*u32FrameRate/30;
                         break;
+                    case PIC_3840x2160:
+                        stH265Vbr.u32MaxBitRate = 1024 * 5  + 5120*u32FrameRate/30;
+                        break;
+                    case PIC_4000x3000:
+                        stH265Vbr.u32MaxBitRate = 1024 * 10 + 5120*u32FrameRate/30;
+                        break;
+                    case PIC_7680x4320:
+                        stH265Vbr.u32MaxBitRate = 1024 * 20 + 5120*u32FrameRate/30;
+                        break;
                     default :
                         stH265Vbr.u32MaxBitRate    = 1024 * 15 + 2048*u32FrameRate/30;
                         break;
@@ -746,6 +706,12 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
                     case PIC_3840x2160:
                         stH265AVbr.u32MaxBitRate = 1024 * 5  + 5120*u32FrameRate/30;
                         break;
+                    case PIC_4000x3000:
+                        stH265AVbr.u32MaxBitRate = 1024 * 10 + 5120*u32FrameRate/30;
+                        break;
+                    case PIC_7680x4320:
+                        stH265AVbr.u32MaxBitRate = 1024 * 20 + 5120*u32FrameRate/30;
+                        break;
                     default :
                         stH265AVbr.u32MaxBitRate    = 1024 * 15 + 2048*u32FrameRate/30;
                         break;
@@ -769,7 +735,7 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
                 SAMPLE_PRT("%s,%d,enRcMode(%d) not support\n",__FUNCTION__,__LINE__,enRcMode);
                 return HI_FAILURE;
             }
-            stVencChnAttr.stVencAttr.stAttrH265e.bRcnRefShareBuf = bRcnRefShareBuf;
+            stVencChnAttr.stVencAttr.stAttrH265e.bRcnRefShareBuf = HI_FALSE;
         }
         break;
         case PT_H264:
@@ -797,8 +763,14 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
                     case PIC_3840x2160:
                         stH264Cbr.u32BitRate = 1024 * 5 + 5120*u32FrameRate/30;
                         break;
-                    default :  //other small resolution
-                        stH264Cbr.u32BitRate = 512;
+                    case PIC_4000x3000:
+                        stH264Cbr.u32BitRate = 1024 * 12 + 5120*u32FrameRate/30;
+                        break;
+                    case PIC_7680x4320:
+                        stH264Cbr.u32BitRate = 1024 * 10 + 5120*u32FrameRate/30;
+                        break;
+                    default :
+                        stH264Cbr.u32BitRate = 1024 * 15 + 2048*u32FrameRate/30;
                         break;
                 }
 
@@ -839,6 +811,12 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
                         break;
                     case PIC_3840x2160:
                         stH264Vbr.u32MaxBitRate = 1024 * 5   + 5120*u32FrameRate/30;
+                        break;
+                    case PIC_4000x3000:
+                        stH264Vbr.u32MaxBitRate = 1024 * 10  + 5120*u32FrameRate/30;
+                        break;
+                    case PIC_7680x4320:
+                        stH264Vbr.u32MaxBitRate = 1024 * 20  + 5120*u32FrameRate/30;
                         break;
                     default :
                         stH264Vbr.u32MaxBitRate = 1024 * 15  + 2048*u32FrameRate/30;
@@ -897,7 +875,7 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
                 SAMPLE_PRT("%s,%d,enRcMode(%d) not support\n",__FUNCTION__,__LINE__,enRcMode);
                 return HI_FAILURE;
             }
-            stVencChnAttr.stVencAttr.stAttrH264e.bRcnRefShareBuf = bRcnRefShareBuf;
+            stVencChnAttr.stVencAttr.stAttrH264e.bRcnRefShareBuf = HI_FALSE;
         }
         break;
         case PT_MJPEG:
@@ -998,9 +976,9 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
         break;
 
         case PT_JPEG:
-            stJpegAttr.bSupportDCF                  = HI_FALSE;
+            stJpegAttr.bSupportDCF     = HI_FALSE;
             stJpegAttr.stMPFCfg.u8LargeThumbNailNum = 0;
-            stJpegAttr.enReceiveMode                = VENC_PIC_RECEIVE_SINGLE;
+            stJpegAttr.enReceiveMode = VENC_PIC_RECEIVE_SINGLE;
             memcpy(&stVencChnAttr.stVencAttr.stAttrJpege, &stJpegAttr, sizeof(VENC_ATTR_JPEG_S));
             break;
         default:
@@ -1045,13 +1023,6 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
         return s32Ret;
     }
 
-    s32Ret = SAMPLE_COMM_VENC_CloseReEncode(VencChn);
-    if (HI_SUCCESS != s32Ret)
-    {
-        HI_MPI_VENC_DestroyChn(VencChn);
-        return s32Ret;
-    }
-
     return HI_SUCCESS;
 }
 
@@ -1060,7 +1031,7 @@ HI_S32 SAMPLE_COMM_VENC_Creat(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
 * funciton : Start venc stream mode
 * note      : rate control parameter need adjust, according your case.
 ******************************************************************************/
-HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE_E enSize, SAMPLE_RC_E enRcMode, HI_U32  u32Profile, HI_BOOL bRcnRefShareBuf,VENC_GOP_ATTR_S *pstGopAttr)
+HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE_E enSize, SAMPLE_RC_E enRcMode, HI_U32  u32Profile, VENC_GOP_ATTR_S *pstGopAttr)
 {
     HI_S32 s32Ret;
     VENC_RECV_PIC_PARAM_S  stRecvParam;
@@ -1068,7 +1039,7 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType,  PIC_SIZE
     /******************************************
      step 1:  Creat Encode Chnl
     ******************************************/
-    s32Ret = SAMPLE_COMM_VENC_Creat(VencChn,enType,enSize,enRcMode,u32Profile,bRcnRefShareBuf,pstGopAttr);
+    s32Ret = SAMPLE_COMM_VENC_Creat(VencChn,enType,enSize,enRcMode,u32Profile,pstGopAttr);
     if (HI_SUCCESS != s32Ret)
     {
         SAMPLE_PRT("SAMPLE_COMM_VENC_Creat faild with%#x! \n", s32Ret);
@@ -1131,12 +1102,12 @@ HI_S32 SAMPLE_COMM_VENC_SnapStart(VENC_CHN VencChn, SIZE_S* pstSize, HI_BOOL bSu
     stVencChnAttr.stVencAttr.u32MaxPicHeight    = pstSize->u32Height;
     stVencChnAttr.stVencAttr.u32PicWidth        = pstSize->u32Width;
     stVencChnAttr.stVencAttr.u32PicHeight       = pstSize->u32Height;
-    stVencChnAttr.stVencAttr.u32BufSize         = ALIGN_UP(pstSize->u32Width, 16) * ALIGN_UP(pstSize->u32Height, 16);
+    stVencChnAttr.stVencAttr.u32BufSize         = pstSize->u32Width * pstSize->u32Height * 2;
     stVencChnAttr.stVencAttr.bByFrame           = HI_TRUE;/*get stream mode is field mode  or frame mode*/
     stVencChnAttr.stVencAttr.stAttrJpege.bSupportDCF = bSupportDCF;
     //stVencChnAttr.stVencAttr.stAttrJpege.bSupportXMP = HI_FALSE;
     stVencChnAttr.stVencAttr.stAttrJpege.stMPFCfg.u8LargeThumbNailNum = 0;
-    stVencChnAttr.stVencAttr.stAttrJpege.enReceiveMode                = VENC_PIC_RECEIVE_SINGLE;
+    stVencChnAttr.stVencAttr.stAttrJpege.enReceiveMode = VENC_PIC_RECEIVE_SINGLE;
 
     s32Ret = HI_MPI_VENC_CreateChn(VencChn, &stVencChnAttr);
     if (HI_SUCCESS != s32Ret)
@@ -1182,9 +1153,6 @@ HI_S32 SAMPLE_COMM_VENC_SnapProcess(VENC_CHN VencChn, HI_U32 SnapCnt, HI_BOOL bS
     VENC_STREAM_S stStream;
     HI_S32 s32Ret;
     VENC_RECV_PIC_PARAM_S  stRecvParam;
-    MPP_CHN_S stDestChn;
-    MPP_CHN_S stSrcChn;
-    VPSS_CHN_ATTR_S stVpssChnAttr;
     HI_U32 i;
 
 #ifdef __HuaweiLite__
@@ -1201,32 +1169,8 @@ HI_S32 SAMPLE_COMM_VENC_SnapProcess(VENC_CHN VencChn, HI_U32 SnapCnt, HI_BOOL bS
         SAMPLE_PRT("HI_MPI_VENC_StartRecvPic faild with%#x!\n", s32Ret);
         return HI_FAILURE;
     }
-
     /******************************************
-     step 3:  Start Recv Venc Pictures
-    ******************************************/
-    stDestChn.enModId  = HI_ID_VENC;
-    stDestChn.s32DevId = 0;
-    stDestChn.s32ChnId = VencChn;
-    s32Ret = HI_MPI_SYS_GetBindbyDest(&stDestChn, &stSrcChn);
-    if (s32Ret == HI_SUCCESS && stSrcChn.enModId == HI_ID_VPSS)
-    {
-        s32Ret = HI_MPI_VPSS_GetChnAttr(stSrcChn.s32DevId, stSrcChn.s32ChnId, &stVpssChnAttr);
-        if (s32Ret == HI_SUCCESS && stVpssChnAttr.enCompressMode != COMPRESS_MODE_NONE)
-        {
-            s32Ret = HI_MPI_VPSS_TriggerSnapFrame(stSrcChn.s32DevId, stSrcChn.s32ChnId, SnapCnt);
-            if (s32Ret != HI_SUCCESS)
-            {
-                SAMPLE_PRT("call HI_MPI_VPSS_TriggerSnapFrame Grp = %d, ChanId = %d, SnapCnt = %d return failed(0x%x)!\n",
-                    stSrcChn.s32DevId, stSrcChn.s32ChnId, SnapCnt, s32Ret);
-
-                return HI_FAILURE;
-            }
-        }
-    }
-
-    /******************************************
-     step 4:  recv picture
+     step 3:  recv picture
     ******************************************/
     s32VencFd = HI_MPI_VENC_GetFd(VencChn);
     if (s32VencFd < 0)
@@ -1381,7 +1325,7 @@ HI_S32 SAMPLE_COMM_VENC_SnapProcess(VENC_CHN VencChn, HI_U32 SnapCnt, HI_BOOL bS
         }
     }
     /******************************************
-     step 5:  stop recv picture
+     step 4:  stop recv picture
     ******************************************/
     s32Ret = HI_MPI_VENC_StopRecvFrame(VencChn);
     if (s32Ret != HI_SUCCESS)
@@ -1547,193 +1491,239 @@ HI_S32 SAMPLE_COMM_VENC_SaveJpeg(VENC_CHN VencChn, HI_U32 SnapCnt)
 }
 
 
-#define QpMapBufNum         8
-#define VENC_QPMAP_MAX_CHN  2
+#define QpMapBufNum 8
 HI_VOID* SAMPLE_COMM_QpmapSendFrameProc(HI_VOID* p)
 {
-    HI_U32 i,j,FrmId;
+    HI_U32 i,j,VeChnCnt;
     HI_S32 s32Ret;
     VIDEO_FRAME_INFO_S  *pstVideoFrame;
-    USER_FRAME_INFO_S   stFrame[VENC_QPMAP_MAX_CHN][QpMapBufNum];
+    USER_FRAME_INFO_S   stFrame[QpMapBufNum];
     SAMPLE_VENC_QPMAP_SENDFRAME_PARA_S *pstPara;
+    //HI_U32 u32AlignPicHeight ;
+    //HI_U32 u32AlignPicWidth  ;
 
-    HI_U32   u32QpMapSize[VENC_QPMAP_MAX_CHN];
-    HI_U64   u64QpMapPhyAddr[VENC_QPMAP_MAX_CHN][QpMapBufNum];
-    HI_VOID* pQpMapVirAddr[VENC_QPMAP_MAX_CHN][QpMapBufNum];
-
-    HI_U32   u32SkipWeightSize[VENC_QPMAP_MAX_CHN];
-    HI_U64   u64SkipWeightPhyAddr[VENC_QPMAP_MAX_CHN][QpMapBufNum];
-    HI_VOID* pSkipWeightVirAddr[VENC_QPMAP_MAX_CHN][QpMapBufNum];
-
+    HI_U32   u32QpMapSize;
+    HI_U64   u64QpMapPhyAddr[QpMapBufNum];
+    HI_VOID* pQpMapVirAddr[QpMapBufNum];
+    HI_U32 u32QpMapSizeHeight ;
+    HI_U32 u32QpMapSizeWidth  ;
     HI_U8 *pVirAddr;
     HI_U64 u64PhyAddr;
     HI_U8 *pVirAddrTemp;
 
+    HI_U32   u32SkipWeightHeight_H264 ;
+    HI_U32   u32SkipWeightWidth_H264  ;
+    HI_U32   u32SkipWeightSize_H264;
+    HI_U64   u64SkipWeightPhyAddr_H264[QpMapBufNum];
+    HI_VOID* pSkipWeightVirAddr_H264[QpMapBufNum];
+
+    HI_U32   u32SkipWeightHeight_H265 ;
+    HI_U32   u32SkipWeightWidth_H265  ;
+    HI_U32   u32SkipWeightSize_H265;
+    HI_U64   u64SkipWeightPhyAddr_H265[QpMapBufNum];
+    HI_VOID* pSkipWeightVirAddr_H265[QpMapBufNum];
+
     VPSS_CHN_ATTR_S  stChnAttr;
-    VENC_CHN_ATTR_S  VencChnAttr;
 
     pstPara = (SAMPLE_VENC_QPMAP_SENDFRAME_PARA_S*)p;
 
-    if (pstPara->s32Cnt > VENC_QPMAP_MAX_CHN)
+    //u32AlignPicWidth  = (pstPara->stSize.u32Height + 15)/16;
+    //u32AlignPicHeight = (pstPara->stSize.u32Height + 15)/16;
+
+    /* qpmap */
+    u32QpMapSizeWidth  = (pstPara->stSize.u32Width + 511)/512 *32;
+    u32QpMapSizeHeight = (pstPara->stSize.u32Height + 15)/16;
+    u32QpMapSize      = u32QpMapSizeWidth * u32QpMapSizeHeight;
+    s32Ret = HI_MPI_SYS_MmzAlloc(&u64PhyAddr, (void**)&pVirAddr, NULL, HI_NULL, u32QpMapSize*QpMapBufNum);
+    if(HI_SUCCESS != s32Ret)
     {
-        SAMPLE_PRT("Current func'SAMPLE_COMM_QpmapSendFrameProc' not support Venc channal num(%d) > %d\n",pstPara->s32Cnt,VENC_QPMAP_MAX_CHN);
+        SAMPLE_PRT("HI_MPI_SYS_MmzAlloc err:0x%x",s32Ret);
         return NULL;
     }
 
-    for (i = 0; i < pstPara->s32Cnt; i++)
+    for(i=0; i<QpMapBufNum; i++)
     {
-        HI_MPI_VENC_GetChnAttr(pstPara->VeChn[i],&VencChnAttr);
-
-        u32QpMapSize[i]      = VENC_GetQpmapSize(pstPara->stSize[i].u32Width, pstPara->stSize[i].u32Height);
-        u32SkipWeightSize[i] = VENC_GetSkipWeightSize(VencChnAttr.stVencAttr.enType,
-                                                      pstPara->stSize[i].u32Width, pstPara->stSize[i].u32Height);
-
-        /*alloc qpmap memory*/
-        s32Ret = HI_MPI_SYS_MmzAlloc(&u64PhyAddr, (void**)&pVirAddr, NULL, HI_NULL, u32QpMapSize[i]*QpMapBufNum);
-        if (HI_SUCCESS != s32Ret)
-        {
-            SAMPLE_PRT("HI_MPI_SYS_MmzAlloc err:0x%x",s32Ret);
-            goto error;
-        }
-        for (j = 0; j < QpMapBufNum; j++)
-        {
-            u64QpMapPhyAddr[i][j] = u64PhyAddr + j*u32QpMapSize[i];
-            pQpMapVirAddr[i][j]   = pVirAddr + j*u32QpMapSize[i];
-        }
-
-        /*alloc skipWeight memory*/
-        s32Ret = HI_MPI_SYS_MmzAlloc(&u64PhyAddr, (void**)&pVirAddr, NULL, HI_NULL, u32SkipWeightSize[i]*QpMapBufNum);
-        if (HI_SUCCESS != s32Ret)
-        {
-            SAMPLE_PRT("HI_MPI_SYS_MmzAlloc err:0x%x",s32Ret);
-            goto error;
-        }
-        for (j = 0; j < QpMapBufNum; j++)
-        {
-            u64SkipWeightPhyAddr[i][j] = u64PhyAddr + j*u32SkipWeightSize[i];
-            pSkipWeightVirAddr[i][j]   = pVirAddr + j*u32SkipWeightSize[i];
-        }
+        u64QpMapPhyAddr[i] = u64PhyAddr + i*u32QpMapSize;
+        pQpMapVirAddr[i]   = pVirAddr + i*u32QpMapSize;
     }
 
-    /* set vpss buffer depth*/
-    for (i = 0; i < pstPara->s32Cnt; i++)
+    /* skipweight h.264 */
+    u32SkipWeightWidth_H264  = (pstPara->stSize.u32Width + 511)/512 *16;
+    u32SkipWeightHeight_H264 = (pstPara->stSize.u32Height + 15)/16;
+    u32SkipWeightSize_H264   = u32SkipWeightWidth_H264*u32SkipWeightHeight_H264;
+    s32Ret = HI_MPI_SYS_MmzAlloc(&u64PhyAddr, (void**)&pVirAddr, NULL, HI_NULL, u32SkipWeightSize_H264*QpMapBufNum);
+    if(HI_SUCCESS != s32Ret)
     {
-        s32Ret = HI_MPI_VPSS_GetChnAttr(pstPara->VpssGrp,pstPara->VpssChn[i],&stChnAttr);
-        if (HI_SUCCESS != s32Ret)
-        {
-            SAMPLE_PRT("HI_MPI_VPSS_GetChnAttr err:0x%x",s32Ret);
-            goto error;
-        }
-
-        stChnAttr.u32Depth = 3;
-        s32Ret = HI_MPI_VPSS_SetChnAttr(pstPara->VpssGrp,pstPara->VpssChn[i],&stChnAttr);
-        if (HI_SUCCESS != s32Ret)
-        {
-            SAMPLE_PRT("HI_MPI_VPSS_SetChnAttr err:0x%x",s32Ret);
-            goto error;
-        }
+        SAMPLE_PRT("HI_MPI_SYS_MmzAlloc err:0x%x",s32Ret);
+        HI_MPI_SYS_MmzFree(u64QpMapPhyAddr[0],pQpMapVirAddr[0]);
+        return NULL;
     }
 
-    FrmId = 0;
+    for(i=0; i<QpMapBufNum; i++)
+    {
+        u64SkipWeightPhyAddr_H264[i] = u64PhyAddr + i*u32SkipWeightSize_H264;
+        pSkipWeightVirAddr_H264[i]   = pVirAddr + i*u32SkipWeightSize_H264;
+    }
+
+    /* skipweight h.265 */
+    u32SkipWeightWidth_H265  = (pstPara->stSize.u32Width + 2047)/2048 *16;
+    u32SkipWeightHeight_H265 = (pstPara->stSize.u32Height + 63)/64;
+    u32SkipWeightSize_H265   = u32SkipWeightWidth_H265*u32SkipWeightHeight_H265;
+    s32Ret = HI_MPI_SYS_MmzAlloc(&u64PhyAddr, (void**)&pVirAddr, NULL, HI_NULL, u32SkipWeightSize_H265*QpMapBufNum);
+    if(HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_SYS_MmzAlloc err:0x%x",s32Ret);
+        HI_MPI_SYS_MmzFree(u64QpMapPhyAddr[0],pQpMapVirAddr[0]);
+        HI_MPI_SYS_MmzFree(u64SkipWeightPhyAddr_H264[0],pSkipWeightVirAddr_H264[0]);
+        return NULL;
+    }
+    for(i=0; i<QpMapBufNum; i++)
+    {
+        u64SkipWeightPhyAddr_H265[i] = u64PhyAddr + i*u32SkipWeightSize_H265;
+        pSkipWeightVirAddr_H265[i]   = pVirAddr + i*u32SkipWeightSize_H265;
+    }
+
+
+    s32Ret = HI_MPI_VPSS_GetChnAttr(pstPara->VpssGrp,pstPara->VpssChn,&stChnAttr);
+    if(HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VPSS_GetChnAttr err:0x%x",s32Ret);
+
+        return NULL;
+    }
+
+    stChnAttr.u32Depth = 3;
+    s32Ret = HI_MPI_VPSS_SetChnAttr(pstPara->VpssGrp,pstPara->VpssChn,&stChnAttr);
+    if(HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_VPSS_SetChnAttr err:0x%x",s32Ret);
+
+        return NULL;
+    }
+
+    i=0;
     while(HI_TRUE == pstPara->bThreadStart)
     {
-        for (i = 0; i < pstPara->s32Cnt; i++)
+        pstVideoFrame = &stFrame[i].stUserFrame;
+        s32Ret = HI_MPI_VPSS_GetChnFrame(pstPara->VpssGrp,pstPara->VpssChn,pstVideoFrame,1000);
+        if(HI_SUCCESS != s32Ret)
         {
-            pstVideoFrame = &stFrame[i][FrmId].stUserFrame;
-            s32Ret = HI_MPI_VPSS_GetChnFrame(pstPara->VpssGrp,pstPara->VpssChn[i],pstVideoFrame,1000);
-            if (HI_SUCCESS != s32Ret)
+            SAMPLE_PRT("HI_MPI_VPSS_GetChnFrame err:0x%x\n",s32Ret);
+            continue;
+        }
+
+        pVirAddrTemp = (HI_U8 *)pQpMapVirAddr[i];
+        for(j=0; j<u32QpMapSize; j++)
+        {
+            *pVirAddrTemp = 0x5E;
+            pVirAddrTemp++;
+        }
+
+        pVirAddrTemp = (HI_U8 *)pSkipWeightVirAddr_H264[i];
+        for(j=0; j<u32SkipWeightSize_H264; j++)
+        {
+            *pVirAddrTemp = 0x88;
+            pVirAddrTemp++;
+        }
+
+        pVirAddrTemp = (HI_U8 *)pSkipWeightVirAddr_H265[i];
+        for(j=0; j<u32SkipWeightSize_H265; j++)
+        {
+            *pVirAddrTemp = 0x88;
+            pVirAddrTemp++;
+        }
+
+        for(VeChnCnt=0; VeChnCnt<pstPara->s32Cnt; VeChnCnt++)
+        {
+            VENC_CHN_ATTR_S stChnAttr;
+            HI_MPI_VENC_GetChnAttr(pstPara->VeChn[VeChnCnt],&stChnAttr);
+            if(PT_H264 ==stChnAttr.stVencAttr.enType)
             {
-                SAMPLE_PRT("HI_MPI_VPSS_GetChnFrame err:0x%x\n",s32Ret);
+                stFrame[i].stUserRcInfo.bSkipWeightValid = 1;
+                stFrame[i].stUserRcInfo.u64SkipWeightPhyAddr = u64SkipWeightPhyAddr_H264[i];
+            }
+            else if(PT_H265 ==stChnAttr.stVencAttr.enType)
+            {
+                stFrame[i].stUserRcInfo.bSkipWeightValid = 1;
+                stFrame[i].stUserRcInfo.u64SkipWeightPhyAddr = u64SkipWeightPhyAddr_H265[i];
+            }
+            else
+            {
                 continue;
             }
 
-            pVirAddrTemp = (HI_U8 *)pQpMapVirAddr[i][FrmId];
-            for (j = 0; j < u32QpMapSize[i]; j++)
-            {
-                *pVirAddrTemp = 0x5E;    //[7]:skip flag; [6]:QpType Flag; [5:0]:Qp value ==> Set absolute qp = 30
-                pVirAddrTemp++;
-            }
+            stFrame[i].stUserRcInfo.bQpMapValid     = 1;
+            stFrame[i].stUserRcInfo.u64QpMapPhyAddr = u64QpMapPhyAddr[i];
+            stFrame[i].stUserRcInfo.u32BlkStartQp   = 30;
+            stFrame[i].stUserRcInfo.enFrameType = VENC_FRAME_TYPE_NONE;
 
-            pVirAddrTemp = (HI_U8 *)pSkipWeightVirAddr[i][FrmId];
-            for (j = 0; j < u32SkipWeightSize[i]; j++)
-            {
-                *pVirAddrTemp = 0x88;  // inter block must be skip
-                pVirAddrTemp++;
-            }
-
-            stFrame[i][FrmId].stUserRcInfo.bSkipWeightValid = 1;
-            stFrame[i][FrmId].stUserRcInfo.u64SkipWeightPhyAddr = u64SkipWeightPhyAddr[i][FrmId];
-            stFrame[i][FrmId].stUserRcInfo.bQpMapValid     = 1;
-            stFrame[i][FrmId].stUserRcInfo.u64QpMapPhyAddr = u64QpMapPhyAddr[i][FrmId];
-            stFrame[i][FrmId].stUserRcInfo.u32BlkStartQp   = 30;
-            stFrame[i][FrmId].stUserRcInfo.enFrameType = VENC_FRAME_TYPE_NONE;
-
-            s32Ret = HI_MPI_VENC_SendFrameEx(pstPara->VeChn[i], &stFrame[i][FrmId], -1);
+            s32Ret = HI_MPI_VENC_SendFrameEx(pstPara->VeChn[VeChnCnt], &stFrame[i],-1);
             if(HI_SUCCESS != s32Ret)
             {
                 SAMPLE_PRT("HI_MPI_VENC_SendFrame err:0x%x\n",s32Ret);
-
-                s32Ret = HI_MPI_VPSS_ReleaseChnFrame(pstPara->VpssGrp,pstPara->VpssChn[i],pstVideoFrame);
-                if(HI_SUCCESS != s32Ret)
-                {
-                    SAMPLE_PRT("HI_MPI_VPSS_ReleaseChnFrame err:0x%x",s32Ret);
-                    goto error;
-                }
                 break;
             }
-
-            s32Ret = HI_MPI_VPSS_ReleaseChnFrame(pstPara->VpssGrp,pstPara->VpssChn[i],pstVideoFrame);
+        }
+        if(HI_SUCCESS != s32Ret)
+        {
+            s32Ret = HI_MPI_VPSS_ReleaseChnFrame(pstPara->VpssGrp,pstPara->VpssChn,pstVideoFrame);
             if(HI_SUCCESS != s32Ret)
             {
                 SAMPLE_PRT("HI_MPI_VPSS_ReleaseChnFrame err:0x%x",s32Ret);
-                goto error;
+                goto err_out;
             }
+            continue;
+        }
 
-            FrmId++;
-            if(FrmId >= QpMapBufNum)
-            {
-                FrmId = 0;
-            }
+        s32Ret = HI_MPI_VPSS_ReleaseChnFrame(pstPara->VpssGrp,pstPara->VpssChn,pstVideoFrame);
+        if(HI_SUCCESS != s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_VPSS_ReleaseChnFrame err:0x%x",s32Ret);
+            goto err_out;
+        }
+
+        i++;
+        if(i >= QpMapBufNum)
+        {
+            i = 0;
         }
     }
-
-error:
-    for (i = 0; i < pstPara->s32Cnt; i++)
+err_out:
+    s32Ret = HI_MPI_SYS_MmzFree(u64QpMapPhyAddr[0],pQpMapVirAddr[0]);
+    if(HI_SUCCESS != s32Ret)
     {
-        if (u64QpMapPhyAddr[i][0] != 0)
-        {
-            s32Ret = HI_MPI_SYS_MmzFree(u64QpMapPhyAddr[i][0], pQpMapVirAddr[i][0]);
-            if(HI_SUCCESS != s32Ret)
-            {
-                SAMPLE_PRT("HI_MPI_SYS_MmzFree err:0x%x",s32Ret);
-            }
-        }
-
-        if (u64SkipWeightPhyAddr[i][0] != 0)
-        {
-            s32Ret = HI_MPI_SYS_MmzFree(u64SkipWeightPhyAddr[i][0], pSkipWeightVirAddr[i][0]);
-            if(HI_SUCCESS != s32Ret)
-            {
-                SAMPLE_PRT("HI_MPI_SYS_MmzFree err:0x%x",s32Ret);
-            }
-        }
+        SAMPLE_PRT("HI_MPI_SYS_MmzFree err:0x%x",s32Ret);
+        return NULL;
     }
 
-    return NULL;
+    s32Ret =  HI_MPI_SYS_MmzFree(u64SkipWeightPhyAddr_H264[0],pSkipWeightVirAddr_H264[0]);
+    if(HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_SYS_MmzFree err:0x%x",s32Ret);
+        return NULL;
+    }
+
+    s32Ret = HI_MPI_SYS_MmzFree(u64SkipWeightPhyAddr_H265[0],pSkipWeightVirAddr_H265[0]);
+    if(HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("HI_MPI_SYS_MmzFree err:0x%x",s32Ret);
+        return NULL;
+    }
+
+   return NULL;
 }
-HI_S32 SAMPLE_COMM_VENC_QpmapSendFrame(VPSS_GRP VpssGrp,VPSS_CHN VpssChn[],VENC_CHN VeChn[],HI_S32 s32Cnt,SIZE_S stSize[])
+HI_S32 SAMPLE_COMM_VENC_QpmapSendFrame(VPSS_GRP VpssGrp,VPSS_CHN VpssChn,VENC_CHN VeChn[],HI_S32 s32Cnt,SIZE_S stSize)
 {
     HI_S32 i;
 
     stQpMapSendFramePara.bThreadStart = HI_TRUE;
     stQpMapSendFramePara.VpssGrp = VpssGrp;
+    stQpMapSendFramePara.VpssChn = VpssChn;
     stQpMapSendFramePara.s32Cnt  = s32Cnt;
-
+    stQpMapSendFramePara.stSize  = stSize;
     for(i=0; i<s32Cnt;i++)
     {
-        stQpMapSendFramePara.VeChn[i]   = VeChn[i];
-        stQpMapSendFramePara.VpssChn[i] = VpssChn[i];
-        stQpMapSendFramePara.stSize[i]  = stSize[i];
+        stQpMapSendFramePara.VeChn[i] = VeChn[i];
     }
 
     return pthread_create(&gs_VencQpmapPid, 0, SAMPLE_COMM_QpmapSendFrameProc, (HI_VOID*)&stQpMapSendFramePara);
@@ -1810,7 +1800,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID* p)
             }
         }
         /* Set Venc Fd. */
-        VencFd[i] = HI_MPI_VENC_GetFd(VencChn);
+        VencFd[i] = HI_MPI_VENC_GetFd(i);
         if (VencFd[i] < 0)
         {
             SAMPLE_PRT("HI_MPI_VENC_GetFd failed with %#x!\n",
@@ -1822,7 +1812,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID* p)
             maxfd = VencFd[i];
         }
 
-        s32Ret = HI_MPI_VENC_GetStreamBufInfo (VencChn, &stStreamBufInfo[i]);
+        s32Ret = HI_MPI_VENC_GetStreamBufInfo (i, &stStreamBufInfo[i]);
         if (HI_SUCCESS != s32Ret)
         {
             SAMPLE_PRT("HI_MPI_VENC_GetStreamBufInfo failed with %#x!\n", s32Ret);
@@ -1865,12 +1855,10 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID* p)
                     *******************************************************/
                     memset(&stStream, 0, sizeof(stStream));
 
-                    VencChn = pstPara->VeChn[i];
-
-                    s32Ret = HI_MPI_VENC_QueryStatus(VencChn, &stStat);
+                    s32Ret = HI_MPI_VENC_QueryStatus(i, &stStat);
                     if (HI_SUCCESS != s32Ret)
                     {
-                        SAMPLE_PRT("HI_MPI_VENC_QueryStatus chn[%d] failed with %#x!\n", VencChn, s32Ret);
+                        SAMPLE_PRT("HI_MPI_VENC_QueryStatus chn[%d] failed with %#x!\n", i, s32Ret);
                         break;
                     }
 
@@ -1901,7 +1889,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID* p)
                      step 2.4 : call mpi to get one-frame stream
                     *******************************************************/
                     stStream.u32PackCount = stStat.u32CurPacks;
-                    s32Ret = HI_MPI_VENC_GetStream(VencChn, &stStream, HI_TRUE);
+                    s32Ret = HI_MPI_VENC_GetStream(i, &stStream, HI_TRUE);
                     if (HI_SUCCESS != s32Ret)
                     {
                         free(stStream.pstPack);
@@ -1916,8 +1904,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID* p)
                     *******************************************************/
                     if(PT_JPEG == enPayLoadType[i])
                     {
-                        strcpy(szFilePostfix, ".jpg");
-                        snprintf(aszFileName[i],32, "stream_chn%d_%d%s", VencChn, u32PictureCnt[i],szFilePostfix);
+                        snprintf(aszFileName[i],32, "stream_chn%d_%d%s", i, u32PictureCnt[i],szFilePostfix);
                         pFile[i] = fopen(aszFileName[i], "wb");
                         if (!pFile[i])
                         {
@@ -1941,7 +1928,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID* p)
                     /*******************************************************
                      step 2.6 : release stream
                      *******************************************************/
-                    s32Ret = HI_MPI_VENC_ReleaseStream(VencChn, &stStream);
+                    s32Ret = HI_MPI_VENC_ReleaseStream(i, &stStream);
                     if (HI_SUCCESS != s32Ret)
                     {
                         SAMPLE_PRT("HI_MPI_VENC_ReleaseStream failed!\n");

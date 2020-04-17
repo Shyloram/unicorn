@@ -396,7 +396,7 @@ HI_S32 SAMPLE_INNER_CODEC_CfgAudio(AUDIO_SAMPLE_RATE_E enSample)
         ret = HI_FAILURE;
     }
 
-    input_mode = ACODEC_MIXER_IN1;
+    input_mode = ACODEC_MIXER_IN0;
     if (ioctl(fdAcodec, ACODEC_SET_MIXER_MIC, &input_mode))
     {
         printf("%s: select acodec input_mode failed\n", __FUNCTION__);
@@ -1080,7 +1080,7 @@ HI_S32 SAMPLE_COMM_AUDIO_AencUnbindAi(AUDIO_DEV AiDev, AI_CHN AiChn, AENC_CHN Ae
 * function : Start Ai
 ******************************************************************************/
 HI_S32 SAMPLE_COMM_AUDIO_StartAi(AUDIO_DEV AiDevId, HI_S32 s32AiChnCnt,
-                                 AIO_ATTR_S* pstAioAttr, AUDIO_SAMPLE_RATE_E enOutSampleRate, HI_BOOL bResampleEn, HI_VOID* pstAiVqeAttr, HI_U32 u32AiVqeType, AUDIO_DEV AoDevId)
+                                 AIO_ATTR_S* pstAioAttr, AUDIO_SAMPLE_RATE_E enOutSampleRate, HI_BOOL bResampleEn, HI_VOID* pstAiVqeAttr, HI_U32 u32AiVqeType)
 {
     HI_S32 i;
     HI_S32 s32Ret;
@@ -1101,7 +1101,7 @@ HI_S32 SAMPLE_COMM_AUDIO_StartAi(AUDIO_DEV AiDevId, HI_S32 s32AiChnCnt,
 
     for (i = 0; i < s32AiChnCnt>>pstAioAttr->enSoundmode; i++)
     {
-        s32Ret = HI_MPI_AI_EnableChn(AiDevId, i);
+        s32Ret = HI_MPI_AI_EnableChn(AiDevId, i/(pstAioAttr->enSoundmode + 1));
         if (s32Ret)
         {
             printf("%s: HI_MPI_AI_EnableChn(%d,%d) failed with %#x\n", __FUNCTION__, AiDevId, i, s32Ret);
@@ -1129,9 +1129,6 @@ HI_S32 SAMPLE_COMM_AUDIO_StartAi(AUDIO_DEV AiDevId, HI_S32 s32AiChnCnt,
                     break;
                 case 1:
                     s32Ret = HI_MPI_AI_SetRecordVqeAttr(AiDevId, i, (AI_RECORDVQE_CONFIG_S *)pstAiVqeAttr);
-                    break;
-                case 2:
-                    s32Ret = HI_MPI_AI_SetTalkVqeAttr(AiDevId, i, AoDevId, i, (AI_TALKVQE_CONFIG_S *)pstAiVqeAttr);
                     break;
                 default:
                     s32Ret = HI_FAILURE;
@@ -1326,9 +1323,9 @@ HI_S32 SAMPLE_COMM_AUDIO_StartAo(AUDIO_DEV AoDevId, HI_S32 s32AoChnCnt,
         return HI_FAILURE;
     }
 
-    for (i = 0; i < s32AoChnCnt>>pstAioAttr->enSoundmode; i++)
+    for (i = 0; i < s32AoChnCnt; i++)
     {
-        s32Ret = HI_MPI_AO_EnableChn(AoDevId, i);
+        s32Ret = HI_MPI_AO_EnableChn(AoDevId, i/(pstAioAttr->enSoundmode + 1));
         if (HI_SUCCESS != s32Ret)
         {
             printf("%s: HI_MPI_AO_EnableChn(%d) failed with %#x!\n", __FUNCTION__, i, s32Ret);
@@ -1345,6 +1342,7 @@ HI_S32 SAMPLE_COMM_AUDIO_StartAo(AUDIO_DEV AoDevId, HI_S32 s32AoChnCnt,
                 return HI_FAILURE;
             }
         }
+
     }
 
     s32Ret = HI_MPI_AO_EnableChn(AoDevId, AO_SYSCHN_CHNID);

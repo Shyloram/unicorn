@@ -76,7 +76,7 @@ typedef struct hiDIS_ATTR_S
     HI_BOOL     bGdcBypass;             /* RW; gdc correction process , DIS = GME&GDC correction*/
     HI_U32      u32MovingSubjectLevel;  /* RW; Range:[0,6]; Moving Subject level */
     HI_S32      s32RollingShutterCoef;  /* RW; Range:[0,1000]; Rolling shutter coefficients */
-    HI_S32      s32Timelag;             /* RW; Range:[-2000000,2000000]; Timestamp delay between Gyro and Frame PTS */
+    HI_U32      u32Timelag;             /* RW; Range:[0,200000]; Timestamp delay between Gyro and Frame PTS */
     HI_U32      u32ViewAngle;           /* Reserved */
     HI_U32      u32HorizontalLimit;     /* RW; Range:[0,1000]; Parameter to limit horizontal drift by large foreground */
     HI_U32      u32VerticalLimit;       /* RW; Range:[0,1000]; Parameter to limit vertical drift by large foreground */
@@ -91,9 +91,8 @@ typedef struct hiDIS_CONFIG_S
     DIS_PDT_TYPE_E          enPdtType;                          /* RW; DIS product type*/
     HI_U32                  u32BufNum;                          /* RW; Range:[5,10]; Buf num for DIS */
     HI_U32                  u32CropRatio;                       /* RW; Range:[50,98]; Crop ratio of output image */
-    HI_U32                  u32FrameRate;                       /* RW; Range: Hi3559AV100 = (0, 120] | Hi3519AV100 = (0, 120] | Hi3516CV500 = (0, 60] | Hi3516DV300 = (0, 60] |
-                                                                                                                            Hi3559V200 = (0, 60] | Hi3556V200 = (0, 60] .*/
-    HI_U32                  u32GyroOutputRange;                 /* RW; Range:[0,200000]; The range of Gyro output in degree */
+    HI_U32                  u32FrameRate;                       /* RW; Range:[25,120]; The input framerate */
+    HI_U32                  u32GyroOutputRange;                 /* RW; Range:[0,360]; The range of Gyro output in degree */
     HI_U32                  u32GyroDataBitWidth;                /* RW; Range:[0,32]; The bits used for gyro angular velocity output */
     HI_BOOL                 bCameraSteady;                      /* RW; The camera is steady or not */
     HI_BOOL                 bScale;                             /* RW; Scale output image or not*/

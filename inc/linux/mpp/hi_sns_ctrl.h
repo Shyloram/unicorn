@@ -50,7 +50,7 @@ typedef enum hiISP_SNS_MIRRORFLIP_TYPE_E
     ISP_SNS_FLIP        = 2,
     ISP_SNS_MIRROR_FLIP = 3,
     ISP_SNS_BUTT
-} ISP_SNS_MIRRORFLIP_TYPE_E;
+}ISP_SNS_MIRRORFLIP_TYPE_E;
 
 typedef struct hiISP_SNS_OBJ_S
 {
@@ -72,11 +72,8 @@ extern ISP_SNS_OBJ_S stSnsImx477Obj;
 extern ISP_SNS_OBJ_S stSnsImx299SlvsObj;
 extern ISP_SNS_OBJ_S stSnsImx290Obj;
 extern ISP_SNS_OBJ_S stSnsImx327Obj;
-extern ISP_SNS_OBJ_S stSnsImx327_2l_Obj;
 extern ISP_SNS_OBJ_S stSnsImx334Obj;
 extern ISP_SNS_OBJ_S stSnsOV2718Obj;
-extern ISP_SNS_OBJ_S stSnsAr0237Obj;
-
 extern ISP_SNS_OBJ_S stSnsCmv50000Obj;
 extern ISP_SNS_OBJ_S stSnsImx277SlvsObj;
 extern ISP_SNS_OBJ_S stSnsImx117Obj;
@@ -84,16 +81,7 @@ extern ISP_SNS_OBJ_S stSnsImx290SlaveObj;
 extern ISP_SNS_OBJ_S stSnsImx334SlaveObj;
 extern ISP_SNS_OBJ_S stSnsImx226Obj;
 extern ISP_SNS_OBJ_S stSnsImx335Obj;
-extern ISP_SNS_OBJ_S stSnsImx307Obj;
-extern ISP_SNS_OBJ_S stSnsImx307_2l_Obj;
 extern ISP_SNS_OBJ_S stSnsImx458Obj;
-extern ISP_SNS_OBJ_S stSnsSc4236Obj;
-extern ISP_SNS_OBJ_S stSnsSc2230Obj;
-extern ISP_SNS_OBJ_S stSnsSc2235Obj;
-extern ISP_SNS_OBJ_S stSnsSc3232Obj;
-extern ISP_SNS_OBJ_S stSnsOs05aObj;
-extern ISP_SNS_OBJ_S stSnsOs05a_2lObj;
-extern ISP_SNS_OBJ_S stSnsGc2053Obj;
 
 #define CMOS_CHECK_POINTER(ptr)\
     do {\

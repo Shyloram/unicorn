@@ -144,21 +144,6 @@ HI_S32 SAMPLE_COMM_SYS_GetPicSize(PIC_SIZE_E enPicSize, SIZE_S* pstSize)
             pstSize->u32Height = 288;
             break;
 
-        case PIC_QVGA:    /* 320 * 240 */
-            pstSize->u32Width  = 320;
-            pstSize->u32Height = 240;
-            break;
-
-        case PIC_VGA:   /* 640 * 480 */
-            pstSize->u32Width  = 640;
-            pstSize->u32Height = 480;
-            break;
-
-        case PIC_640x360:   /* 640 * 360 */
-            pstSize->u32Width  = 640;
-            pstSize->u32Height = 360;
-            break;
-
         case PIC_D1_PAL:   /* 720 * 576 */
             pstSize->u32Width  = 720;
             pstSize->u32Height = 576;
@@ -179,11 +164,6 @@ HI_S32 SAMPLE_COMM_SYS_GetPicSize(PIC_SIZE_E enPicSize, SIZE_S* pstSize)
             pstSize->u32Height = 1080;
             break;
 
-        case PIC_2304x1296:  /* 2304 * 1296 */
-            pstSize->u32Width  = 2304;
-            pstSize->u32Height = 1296;
-            break;
-
         case PIC_2592x1520:
             pstSize->u32Width  = 2592;
             pstSize->u32Height = 1520;
@@ -192,21 +172,6 @@ HI_S32 SAMPLE_COMM_SYS_GetPicSize(PIC_SIZE_E enPicSize, SIZE_S* pstSize)
         case PIC_2592x1944:
             pstSize->u32Width  = 2592;
             pstSize->u32Height = 1944;
-            break;
-
-        case PIC_2592x1536:
-            pstSize->u32Width  = 2592;
-            pstSize->u32Height = 1536;
-            break;
-
-        case PIC_2688x1520:
-            pstSize->u32Width  = 2688;
-            pstSize->u32Height = 1520;
-            break;
-
-        case PIC_2716x1524:
-            pstSize->u32Width  = 2716;
-            pstSize->u32Height = 1524;
             break;
 
         case PIC_3840x2160:
@@ -339,6 +304,23 @@ HI_S32 SAMPLE_COMM_SYS_MemConfig(HI_VOID)
         }
     }
 
+    /*config memory for vdec */
+    for (i = 0; i < VDEC_MAX_CHN_NUM; i++)
+    {
+
+        stMppChn.enModId  = HI_ID_VDEC;
+        stMppChn.s32DevId = 0;
+        stMppChn.s32ChnId = i;
+        s32Ret = HI_MPI_SYS_SetMemConfig(&stMppChn, pcMmzName);
+
+        if (s32Ret)
+        {
+            SAMPLE_PRT("HI_MPI_SYS_SetMemConf ERR !\n");
+            return HI_FAILURE;
+        }
+    }
+
+
     return s32Ret;
 }
 
@@ -446,7 +428,6 @@ HI_S32 SAMPLE_COMM_SYS_InitWithVbSupplement(VB_CONFIG_S* pstVbConf, HI_U32 u32Su
 ******************************************************************************/
 HI_VOID SAMPLE_COMM_SYS_Exit(void)
 {
-    SAMPLE_COMM_VO_Exit();
     HI_MPI_SYS_Exit();
     HI_MPI_VB_ExitModCommPool(VB_UID_VDEC);
     HI_MPI_VB_Exit();

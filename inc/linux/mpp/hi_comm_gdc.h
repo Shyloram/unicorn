@@ -83,7 +83,7 @@ typedef enum hiFISHEYE_VIEW_MODE_E
 /*Fisheye region correction attribute */
 typedef struct hiFISHEYE_REGION_ATTR_S
 {
-    FISHEYE_VIEW_MODE_E     enViewMode;        /* RW; Range: [0, 3];gdc view mode */
+    FISHEYE_VIEW_MODE_E     enViewMode;        /* RW; gdc view mode */
     HI_U32                     u32InRadius;    /* RW; inner radius of gdc correction region*/
     HI_U32                     u32OutRadius;   /* RW; out radius of gdc correction region*/
     HI_U32                     u32Pan;            /* RW; Range: [0, 360] */
@@ -96,20 +96,20 @@ typedef struct hiFISHEYE_REGION_ATTR_S
 /*Fisheye all regions correction attribute */
 typedef struct hiFISHEYE_ATTR_S
 {
-    HI_BOOL                 bEnable;                                 /* RW; Range: [0, 1];whether enable fisheye correction or not */
-    HI_BOOL                 bLMF;                                    /* RW; Range: [0, 1];whether gdc len's LMF coefficient is from user config or from default linear config */
-    HI_BOOL                 bBgColor;                                /* RW; Range: [0, 1];whether use background color or not */
-    HI_U32                  u32BgColor;                              /* RW; Range: [0,0xffffff];the background color RGB888*/
+    HI_BOOL                 bEnable;                                 /* RW; whether enable fisheye correction or not */
+    HI_BOOL                 bLMF;                                    /* RW; whether gdc len's LMF coefficient is from user config or from default linear config */
+    HI_BOOL                 bBgColor;                                /* RW; whether use background color or not */
+    HI_U32                  u32BgColor;                              /* RW;  Range: [0,0xffffff]the background color RGB888*/
 
-    HI_S32                  s32HorOffset;                             /* RW; Range: [-511, 511];the horizontal offset between image center and physical center of len*/
-    HI_S32                  s32VerOffset;                             /* RW; Range: [-511, 511]; the vertical offset between image center and physical center of len*/
+    HI_S32                  s32HorOffset;                             /* RW; Range: [-511, 511], the horizontal offset between image center and physical center of len*/
+    HI_S32                  s32VerOffset;                             /* RW; Range: [-511, 511], the vertical offset between image center and physical center of len*/
 
-    HI_U32                  u32TrapezoidCoef;                         /* RW; Range: [0, 32];strength coefficient of trapezoid correction */
-    HI_S32                  s32FanStrength;                           /* RW; Range: [-760, 760];strength coefficient of fan correction */
+    HI_U32                  u32TrapezoidCoef;                         /* RW; Range: [0, 32], strength coefficient of trapezoid correction */
+    HI_S32                  s32FanStrength;                           /* RW; Range: [-760, 760], strength coefficient of fan correction */
 
-    FISHEYE_MOUNT_MODE_E    enMountMode;                              /* RW; Range: [0, 2];gdc mount mode */
+    FISHEYE_MOUNT_MODE_E    enMountMode;                              /* RW; gdc mount mode */
 
-    HI_U32                  u32RegionNum;                             /* RW; Range: [1, 4]; gdc correction region number */
+    HI_U32                  u32RegionNum;                             /* RW; Range: [1, FISHEYE_MAX_REGION_NUM], gdc correction region number */
     FISHEYE_REGION_ATTR_S   astFishEyeRegionAttr[FISHEYE_MAX_REGION_NUM]; /* RW; attribution of gdc correction region */
 } FISHEYE_ATTR_S;
 
@@ -117,8 +117,8 @@ typedef struct hiFISHEYE_ATTR_S
 /*Spread correction attribute */
 typedef struct hiSPREAD_ATTR_S
 {
-    HI_BOOL                 bEnable;            /* RW; Range: [0, 1];whether enable spread or not, When spread on,ldc DistortionRatio range should be [0, 500] */
-    HI_U32                  u32SpreadCoef;      /* RW; Range: [0, 18];strength coefficient of spread correction */
+    HI_BOOL                 bEnable;            /* RW; whether enable spread or not */
+    HI_U32                  u32SpreadCoef;      /* RW; Range: [0, 18],strength coefficient of spread correction,When spread on,ldc DistortionRatio range should be [0, 500] */
     SIZE_S                  stDestSize;         /* RW; dest size of spread*/
 } SPREAD_ATTR_S;
 

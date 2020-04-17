@@ -178,14 +178,9 @@ typedef enum hiPIXEL_FORMAT_E
     PIXEL_FORMAT_YUV_SEMIPLANAR_420,
     PIXEL_FORMAT_YUV_SEMIPLANAR_444,
 
-    PIXEL_FORMAT_YUYV_PACKAGE_422,
-    PIXEL_FORMAT_YVYU_PACKAGE_422,
     PIXEL_FORMAT_UYVY_PACKAGE_422,
+    PIXEL_FORMAT_YUYV_PACKAGE_422,
     PIXEL_FORMAT_VYUY_PACKAGE_422,
-    PIXEL_FORMAT_YYUV_PACKAGE_422,
-    PIXEL_FORMAT_YYVU_PACKAGE_422,
-    PIXEL_FORMAT_UVYY_PACKAGE_422,
-    PIXEL_FORMAT_VUYY_PACKAGE_422,
 
     PIXEL_FORMAT_YUV_400,
     PIXEL_FORMAT_UV_420,
@@ -200,7 +195,6 @@ typedef enum hiPIXEL_FORMAT_E
     PIXEL_FORMAT_S8C1,
     PIXEL_FORMAT_S8C2_PACKAGE,
     PIXEL_FORMAT_S8C2_PLANAR,
-    PIXEL_FORMAT_S8C3_PLANAR,
     PIXEL_FORMAT_S16C1,
     PIXEL_FORMAT_U8C1,
     PIXEL_FORMAT_U16C1,
@@ -527,13 +521,13 @@ typedef struct hiBITMAP_S
 
 typedef struct hiLDC_ATTR_S
 {
-    HI_BOOL    bAspect;             /* RW;Range: [0, 1];Whether aspect ration  is keep */
-    HI_S32     s32XRatio;           /* RW; Range: [0, 100]; field angle ration of  horizontal,valid when bAspect=0.*/
-    HI_S32     s32YRatio;           /* RW; Range: [0, 100]; field angle ration of  vertical,valid when bAspect=0.*/
-    HI_S32     s32XYRatio;          /* RW; Range: [0, 100]; field angle ration of  all,valid when bAspect=1.*/
-    HI_S32 s32CenterXOffset;        /* RW; Range: [-511, 511]; horizontal offset of the image distortion center relative to image center.*/
-    HI_S32 s32CenterYOffset;        /* RW; Range: [-511, 511]; vertical offset of the image distortion center relative to image center.*/
-    HI_S32 s32DistortionRatio;      /* RW; Range: [-300, 500]; LDC Distortion ratio.When spread on,s32DistortionRatio range should be [0, 500]*/
+    HI_BOOL    bAspect;                /* RW;Whether aspect ration  is keep */
+    HI_S32     s32XRatio;                /* RW; Range: [0, 100], field angle ration of  horizontal,valid when bAspect=0.*/
+    HI_S32     s32YRatio;                /* RW; Range: [0, 100], field angle ration of  vertical,valid when bAspect=0.*/
+    HI_S32     s32XYRatio;                /* RW; Range: [0, 100], field angle ration of  all,valid when bAspect=1.*/
+    HI_S32 s32CenterXOffset;        /* RW; Range: [-511, 511], horizontal offset of the image distortion center relative to image center.*/
+    HI_S32 s32CenterYOffset;        /* RW; Range: [-511, 511], vertical offset of the image distortion center relative to image center.*/
+    HI_S32 s32DistortionRatio;        /* RW; Range: [-300, 500], LDC Distortion ratio.When spread on,s32DistortionRatio range should be [0, 500]*/
 } LDC_ATTR_S;
 
 
@@ -549,23 +543,6 @@ typedef struct hiLDCV2_ATTR_S
     HI_S32 as32DstJunPt[DST_LENS_COEF_SEG - 1];                     /*RW; Junction Point of the three segments*/
 } LDCV2_ATTR_S;
 
-typedef enum hiLDC_VIEW_TYPE_E
-{
-    LDC_VIEW_TYPE_ALL  = 0,  /* View scale all but x and y independtly, this will keep both x and y axis ,but corner maybe lost*/
-    LDC_VIEW_TYPE_CROP = 1,  /* Not use view scale, this will lost some side and corner */
-
-    LDC_VIEW_TYPE_BUTT,
-} LDC_VIEW_TYPE_E;
-
-typedef struct hiLDCV3_ATTR_S
-{
-    LDC_VIEW_TYPE_E enViewType; /* RW; Range: [0, 1], 0: all mode, 1: crop mode.*/
-    HI_S32 s32CenterXOffset;    /* RW; Range: ABS(s32CenterXOffset)->[0, min(128, width*0.08)], horizontal offset of the image distortion center relative to image center.*/
-    HI_S32 s32CenterYOffset;    /* RW; Range: ABS(s32CenterXOffset)->[0, min(128, height*0.08)], vertical offset of the image distortion center relative to image center.*/
-    HI_S32 s32DistortionRatio;  /* RW; Range: [-300, 300], LDC Distortion ratio.*/
-    HI_S32 s32MinRatio;         /* RW; Range: [-300, 300], to remove the black region around when performing pinchusion distortion correction with crop mode.*/
-} LDCV3_ATTR_S;
-
 typedef enum hiROTATION_VIEW_TYPE_E
 {
     ROTATION_VIEW_TYPE_ALL      = 0, /* View all source Image,no lose*/
@@ -576,11 +553,11 @@ typedef enum hiROTATION_VIEW_TYPE_E
 
 typedef struct hiROTATION_EX_S
 {
-    ROTATION_VIEW_TYPE_E enViewType;       /*RW;Range: [0, 2];Rotation mode*/
-    HI_U32               u32Angle;         /*RW;Range: [0,360];Rotation Angle:[0,360]*/
-    HI_S32               s32CenterXOffset; /*RW;Range: [-511, 511];Horizontal offset of the image distortion center relative to image center.*/
-    HI_S32               s32CenterYOffset; /*RW;Range: [-511, 511];Vertical offset of the image distortion center relative to image center.*/
-    SIZE_S               stDestSize;       /*RW;Dest size of any angle rotation*/
+    ROTATION_VIEW_TYPE_E enViewType;       /*Rotation mode*/
+    HI_U32               u32Angle;         /*Rotation Angle:[0,360]*/
+    HI_S32               s32CenterXOffset; /* Horizontal offset of the image distortion center relative to image center.*/
+    HI_S32               s32CenterYOffset; /* Vertical offset of the image distortion center relative to image center.*/
+    SIZE_S               stDestSize;       /*Dest size of any angle rotation*/
 } ROTATION_EX_S;
 
 
@@ -605,19 +582,6 @@ typedef enum hiWDR_MODE_E
     WDR_MODE_BUTT,
 } WDR_MODE_E;
 
-typedef enum hiFRAME_INTERRUPT_TYPE_E
-{
-    FRAME_INTERRUPT_START,
-    FRAME_INTERRUPT_EARLY,
-    FRAME_INTERRUPT_EARLY_END,
-    FRAME_INTERRUPT_BUTT,
-} FRAME_INTERRUPT_TYPE_E;
-
-typedef struct hiFRAME_INTERRUPT_ATTR_S
-{
-    FRAME_INTERRUPT_TYPE_E enIntType;
-    HI_U32 u32EarlyLine;
-} FRAME_INTERRUPT_ATTR_S;
 
 
 

@@ -203,7 +203,6 @@ typedef struct hiISP_BE_AE_STITCH_STAT_3_S
 typedef struct hiISP_AE_INFO_S
 {
     HI_U32  u32FrameCnt;    /* the counting of frame */
-    ISP_SMART_INFO_S stSmartInfo;
 
     ISP_FE_AE_STAT_1_S *pstFEAeStat1;
     ISP_FE_AE_STAT_2_S *pstFEAeStat2;

@@ -37,29 +37,29 @@ extern "C" {
 #endif /* End of #ifdef __cplusplus */
 
 #ifndef VER_X
-#define VER_X 1
+    #define VER_X 1
 #endif
 
 #ifndef VER_Y
-#define VER_Y 0
+    #define VER_Y 0
 #endif
 
 #ifndef VER_Z
-#define VER_Z 0
+    #define VER_Z 0
 #endif
 
 #ifndef VER_P
-#define VER_P 0
+    #define VER_P 0
 #endif
 
 #ifndef VER_B
-#define VER_B 0
+    #define VER_B 0
 #endif
 
 #ifdef HI_DEBUG
-#define VER_D " Debug"
+    #define VER_D " Debug"
 #else
-#define VER_D " Release"
+    #define VER_D " Release"
 #endif
 
 
@@ -67,11 +67,11 @@ extern "C" {
 
 
 #define COMPAT_POINTER(ptr, type)\
-    do {\
-        HI_UL ulAddr   =  (HI_UL)ptr;\
-        HI_U32 u32Addr =  (HI_U32)ulAddr;\
-        ptr = (type)(HI_UL)u32Addr;\
-    } while(0)
+do {\
+    HI_UL ulAddr   =  (HI_UL)ptr;\
+    HI_U32 u32Addr =  (HI_U32)ulAddr;\
+    ptr = (type)(HI_UL)u32Addr;\
+} while(0)
 
 
 
@@ -115,12 +115,16 @@ typedef HI_S32 MIPI_DEV;
 typedef HI_S32 SLAVE_DEV;
 typedef HI_S32 SVP_NNIE_HANDLE;
 typedef HI_S32 SVP_DSP_HANDLE;
+typedef HI_S32 SVP_ALG_CHN;
 typedef HI_S32 VPSS_GRP;
 typedef HI_S32 VPSS_GRP_PIPE;
 typedef HI_S32 VPSS_CHN;
 typedef HI_S32 AVS_GRP;
 typedef HI_S32 AVS_PIPE;
 typedef HI_S32 AVS_CHN;
+typedef HI_S32 MCF_GRP;
+typedef HI_S32 MCF_PIPE;
+typedef HI_S32 MCF_CHN;
 
 #define HI_INVALID_CHN (-1)
 #define HI_INVALID_WAY (-1)
@@ -201,11 +205,9 @@ typedef enum hiMOD_ID_E
 
     HI_ID_MOTIONSENSOR = 55,
     HI_ID_MOTIONFUSION = 56,
-
-    HI_ID_GYRODIS      = 57,
-    HI_ID_PM           = 58,
-    HI_ID_SVP_ALG      = 59,
-	HI_ID_IVP          = 60,
+    HI_ID_SVP_ALG      = 57,
+    HI_ID_MCF          = 58,
+	HI_ID_PM      	   = 59, 
 
     HI_ID_BUTT,
 } MOD_ID_E;
@@ -227,7 +229,6 @@ typedef struct hiMPP_CHN_S
 #define MPP_MOD_VGS       "vgs"
 #define MPP_MOD_GDC       "gdc"
 #define MPP_MOD_DIS       "dis"
-#define MPP_MOD_GYRODIS   "gyrodis"
 
 #define MPP_MOD_CHNL      "chnl"
 #define MPP_MOD_VENC      "venc"
@@ -236,11 +237,10 @@ typedef struct hiMPP_CHN_S
 #define MPP_MOD_IVE       "ive"
 #define MPP_MOD_FD        "fd"
 #define MPP_MOD_MD          "md"
-#define MPP_MOD_IVP       "ivp"
 #define MPP_MOD_SVP       "svp"
 #define MPP_MOD_SVP_NNIE  "nnie"
-#define MPP_MOD_SVP_DSP   "dsp"
 #define MPP_MOD_SVP_ALG   "svp_alg"
+#define MPP_MOD_SVP_DSP   "dsp"
 #define MPP_MOD_DPU_RECT  "rect"
 #define MPP_MOD_DPU_MATCH "match"
 
@@ -285,8 +285,8 @@ typedef struct hiMPP_CHN_S
 #define MPP_MOD_TDE       "tde"
 #define MPP_MOD_ISP       "isp"
 #define MPP_MOD_USR       "usr"
+#define MPP_MOD_MCF       "mcf"
 #define MPP_MOD_PM        "pm"
-#define MPP_MOD_MFUSION   "motionfusion"
 
 /* We just coyp this value of payload type from RTP/RTSP definition */
 typedef enum

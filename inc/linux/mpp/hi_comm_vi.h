@@ -31,6 +31,8 @@ extern "C"
 #define VI_PMFCOEF_NUM              (9UL)
 #define VI_COMPMASK_NUM             (2UL)
 #define VI_PRO_MAX_FRAME_NUM        (8UL)
+#define VI_SHARPEN_GAIN_NUM         32
+#define VI_AUTO_ISO_STRENGTH_NUM    16
 
 #define VI_INVALID_FRMRATE  (-1)
 #define VI_CHN0               0
@@ -469,18 +471,50 @@ typedef struct hiVI_PIPE_ATTR_S
 {
     VI_PIPE_BYPASS_MODE_E enPipeBypassMode;
     HI_BOOL               bYuvSkip;               /* RW;YUV skip enable */
-    HI_BOOL               bIspBypass;             /* RW;Range:[0,1];ISP bypass enable */
-    HI_U32                u32MaxW;                /* RW;Range:[0,1];Range[VI_PIPE_MIN_WIDTH,VI_PIPE_MAX_WIDTH];Maximum width */
+    HI_BOOL               bIspBypass;             /* RW;ISP bypass enable */
+    HI_U32                u32MaxW;                /* RW;Range[VI_PIPE_MIN_WIDTH,VI_PIPE_MAX_WIDTH];Maximum width */
     HI_U32                u32MaxH;                /* RW;Range[VI_PIPE_MIN_HEIGHT,VI_PIPE_MAX_HEIGHT];Maximum height */
     PIXEL_FORMAT_E        enPixFmt;               /* RW;Pixel format */
-    COMPRESS_MODE_E       enCompressMode;         /* RW;Range:[0,4];Compress mode.*/
-    DATA_BITWIDTH_E       enBitWidth;             /* RW;Range:[0,4];Bit width*/
-    HI_BOOL               bNrEn;                  /* RW;Range:[0,1];3DNR enable */
+    COMPRESS_MODE_E       enCompressMode;         /* RW;Compress mode.*/
+    DATA_BITWIDTH_E       enBitWidth;             /* RW;Bit width*/
+    HI_BOOL               bNrEn;                  /* RW;3DNR enable */
     VI_NR_ATTR_S          stNrAttr;               /* RW;Attribute of 3DNR*/
-    HI_BOOL               bSharpenEn;             /* RW;Range:[0,1];Sharpen enable*/
+    HI_BOOL               bSharpenEn;                /* RW;Sharpen enable*/
     FRAME_RATE_CTRL_S     stFrameRate;            /* RW;Frame rate */
-    HI_BOOL               bDiscardProPic;         /* RW;Range:[0,1];when professional mode snap, whether to discard long exposure picture in the video pipe. */
+    HI_BOOL               bDiscardProPic;          /* RW;when professional mode snap, whether to discard long exposure picture in the video pipe. */
 } VI_PIPE_ATTR_S;
+
+typedef struct hiVI_PIPE_SHARPEN_MANUAL_ATTR_S
+{
+    HI_U16 au16TextureStr[VI_SHARPEN_GAIN_NUM];      /* RW; range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
+    HI_U16 au16EdgeStr[VI_SHARPEN_GAIN_NUM];         /* RW; range: [0, 4095]; Format:7.5;Directional sharpen strength for edge enhancement*/
+    HI_U16 u16TextureFreq;                      /* RW; range: [0, 4095]; Format:6.6; Texture frequency adjustment. Texture and detail will be finer when it increase*/
+    HI_U16 u16EdgeFreq;                            /* RW; range: [0, 4095]; Format:6.6; Edge frequency adjustment. Edge will be narrower and thiner when it increase*/
+    HI_U8  u8OverShoot;                         /* RW; range: [0, 127];  Format:7.0;u8OvershootAmt*/
+    HI_U8  u8UnderShoot;                        /* RW; range: [0, 127];  Format:7.0;u8UndershootAmt*/
+    HI_U8  u8ShootSupStr;                      /* RW; range: [0, 255]; Format:8.0;overshoot and undershoot suppression strength, the amplitude and width of shoot will be decrease when shootSupSt increase*/
+
+} VI_PIPE_SHARPEN_MANUAL_ATTR_S;
+
+typedef struct hiVI_PIPE_SHARPEN_AUTO_ATTR_S
+{
+    HI_U16 au16TextureStr[VI_SHARPEN_GAIN_NUM][VI_AUTO_ISO_STRENGTH_NUM];    /* RW; range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
+    HI_U16 au16EdgeStr[VI_SHARPEN_GAIN_NUM][VI_AUTO_ISO_STRENGTH_NUM];       /* RW; range: [0, 4095]; Format:7.5;Directional sharpen strength for edge enhancement*/
+    HI_U16 au16TextureFreq[VI_AUTO_ISO_STRENGTH_NUM];                    /* RW; range: [0, 4095]; Format:6.6;Texture frequency adjustment. Texture and detail will be finer when it increase*/
+    HI_U16 au16EdgeFreq[VI_AUTO_ISO_STRENGTH_NUM];                       /* RW; range: [0, 4095]; Format:6.6;Edge frequency adjustment. Edge will be narrower and thiner when it increase*/
+    HI_U8  au8OverShoot[VI_AUTO_ISO_STRENGTH_NUM];                       /* RW; range: [0, 127];  Format:7.0;u8OvershootAmt*/
+    HI_U8  au8UnderShoot[VI_AUTO_ISO_STRENGTH_NUM];                      /* RW; range: [0, 127];  Format:7.0;u8UndershootAmt*/
+    HI_U8  au8ShootSupStr[VI_AUTO_ISO_STRENGTH_NUM];                    /* RW; range: [0, 255]; Format:8.0;overshoot and undershoot suppression strength, the amplitude and width of shoot will be decrease when shootSupSt increase*/
+
+} VI_PIPE_SHARPEN_AUTO_ATTR_S;
+
+typedef struct hiVI_PIPE_SHARPEN_ATTR_S
+{
+    OPERATION_MODE_E                enOpType;
+    HI_U8                           au8LumaWgt[VI_SHARPEN_GAIN_NUM];       /* RW; range: [0, 127];  Format:7.0;*/
+    VI_PIPE_SHARPEN_MANUAL_ATTR_S   stSharpenManualAttr;
+    VI_PIPE_SHARPEN_AUTO_ATTR_S     stSharpenAutoAttr;
+} VI_PIPE_SHARPEN_ATTR_S;
 
 typedef enum hiVI_STITCH_ISP_CFG_MODE_E
 {
@@ -494,7 +528,6 @@ typedef struct hiVI_STITCH_GRP_ATTR_S
 {
     HI_BOOL                     bStitch;
     VI_STITCH_ISP_CFG_MODE_E    enMode;
-    HI_U32                      u32MaxPTSGap;                             /* RW;MAX PTS Gap between frame of pipe,unit:us */
     HI_U32                      u32PipeNum;                               /* RW;Range [2,VI_MAX_PIPE_NUM] */
     VI_PIPE                     PipeId[VI_MAX_PIPE_NUM];                  /* RW;Array of pipe ID */
 } VI_STITCH_GRP_ATTR_S;
@@ -515,7 +548,7 @@ typedef struct
 
 typedef struct
 {
-    HI_U8   SBF     : 2;      /* RW; Range:[0,3];Format 2.0;the band type of spatial filter,notice: SBF0,SBF1 range is [2,3];SBF2,SBF3,SBF4 range is [0,3], where SBF4 is related to SBFk*/
+    HI_U8   SBF     : 2;      /* RW; Range:[0,3];Format 2.0;the band type of spatial filter,notice: SBF0,SBF1 range is [2,3];SBF2,SBF3 range is [0,3] */
     HI_U8   STR     : 4;      /* RW; Range:[0,13];Format 4.0;the relative strength of spatial filter refer to the previous frame */
     HI_U8   STHp    : 2;      /* RW; Range:[0,2];Format 2.0;Not recommended for debugging */
     HI_U8   SFT     : 5;      /* RW; Range:[0,31];Format 5.0;Not recommended for debugging */
@@ -577,8 +610,9 @@ typedef struct
     HI_U8   HdgIES;        /* RW; Range:[0,255];Format 8.0;the strength of image enhancement for complexed mixed spatial filter */
     HI_U8   nRef    : 1;   /* RW; Range:[0,1];Format 1.0;Not recommended for debugging */
 
-    HI_U8   IEyMode : 1;   /* RW; Range:[0,1];Format 1.0;the image enhancement mode selection. */
-    HI_U8   IEyEx[4];      /* RW; Range:[0,255];Format 8.0;the image enhancement strength for different frequency.*/
+    HI_U8   IEyMode : 1;
+    HI_U8   IEyEx[4];
+
 
     HI_U8   SFRi[4];       /* RW; Range:[0,255];Format 8.0;the relative strength of SFy3 when the filter type is SFi */
     HI_U8   SFRk[4];       /* RW; Range:[0,255];Format 8.0;the relative strength of SFy3 when the filter type is SFk */
@@ -621,31 +655,28 @@ typedef struct hiNRX_PARAM_V1_S
 
 typedef struct
 {
-    HI_U8  IES0, IES1, IES2, IES3;  /* IES0~4 ; Range: [0, 255]; The gains of edge and texture enhancement. 0~3 for different frequency response. */
-	HI_U16 IEDZ : 10, _rb_ : 6;		/* IEDZ   ; Range: [0, 999]; The threshold to control the generated artifacts. */
+    HI_U8  IES0, IES1, IES2, IES3;
+    HI_U16 IEDZ : 10, IEEn : 1, _rb_ : 5;
 } tV500_VI_IEy;
 
 typedef struct
 {
-    HI_U8  SPN6 : 3, SFR  : 5;    /* SPN6; Range: [0,   5];  The selection of filters to be mixed for NO.6 filter. */
-							      /* SFR ; Range: [0,  31];  The relative NR strength in the SFi and SFk filter. */
-	HI_U8  SBN6 : 3, PBR6 : 5;    /* SBN6; Range: [0,   5];  The selection of filters to be mixed for NO.6 filter. */
-							      /* PBR6; Range: [0,  16];  The mix ratio between SPN6 and SBN6. */
-    HI_U16 SRT0 : 5, SRT1 : 5, JMODE : 3, DeIdx : 3;  /* JMODE;      Range: [0,   4]; The selection modes for the blending of spatial filters */
-													  /* STR0, STR1; Range: [0,  16]; The blending ratio of different filters. (Used in serial filtering mode (SFM).) */
-													  /* DeIdx;      Range: [3,   6]; The selection number of filters that textures and details will be added to. */
-	HI_U8  DeRate, SFR6[3];      					  /* DeRate;     Range: [0, 255]; The enhancement strength for the SFM (When DeRate > 0, the SFM will be activated)*/
-													  /* SFR6;       Range: [0,  31]; The relative NR strength for NO.6 filter. (Effective when JMODE = 4)*/
-	HI_U8  SFS1, SFT1, SBR1;						  /* SFS1, SFT1, SBR1; Range: [0, 255];  The NR strength parameters for NO.1 filter. */
-	HI_U8  SFS2, SFT2, SBR2;						  /* SFS2, SFT2, SBR2; Range: [0, 255];  The NR strength parameters for NO.2 filter. */
-	HI_U8  SFS4, SFT4, SBR4;						  /* SFS4, SFT4, SBR4; Range: [0, 255];  The NR strength parameters for NO.3 and NO.4 filters. */
+    HI_U8  SPN3 : 3, SFR  : 5;
+    HI_U8  SBN3 : 3, PBR3 : 5;
+    HI_U16 BRT0 : 5, BRT1 : 5, JMODE : 3,  CPMode : 2,  TriTh : 1;
+    HI_U8  CPRat, JSFR[3];
 
-    HI_U16 STH1 : 9, SFN1 : 3, NRyEn : 1, SFN0  : 3;  /* STH1~3; Range: [0, 511]; The thresholds for protection of edges from blurring */
-													  /* NRyEn ; Range: [0,   1]; The NR switches */
-	HI_U16 STH2 : 9, SFN2 : 3, BWSF4 : 1, kMode : 3;  /* SFN0~3; Range: [0,   6]; Filter selection for different image areas based on STH1~3.*/
-													  /* BWSF4 ; Range: [0,   1]; The NR window size for the NO.3 and NO.4 filters.  */
-	HI_U16 STH3 : 9, SFN3 : 3, TriTh : 1, _rb0_ : 3;  /* KMode ; Range: [0,   3]; The denoise mode based on image brightness. */
-													  /* Trith ; Range: [0,   1]; The switch to choose 3 STH threshold or 2 STH threshold */
+    HI_U8  SFS1, SFT1, SBR1;
+    HI_U8  SFS2, SFT2, SBR2;
+    HI_U8  SFS4, SFT4, SBR4;
+
+    HI_U16 STH1 : 9,  SFN1 : 3, SFN0  : 3, NRyEn : 1;
+    HI_U16 STH2 : 9,  SFN2 : 3, kMode : 3, _rb0_ : 1;
+    HI_U16 STH3 : 9,  SFN3 : 3, _rb_  : 4;
+
+    HI_U16 STHd1 : 9, _rb2_ : 7;
+    HI_U16 STHd2 : 9, _rb3_ : 7;
+    HI_U16 STHd3 : 9, _rb4_ : 7;
 } tV500_VI_SFy;
 
 typedef struct
@@ -669,8 +700,8 @@ typedef struct hiNRX_PARAM_AUTO_V2_S
 typedef struct hiNRX_PARAM_V2_S
 {
     OPERATION_MODE_E        enOptMode;           /* RW;Adaptive NR */
-    NRX_PARAM_MANUAL_V2_S   stNRXManualV2;       /* RW;NRX V2 param for manual */
-    NRX_PARAM_AUTO_V2_S     stNRXAutoV2;         /* RW;NRX V2 param for auto */
+    NRX_PARAM_MANUAL_V2_S   stNRXManualV2;       /* RW;NRX V1 param for manual */
+    NRX_PARAM_AUTO_V2_S     stNRXAutoV2;         /* RW;NRX V1 param for auto */
 } NRX_PARAM_V2_S;
 
 typedef struct hiVI_PIPE_NRX_PARAM_S
@@ -727,12 +758,6 @@ typedef struct hiVI_VS_SIGNAL_ATTR_S
     HI_U32              u32Interval;        /* RW;output frequently interval, unit: frame*/
 } VI_VS_SIGNAL_ATTR_S;
 
-typedef struct hiBNR_DUMP_ATTR_S
-{
-    HI_BOOL bEnable;
-    HI_U32  u32Depth;
-} BNR_DUMP_ATTR_S;
-
 typedef enum hiVI_EXT_CHN_SOURCE_E
 {
     VI_EXT_CHN_SOURCE_TAIL,
@@ -771,7 +796,7 @@ typedef struct hiVI_CROP_INFO_S
 /* The attributes of LDC */
 typedef struct hiVI_LDC_ATTR_S
 {
-    HI_BOOL     bEnable;                        /* RW;Range [0,1];Whether LDC is enbale */
+    HI_BOOL     bEnable;                        /* RW;Whether LDC is enbale */
     LDC_ATTR_S  stAttr;
 } VI_LDC_ATTR_S;
 
@@ -782,17 +807,9 @@ typedef struct hiVI_LDCV2_ATTR_S
     LDCV2_ATTR_S  stAttr;
 } VI_LDCV2_ATTR_S;
 
-/* The attributes of LDCV3 */
-typedef struct hiVI_LDCV3_ATTR_S
-{
-    HI_BOOL       bEnable;                        /* RW;Whether LDC is enbale */
-    LDCV3_ATTR_S  stAttr;
-} VI_LDCV3_ATTR_S;
-
-
 typedef struct hiVI_ROTATION_EX_ATTR_S
 {
-    HI_BOOL       bEnable;                 /* RW;Range [0,1];Whether ROTATE_EX_S is enbale */
+    HI_BOOL       bEnable;                 /* RW;Whether ROTATE_EX_S is enbale */
     ROTATION_EX_S stRotationEx;
 }VI_ROTATION_EX_ATTR_S;
 
@@ -814,19 +831,10 @@ typedef struct hiVI_PMF_ATTR_S
     HI_S64  as64PMFCoef[VI_PMFCOEF_NUM];        /* RW; Array of PMF coefficients */
 } VI_PMF_ATTR_S;
 
-typedef enum hiVI_DUMP_TYPE_E
-{
-    VI_DUMP_TYPE_RAW   = 0,
-    VI_DUMP_TYPE_YUV   = 1,
-    VI_DUMP_TYPE_IR    = 2,
-    VI_DUMP_TYPE_BUTT
-}VI_DUMP_TYPE_E;
-
 typedef struct hiVI_DUMP_ATTR_S
 {
     HI_BOOL         bEnable;              /* RW;Whether dump is enable */
     HI_U32          u32Depth;             /* RW;Range [0,8];Depth */
-    VI_DUMP_TYPE_E  enDumpType;
 } VI_DUMP_ATTR_S;
 
 typedef enum hiVI_PIPE_FRAME_SOURCE_E
@@ -854,8 +862,8 @@ typedef struct hiVI_MOD_PARAM_S
 
 typedef struct hiVI_DEV_TIMING_ATTR_S
 {
-   HI_BOOL bEnable;               /* RW;Range:[0,1];Whether enable VI generate timing */
-   HI_S32  s32FrmRate;            /* RW;Range:(0,0xffffff];;Generate timing Frame rate*/
+   HI_BOOL bEnable;               /* RW;Whether enable VI generate timing */
+   HI_S32  s32FrmRate;            /* RW;Generate timing Frame rate*/
 }VI_DEV_TIMING_ATTR_S;
 
 typedef struct hiVI_EARLY_INTERRUPT_S

@@ -61,9 +61,6 @@ HI_S32 HI_MPI_VPSS_GetGrpFisheyeConfig(VPSS_GRP VpssGrp, FISHEYE_CONFIG_S *pstFi
 HI_S32 HI_MPI_VPSS_EnableUserFrameRateCtrl(VPSS_GRP VpssGrp);
 HI_S32 HI_MPI_VPSS_DisableUserFrameRateCtrl(VPSS_GRP VpssGrp);
 
-HI_S32 HI_MPI_VPSS_SetGrpFrameInterruptAttr(VPSS_GRP VpssGrp, const FRAME_INTERRUPT_ATTR_S *pstFrameIntAttr);
-HI_S32 HI_MPI_VPSS_GetGrpFrameInterruptAttr(VPSS_GRP VpssGrp, FRAME_INTERRUPT_ATTR_S *pstFrameIntAttr);
-
 /* Chn Settings */
 HI_S32 HI_MPI_VPSS_SetChnAttr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, const VPSS_CHN_ATTR_S* pstChnAttr);
 HI_S32 HI_MPI_VPSS_GetChnAttr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, VPSS_CHN_ATTR_S* pstChnAttr);
@@ -83,9 +80,6 @@ HI_S32 HI_MPI_VPSS_GetChnRotationEx(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, VPSS_ROT
 HI_S32 HI_MPI_VPSS_SetChnLDCAttr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, const VPSS_LDC_ATTR_S *pstLDCAttr);
 HI_S32 HI_MPI_VPSS_GetChnLDCAttr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, VPSS_LDC_ATTR_S *pstLDCAttr);
 
-HI_S32 HI_MPI_VPSS_SetChnLDCV3Attr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, const VPSS_LDCV3_ATTR_S *pstLDCV3Attr);
-HI_S32 HI_MPI_VPSS_GetChnLDCV3Attr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, VPSS_LDCV3_ATTR_S *pstLDCV3Attr);
-
 HI_S32 HI_MPI_VPSS_SetChnSpreadAttr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, const SPREAD_ATTR_S *pstSpreadAttr);
 HI_S32 HI_MPI_VPSS_GetChnSpreadAttr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, SPREAD_ATTR_S *pstSpreadAttr);
 
@@ -98,14 +92,8 @@ HI_S32 HI_MPI_VPSS_GetRegionLuma(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, const VIDEO
 HI_S32 HI_MPI_VPSS_SetLowDelayAttr(VPSS_GRP VpssGrp,  VPSS_CHN VpssChn, const VPSS_LOW_DELAY_INFO_S *pstLowDelayInfo);
 HI_S32 HI_MPI_VPSS_GetLowDelayAttr(VPSS_GRP VpssGrp,  VPSS_CHN VpssChn,  VPSS_LOW_DELAY_INFO_S *pstLowDelayInfo);
 
-HI_S32 HI_MPI_VPSS_SetChnBufWrapAttr(VPSS_GRP VpssGrp,  VPSS_CHN VpssChn, const VPSS_CHN_BUF_WRAP_S* pstVpssChnBufWrap);
-HI_S32 HI_MPI_VPSS_GetChnBufWrapAttr(VPSS_GRP VpssGrp,  VPSS_CHN VpssChn,  VPSS_CHN_BUF_WRAP_S* pstVpssChnBufWrap);
-
-HI_S32 HI_MPI_VPSS_TriggerSnapFrame(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, HI_U32 u32FrameCnt);
-
 HI_S32 HI_MPI_VPSS_AttachVbPool(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, VB_POOL hVbPool);
 HI_S32 HI_MPI_VPSS_DetachVbPool(VPSS_GRP VpssGrp, VPSS_CHN VpssChn);
-
 
 /* ExtChn Settings */
 HI_S32 HI_MPI_VPSS_SetExtChnAttr(VPSS_GRP VpssGrp, VPSS_CHN VpssChn, const VPSS_EXT_CHN_ATTR_S* pstExtChnAttr);

@@ -143,18 +143,6 @@ HI_S32 HI_MPI_VGS_AddOsdTaskArray(VGS_HANDLE hHandle, const VGS_TASK_ATTR_S *pst
 *****************************************************************************/
 HI_S32 HI_MPI_VGS_AddRotationTask(VGS_HANDLE hHandle, const VGS_TASK_ATTR_S *pstTask, ROTATION_E enRotationAngle);
 
-/*****************************************************************************
- Prototype    : HI_MPI_VGS_AddLumaTaskArray
- Description  : add lumastat tasks into a job
- Input        : VGS_HANDLE hHandle
- Output       : None
- Return Value :
- Calls        :
- Called By    :
-*****************************************************************************/
-HI_S32 HI_MPI_VGS_AddLumaTaskArray(VGS_HANDLE hHandle, VGS_TASK_ATTR_S *pstTask, const RECT_S astVgsLumaRect[],
-                                   HI_U32 u32ArraySize, HI_U64 au64LumaData[]);
-
 #ifdef __cplusplus
 #if __cplusplus
 }

@@ -23,14 +23,16 @@ extern "C"{
 #endif
 #endif /* End of #ifdef __cplusplus */
 
-#define VB_INVALID_POOLID       (-1U)
-#define VB_INVALID_HANDLE       (-1U)
+#define VB_INVALID_POOLID (-1U)
+#define VB_INVALID_HANDLE (-1U)
 
-#define VB_MAX_COMM_POOLS       16
-#define VB_MAX_MOD_COMM_POOLS   16
+
+#define VB_MAX_COMM_POOLS 16
+#define VB_MAX_MOD_COMM_POOLS 16
+
 
 /* user ID for VB */
-#define VB_MAX_USER             VB_UID_BUTT
+#define VB_MAX_USER   VB_UID_BUTT
 
 typedef enum hiVB_UID_E
 {
@@ -69,6 +71,8 @@ typedef enum hiVB_UID_E
 /* Private pool use this owner id */
 #define POOL_OWNER_PRIVATE    -2
 
+
+
 typedef HI_U32 VB_POOL;
 typedef HI_U32 VB_BLK;
 
@@ -96,6 +100,7 @@ typedef struct hiVB_CONFIG_S
     HI_U32 u32MaxPoolCnt;
     VB_POOL_CONFIG_S astCommPool[VB_MAX_COMM_POOLS];
 } VB_CONFIG_S;
+
 
 typedef struct hiVB_POOL_STATUS_S
 {

@@ -57,11 +57,6 @@ extern "C" {
 #define MAX_AWB_LIB_NUM                 (AWB_LIB_NUM)
 #define MAX_AE_LIB_NUM                  (AE_LIB_NUM)
 
-#define AE_MIN_WIDTH                    (256)
-#define AE_MIN_HEIGHT                   (120)
-#define AWB_MIN_WIDTH                   (60)
-#define AWB_MIN_HEIGHT                  (14)
-
 #define GAMMA_NODE_NUM                  (1025)
 #define PREGAMMA_NODE_NUM               (257)
 #define PREGAMMA_SEG_NUM                (8)
@@ -94,6 +89,7 @@ extern "C" {
 #define ISP_BAS_TAPS_ROW_NUM            (17)
 #define ISP_BAS_TAPS_COL_6              (6)
 #define ISP_BAS_TAPS_COL_4              (4)
+#define HI_ISP_NR_LUMA_LUT_LENGTH       (6)
 #define HI_ISP_BAYERNR_LUT_LENGTH       (33)
 #define HI_ISP_BAYERNR_LMTLUTNUM        (129)
 #define PRO_MAX_FRAME_NUM               (8)
@@ -209,7 +205,6 @@ Defines the structure of ISP module parameters.
 typedef struct hiISP_MOD_PARAM_S
 {
     HI_U32      u32IntBotHalf;  /*RW;Range:[0,1]; Format:32.0; Indicate ISP interrupt bottom half,No distinction vipipe*/
-    HI_U32      u32QuickStart;  /*RW;Range:[0,1]; Format:32.0; Indicate ISP Quick Start No distinction vipipe*/
 } ISP_MOD_PARAM_S;
 
 /*
@@ -218,7 +213,7 @@ Defines the structure of ISP control parameters.
 typedef struct hiISP_CTRL_PARAM_S
 {
     HI_U32      u32ProcParam;    /*RW;Format:32.0; Indicate the update frequency of ISP_PROC information,No distinction vipipe*/
-    HI_U32      u32StatIntvl;    /*RW;Range:(0,0xffffffff];Format:32.0; Indicate the time interval of ISP statistic information*/
+    HI_U32      u32StatIntvl;    /*RW;Format:32.0; Indicate the time interval of ISP statistic information*/
     HI_U32      u32UpdatePos;    /*RW;Range:[0,1]; Format:32.0; Indicate the location of the configuration register of ISP interrupt*/
     HI_U32      u32IntTimeOut;   /*RW;Format:32.0; Indicate the time(unit:ms) of interrupt timeout*/
     HI_U32      u32PwmNumber;    /*R;Format:32.0; Indicate PWM number*/
@@ -355,7 +350,7 @@ typedef union hiISP_MODULE_CTRL_U
     {
         HI_U64  bitBypassISPDGain      : 1 ;   /* RW;[0] */
         HI_U64  bitBypassAntiFC        : 1 ;   /* RW;[1] */
-        HI_U64  bitBypassCrosstalkR    : 1 ;   /* RW;[2]; Not support for Hi3559V200/Hi3556V200 */
+        HI_U64  bitBypassCrosstalkR    : 1 ;   /* RW;[2] */
         HI_U64  bitBypassDPC           : 1 ;   /* RW;[3] */
         HI_U64  bitBypassNR            : 1 ;   /* RW;[4] */
         HI_U64  bitBypassDehaze        : 1 ;   /* RW;[5] */
@@ -366,28 +361,27 @@ typedef union hiISP_MODULE_CTRL_U
         HI_U64  bitBypassColorMatrix   : 1 ;   /* RW;[10] */
         HI_U64  bitBypassGamma         : 1 ;   /* RW;[11] */
         HI_U64  bitBypassFSWDR         : 1 ;   /* RW;[12] */
-        HI_U64  bitBypassCA            : 1 ;   /* RW;[13]; Not support for Hi3559V200/Hi3556V200*/
+        HI_U64  bitBypassCA            : 1 ;   /* RW;[13] */
         HI_U64  bitBypassCsConv        : 1 ;   /* RW;[14] */
-        HI_U64  bitBypassRadialCrop    : 1 ;   /* RW;[15]; Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+        HI_U64  bitBypassRadialCrop    : 1 ;   /* RW;[15] */
         HI_U64  bitBypassSharpen       : 1 ;   /* RW;[16] */
         HI_U64  bitBypassLCAC          : 1 ;   /* RW;[17] */
-        HI_U64  bitBypassGCAC          : 1 ;   /* RW;[18]; Not support for Hi3559V200/Hi3556V200 */
+        HI_U64  bitBypassGCAC          : 1 ;   /* RW;[18] */
         HI_U64  bit2ChnSelect          : 2 ;   /* RW;[19:20] */
         HI_U64  bitBypassLdci          : 1 ;   /* RW;[21] */
-        HI_U64  bitBypassPreGamma      : 1 ;   /* RW;[22]; Not support for Hi3559V200/Hi3556V200*/
-        HI_U64  bitBypassRadialShading : 1 ;   /* RW;[23]; Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+        HI_U64  bitBypassPreGamma      : 1 ;   /* RW;[22] */
+        HI_U64  bitBypassRadialShading : 1 ;   /* RW;[23] */
         HI_U64  bitBypassAEStatFE      : 1 ;   /* RW;[24] */
         HI_U64  bitBypassAEStatBE      : 1 ;   /* RW;[25] */
         HI_U64  bitBypassMGStat        : 1 ;   /* RW;[26] */
-        HI_U64  bitBypassDE            : 1 ;   /* RW;[27] ; Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
-        HI_U64  bitBypassAFStatFE      : 1 ;   /* RW;[28] ; Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-        HI_U64  bitBypassAFStatBE      : 1 ;   /* RW;[29] ; Not support for Hi3559V200/Hi3556V200 */
-        HI_U64  bitBypassAWBStat       : 1 ;   /* RW;[30] ; */
-        HI_U64  bitBypassCLUT          : 1 ;   /* RW;[31] ; Not support for  Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-        HI_U64  bitBypassHLC           : 1 ;   /* RW;[32] ; Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300 */
-        HI_U64  bitBypassEdgeMark      : 1 ;   /* RW;[33] ; Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300 */
-        HI_U64  bitBypassRGBIR         : 1 ;   /* RW;[34] ; Only used for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-        HI_U64  bitRsv29               : 29 ;  /* H  ; [35:63] */
+        HI_U64  bitBypassDE            : 1 ;   /* RW;[27] , not support*/
+        HI_U64  bitBypassAFStatFE      : 1 ;   /* RW;[28] */
+        HI_U64  bitBypassAFStatBE      : 1 ;   /* RW;[29] */
+        HI_U64  bitBypassAWBStat       : 1 ;   /* RW;[30] */
+        HI_U64  bitBypassCLUT          : 1 ;   /* RW;[31] */
+        HI_U64  bitBypassHLC           : 1 ;   /* RW;[32] ,not support for Hi3559AV100*/
+        HI_U64  bitBypassEdgeMark      : 1 ;   /* RW;[33] */
+        HI_U64  bitRsv30               : 30 ;  /* H  ; [34:63] */
     };
 } ISP_MODULE_CTRL_U;
 /*
@@ -463,9 +457,9 @@ typedef struct hiISP_WDR_COMBINE_ATTR_S
     HI_BOOL bMotionComp;              /* RW;Range:[0x0,0x1];Format:1.0; HI_TRUE: enable motion compensation; HI_FALSE: disable motion compensation*/
     HI_U16  u16ShortThr;              /* RW;Range:[0x0,0xFFF];Format:12.0; Data above this threshold will be taken from short exposure only.*/
     HI_U16  u16LongThr;               /* RW;Range:[0x0,0xFFF];Format:12.0; limited range :[0x0,u16ShortThr],Data below this threshold will be taken from long exposure only. */
-    HI_BOOL bForceLong;               /* RW;Range:[0x0,0x1];Format:1.0; HI_TRUE: enable Force Long; HI_FALSE: disable Force Long,Not support for Hi3559AV100*/
-    HI_U16  u16ForceLongLowThr;       /* RW;Range:[0x0,0xFFF];Format:12.0; Data above this threshold will Force to choose long frame only,Not support for Hi3559AV100*/
-    HI_U16  u16ForceLongHigThr;       /* RW;Range:[0x0,0xFFF];Format:12.0; Data below this threshold will Force to choose long frame only,Not support for Hi3559AV100*/
+    HI_BOOL bForceLong;               /* RW;Range:[0x0,0x1];Format:1.0; HI_TRUE: enable Force Long; HI_FALSE: disable Force Long,Only used for Hi3519AV100*/
+    HI_U16  u16ForceLongLowThr;       /* RW;Range:[0x0,0xFFF];Format:12.0; Data above this threshold will Force to choose long frame only,Only used for Hi3519AV100*/
+    HI_U16  u16ForceLongHigThr;       /* RW;Range:[0x0,0xFFF];Format:12.0; Data below this threshold will Force to choose long frame only,Only used for Hi3519AV100*/
     ISP_FSWDR_MDT_ATTR_S stWDRMdt;
 } ISP_WDR_COMBINE_ATTR_S;
 
@@ -492,49 +486,42 @@ typedef struct hiISP_WDR_FS_ATTR_S
 {
     ISP_WDR_MERGE_MODE_E enWDRMergeMode;
     ISP_WDR_COMBINE_ATTR_S stWDRCombine;
-    ISP_WDR_BNR_ATTR_S stBnr;         /*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    ISP_WDR_BNR_ATTR_S stBnr;
     ISP_FUSION_ATTR_S stFusion;
     ISP_WDR_WBGAIN_POSITION_E enWDRWbgainPosition; /*RW; Range: [0x0, 0x1]; WDR Gain with or without WB Gain. Only used for Hi3559AV100*/
 } ISP_WDR_FS_ATTR_S;
 
 typedef struct hiISP_DRC_CUBIC_POINT_ATTR_S
 {
-    HI_U16 u16X;        /* RW; Range:[0,1000];  Format:10.0; x position of the characteristic point of the cubic curve; Only used for Hi3559AV100 */
-    HI_U16 u16Y;        /* RW; Range:[0,1000];  Format:10.0; y position of the characteristic point of the cubic curve; Only used for Hi3559AV100 */
-    HI_U16 u16Slope;    /* RW; Range:[0,10000]; Format:14.0; slope of the characteristic point of the cubic curve; Only used for Hi3559AV100 */
+    HI_U16 u16X;        /*RW; Range: [0,1000];Format:10.0;x position of the characteristic point of the cubic curve; Only used for Hi3559AV100 */
+    HI_U16 u16Y;        /*RW; Range: [0,1000];Format:10.0;y position of the characteristic point of the cubic curve; Only used for Hi3559AV100 */
+    HI_U16 u16Slope;    /*RW; Range: [0,10000];Format:14.0;slope of the characteristic point of the cubic curve; Only used for Hi3559AV100 */
 } ISP_DRC_CUBIC_POINT_ATTR_S;
 
 typedef struct hiISP_DRC_ASYMMETRY_CURVE_ATTR_S
 {
-    HI_U8   u8Asymmetry;              /* RW; Range:[0x1, 0x1E]; Format:5.0; The parameter0 of DRC asymmetry tone mapping curve */
-    HI_U8   u8SecondPole;             /* RW; Range:[0x96,0xD2]; Format:8.0; The parameter1 of DRC asymmetry tone mapping curve */
-    HI_U8   u8Stretch;                /* RW; Range:[0x1E,0x3C]; Format:6.0; The parameter2 of DRC asymmetry tone mapping curve */
-    HI_U8   u8Compress;               /* RW; Range:[0x64,0xC8]; Format:8.0; The parameter3 of DRC asymmetry tone mapping curve */
+    HI_U8   u8Asymmetry;              /*RW; Range: [0x1,0x1E];Format:5.0;The parameter0 of DRC tone mapping curve*/
+    HI_U8   u8SecondPole;             /*RW; Range: [0x96,0xD2];Format:8.0;The parameter1 of DRC tone mapping curve*/
+    HI_U8   u8Stretch;                /*RW; Range: [0x1E,0x3C];Format:6.0;The parameter2 of DRC tone mapping curve*/
+    HI_U8   u8Compress;               /*RW; Range: [0x64,0xC8];Format:8.0;The parameter3 of DRC tone mapping curve*/
 } ISP_DRC_ASYMMETRY_CURVE_ATTR_S;
 
 typedef struct hiISP_DRC_MANUAL_ATTR_S
 {
-    HI_U16  u16Strength;          /* RW; Range:Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] | Hi3516CV500 = [0x0, 0x3FF] | Hi3516DV300 = [0x0, 0x3FF]|
-                                     Hi3559V200 = [0x0, 0x3FF] | Hi3556V200 = [0x0, 0x3FF]|Hi3516EV200 = [0x0, 0x3FF]|Hi3516EV300 = [0x0, 0x3FF]|Hi3518EV300 = [0x0, 0x3FF];
-                                     Strength of dynamic range compression. Higher values lead to higher differential gain between shadows and highlights. */
+    HI_U16  u16Strength;          /* RW;Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] ; Strength of dynamic range compression.
+                                          Higher values lead to higher differential gain between shadows and highlights. */
 } ISP_DRC_MANUAL_ATTR_S;
 
 typedef struct hiISP_DRC_AUTO_ATTR_S
 {
-    HI_U16  u16Strength;          /* RW; Range:Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] | Hi3516CV500 = [0x0, 0x3FF]| Hi3516DV300 = [0x0, 0x3FF] |
-                                                                             Hi3559V200 = [0x0, 0x3FF]| Hi3556V200 = [0x0, 0x3FF] | Hi3516EV200 = [0x0, 0x3FF] | Hi3516EV300 = [0x0, 0x3FF]|
-                                                                             Hi3518EV300 = [0x0, 0x3FF];
-                                                                             It is the base strength. The strength used in ISP is generated by firmware.
-                                                                             In linear mode, strength = f1(u16Strength, histogram)
-                                                                             In sensor WDR mode: strength = f2(u16Strength, histogram)
-                                                                             In 2to1 WDR mode: strength = f3(ExpRatio) */
+    HI_U16  u16Strength;          /* RW;Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] ;
+                                  It is the base strength. The strength used in ISP is generated by firmware.
+                                  In linear mode, strength = f1(u16Strength, histogram, ISO)
+                                  In sensor WDR mode: strength = f2(u16Strength, histogram, ISO)
+                                  In 2to1 WDR mode: strength = f3(ExpRatio, ISO) */
 
-    HI_U16 u16StrengthMax; /* RW; Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] | Hi3516CV500 = [0x0, 0x3FF] | Hi3516DV300 = [0x0, 0x3FF] |
-                                                                   Hi3559V200 = [0x0, 0x3FF] | Hi3556V200 = [0x0, 0x3FF] | Hi3516EV200 = [0x0, 0x3FF]|
-                                                                   Hi3516EV300 = [0x0, 0x3FF] | Hi3518EV300 = [0x0, 0x3FF];; Maximum DRC strength in Auto mode */
-    HI_U16 u16StrengthMin; /* RW; Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] | Hi3516CV500 = [0x0, 0x3FF] | Hi3516DV300 = [0x0, 0x3FF] |
-                                                                   Hi3559V200 = [0x0, 0x3FF] | Hi3556V200 = [0x0, 0x3FF]| Hi3516EV200 = [0x0, 0x3FF] | Hi3516EV300 = [0x0, 0x3FF]
-                                                                   |Hi3518EV300 = [0x0, 0x3FF]; Minimum DRC strength in Auto mode */
+    HI_U16 u16StrengthMax; /* RW; Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] ; Maximum DRC strength in Auto mode */
+    HI_U16 u16StrengthMin; /* RW; Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] ; Minimum DRC strength in Auto mode */
 
 } ISP_DRC_AUTO_ATTR_S;
 
@@ -551,49 +538,42 @@ typedef enum hiISP_DRC_CURVE_SELECT_E
 typedef struct hiISP_DRC_ATTR_S
 {
     HI_BOOL bEnable;
-    ISP_DRC_CURVE_SELECT_E enCurveSelect;  /* RW; Range:[0x0, 0x2]; Select tone mapping curve type */
+    ISP_DRC_CURVE_SELECT_E enCurveSelect;  /*RW;Range:[0x0, 0x2]; Select tone mapping curve type */
 
-    HI_U8  u8PDStrength;           /* RW; Range:[0x0, 0x80]; Format:8.0; Controls the purple detection strength,
-                                      Only used for Hi3559AV100/Hi3519AV100/Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200 */
-    HI_U8  u8LocalMixingBrightMax; /* RW; Range:[0x0, 0x80]; Format:8.0; Maximum enhancement strength for positive detail */
-    HI_U8  u8LocalMixingBrightMin; /* RW; Range:[0x0, 0x40]; Format:8.0; Minimum enhancement strength for positive detail */
-    HI_U8  u8LocalMixingBrightThr; /* RW; Range:[0x0, 0xFF]; Format:8.0; Luma threshold for enhancement strength adaptation of positive detail */
-    HI_S8  s8LocalMixingBrightSlo; /* RW; Range:[-7, 7]; Format:s4.0; Enhancement strength adaptation slope for positive detail */
-    HI_U8  u8LocalMixingDarkMax;   /* RW; Range:[0x0, 0x80]; Format:8.0; Maximum enhancement strength for negative detail */
-    HI_U8  u8LocalMixingDarkMin;   /* RW; Range:[0x0, 0x40]; Format:8.0; Minimum enhancement strength for negative detail */
-    HI_U8  u8LocalMixingDarkThr;   /* RW; Range:[0x0, 0xFF]; Format:8.0; Luma threshold for enhancement strength adaptation of negative detail */
-    HI_S8  s8LocalMixingDarkSlo;   /* RW; Range:[-7, 7]; Format:s4.0; Enhancement strength adaptation slope for negative detail */
+    HI_U8  u8PDStrength;                /*RW;Range: [0x0, 0x80];Format:8.0; Controls the purple detection strength*/
+    HI_U8  u8LocalMixingBrightMax;      /*RW;Range: [0x0, 0x80];Format:8.0; Maximum enhancement strength for positive detail*/
+    HI_U8  u8LocalMixingBrightMin;      /*RW;Range: [0x0, 0x40];Format:8.0; Minimum enhancement strength for positive detail*/
+    HI_U8  u8LocalMixingBrightThr;      /*RW;Range: [0x0, 0xFF];Format:8.0; Luma threshold for enhancement strength adaptation of positive detail*/
+    HI_S8  s8LocalMixingBrightSlo;      /*RW;Range: [-7, 7];Format:4.0; Enhancement strength adaptation slope for positive detail*/
+    HI_U8  u8LocalMixingDarkMax;        /*RW;Range: [0x0, 0x80]; Format:8.0; Maximum enhancement strength for negative detail*/
+    HI_U8  u8LocalMixingDarkMin;        /*RW;Range: [0x0, 0x40]; Format:8.0; Minimum enhancement strength for negative detail*/
+    HI_U8  u8LocalMixingDarkThr;        /*RW;Range: [0x0, 0xFF]; Format:8.0; Luma threshold for enhancement strength adaptation of negative detail*/
+    HI_S8  s8LocalMixingDarkSlo;        /*RW;Range: [-7, 7]; Format:s4.0; Enhancement strength adaptation slope for negative detail*/
 
-    HI_U8  u8DetailBrightStr;      /* RW; Range:[0x0, 0x80]; Format:8.0; Controls the gain of the non-linear positive detail enhancement; Only used for Hi3559AV100 */
-    HI_U8  u8DetailDarkStr;        /* RW; Range:[0x0, 0x80]; Format:8.0; Controls the gain of the non-linear negative detail enhancement; Only used for Hi3559AV100 */
-    HI_U8  u8DetailBrightStep;     /* RW; Range:[0x0, 0x80]; Format:8.0; Controls the step of the non-linear positive detail enhancement; Only used for Hi3559AV100 */
-    HI_U8  u8DetailDarkStep;       /* RW; Range:[0x0, 0x80]; Format:8.0; Controls the step of the non-linear negative detail enhancement; Only used for Hi3559AV100 */
+    HI_U8  u8DetailBrightStr;      /*RW;Range:[0x0, 0x80];Format:8.0; Controls the gain of the non-linear positive detail enhancement; Only used for Hi3559AV100 */
+    HI_U8  u8DetailDarkStr;        /*RW;Range:[0x0, 0x80];Format:8.0; Controls the gain of the non-linear negative detail enhancement; Only used for Hi3559AV100 */
+    HI_U8  u8DetailBrightStep;     /*RW;Range:[0x0, 0x80];Format:8.0; Controls the step of the non-linear positive detail enhancement; Only used for Hi3559AV100 */
+    HI_U8  u8DetailDarkStep;       /*RW;Range:[0x0, 0x80];Format:8.0; Controls the step of the non-linear negative detail enhancement; Only used for Hi3559AV100 */
 
-    HI_U8  u8BrightGainLmt;        /* RW; Range:[0x0, 0xF];  Format:4.0; Bright area gain high limit */
-    HI_U8  u8BrightGainLmtStep;    /* RW; Range:[0x0, 0xF];  Format:4.0; Bright area gain high limit step */
-    HI_U8  u8DarkGainLmtY;         /* RW; Range:[0x0, 0x85]; Format:7.0; Dark area luma gain limit */
-    HI_U8  u8DarkGainLmtC;         /* RW; Range:[0x0, 0x85]; Format:7.0; Dark area chroma gain limit */
-    HI_U16 au16ColorCorrectionLut[HI_ISP_DRC_CC_NODE_NUM]; /*RW; Range:[0x0, 0x400]; Format:4.12; LUT of color correction coefficients */
-    HI_U16 au16ToneMappingValue[HI_ISP_DRC_TM_NODE_NUM];   /*RW; Range:[0x0, 0xffff]; Format:16.0; LUT of user-defined curve */
+    HI_U8  u8BrightGainLmt;        /*RW;Range:[0x0, 0xF];Format:4.0; Bright area gain high limit*/
+    HI_U8  u8BrightGainLmtStep;    /*RW;Range:[0x0, 0xF];Format:4.0; Bright area gain high limit step */
+    HI_U8  u8DarkGainLmtY;         /*RW;Range:[0x0, 0x85];Format:7.0; Dark area luma gain limit*/
+    HI_U8  u8DarkGainLmtC;         /*RW;Range:[0x0, 0x85];Format:7.0; Dark area chroma gain limit*/
+    HI_U16 au16ColorCorrectionLut[HI_ISP_DRC_CC_NODE_NUM];/*RW;Range:[0x0, 0x400];Format:4.12; LUT of color correction coefficients */
+    HI_U16 au16ToneMappingValue[HI_ISP_DRC_TM_NODE_NUM];  /*RW; Range: [0x0, 0xffff] */
 
-    HI_U8  u8FltScaleCoarse;     /* RW; Range:[0x0, 0xF]; Format:4.0; Spatial filter scale coarse control; Only used for Hi3559AV100 and Hi3519AV100 */
-    HI_U8  u8FltScaleFine;       /* RW; Range:[0x0, 0xF]; Format:4.0; Spatial filter scale fine control; Only used for Hi3559AV100 and Hi3519AV100  */
-    HI_U8  u8ContrastControl;    /* RW; Range:[0x0, 0xF]; Format:4.0; Contrast control */
-    HI_S8  s8DetailAdjustFactor; /* RW; Range:[-15, 15];  Format:4.0; Detail adjustment factor */
+    HI_U8  u8FltScaleCoarse;     /* RW; Range: [0x0, 0xF]; Format: 4.0; Spatial filter scale coarse control; Only used for Hi3559AV100 and Hi3519AV100 */
+    HI_U8  u8FltScaleFine;       /* RW; Range: [0x0, 0xF]; Format: 4.0; Spatial filter scale fine control; Only used for Hi3559AV100 and Hi3519AV100  */
+    HI_U8  u8ContrastControl;    /* RW; Range: [0x0, 0xF]; Format: 4.0; Contrast control */
+    HI_S8  s8DetailAdjustFactor; /* RW; Range: [-15, 15]; Format: 4.0; Detail adjustment factor */
 
-    HI_U8  u8SpatialFltCoef;     /* RW; Range: Hi3559AV100 = [0x0, 0xA] | Hi3519AV100 = [0x0, 0x5] | Hi3516CV500 = [0x0, 0x5] | Hi3516DV300 = [0x0, 0x5] |
-                                                                      Hi3559V200 = [0x0, 0x5] | Hi3556V200 = [0x0, 0x5] |
-                                                                      Hi3516EV200 = [0x0, 0x3FF]|Hi3516EV300 = [0x0, 0x3FF]|Hi3518EV300 = [0x0, 0x3FF];
-                                                                      Spatial filter coefficients */
-    HI_U8  u8RangeFltCoef;       /* RW; Range:[0x0, 0xA]; Format:4.0; Range filter coefficients */
-    HI_U8  u8RangeAdaMax;        /* RW; Range:[0x0, 0x8]; Format:4.0; Maximum range filter coefficient adaptation range */
+    HI_U8  u8SpatialFltCoef; /* RW; Range: Hi3559AV100 = [0x0, 0xA] | Hi3519AV100 = [0x0, 0x5] ; Spatial filter coefficients */
+    HI_U8  u8RangeFltCoef;   /* RW; Range: [0x0, 0xA]; Format: 4.0; Range filter coefficients */
 
-    HI_U8  u8GradRevMax;         /* RW; Range:[0x0, 0x40]; Format:7.0; Maximum gradient reversal reduction strength */
-    HI_U8  u8GradRevThr;         /* RW; Range:[0x0, 0x80]; Format:8.0; Gradient reversal reduction threshold */
+    HI_U8  u8RangeAdaMax;    /* RW; Range: [0x0, 0x8]; Format: 4.0; Maximum range filter coefficient adaptation range */
 
-    HI_U8  u8DpDetectRangeRatio; /* RW; Range:[0x0, 0x1F]; Format:5.0; DRC defect pixel detection control parameter; Only used for Hi3516EV200/Hi3516EV300/Hi3518EV300 */
-    HI_U8  u8DpDetectThrSlo;     /* RW; Range:[0x0, 0x1F]; Format:5.0; DRC defect pixel detection control parameter; Only used for Hi3516EV200/Hi3516EV300/Hi3518EV300 */
-    HI_U16 u16DpDetectThrMin;    /* RW; Range:[0x0, 0xFFFF]; Format:16.0; DRC defect pixel detection control parameter; Only used for Hi3516EV200/Hi3516EV300/Hi3518EV300 */
+    HI_U8  u8GradRevMax;   /* RW; Range: [0x0, 0x40]; Format: 7.0; Maximum gradient reversal reduction strength */
+    HI_U8  u8GradRevThr;   /* RW; Range: [0x0, 0x80]; Format: 8.0; Gradient reversal reduction threshold */
 
     ISP_OP_TYPE_E enOpType;
     ISP_DRC_MANUAL_ATTR_S stManual;
@@ -605,10 +585,7 @@ typedef struct hiISP_DRC_ATTR_S
 
 typedef struct hiISP_LDCI_GAUSS_COEF_ATTR_S
 {
-    HI_U8   u8Wgt;      /*RW;Range:Hi3559AV100 = [0x0, 0x80] | Hi3519AV100 = [0x0, 0x80]| Hi3516CV500 = [0x0, 0xFF] | Hi3516DV300 = [0x0, 0xFF]|
-                                                           Hi3559V200 = [0x0, 0xFF] | Hi3556V200 = [0x0, 0xFF] |
-                                                           Hi3516EV200 = [0x0, 0xFF] | Hi3516EV300 = [0x0, 0xFF] | Hi3518EV300 = [0x0, 0xFF];
-                                                           ;Format:1.7;Weight of Gaussian distribution*/
+    HI_U8   u8Wgt;      /*RW;Range:Hi3559AV100 = [0x0, 0x80] | Hi3519AV100 = [0x0, 0x80];Format:1.7;Weight of Gaussian distribution*/
     HI_U8   u8Sigma;    /*RW;Range: [0x1, 0xFF];Format:0.8;Sigma of Gaussian distribution*/
     HI_U8   u8Mean;     /*RW;Range: [0x0, 0xFF];Format:0.8;Mean of Gaussian distribution*/
 } ISP_LDCI_GAUSS_COEF_ATTR_S;
@@ -654,24 +631,23 @@ typedef enum hiISP_CA_TYPE_E
 
 typedef struct hiISP_CA_LUT_S
 {
-    HI_U32  au32YRatioLut[HI_ISP_CA_YRATIO_LUT_LENGTH];  /*RW;Range:[0,2047];Format:1.11;Not support for Hi3559V200/Hi3556V200*/
-    HI_S32  as32ISORatio[ISP_AUTO_ISO_STRENGTH_NUM];     /*RW;Range:[0,2047];Format:1.10;Not support for Hi3559V200/Hi3556V200*/
+    HI_U32  au32YRatioLut[HI_ISP_CA_YRATIO_LUT_LENGTH];  /*RW;Range:[0,2047];Format:1.11;*/
+    HI_S32  as32ISORatio[ISP_AUTO_ISO_STRENGTH_NUM];     /*RW;Range:[0,2047];Format:1.10;*/
 } ISP_CA_LUT_S;
 
 typedef struct hiISP_CP_LUT_S
 {
-    HI_U8   au8CPLutY[HI_ISP_CA_YRATIO_LUT_LENGTH];/*RW;Range:[0,255];Format:8.0;Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   au8CPLutU[HI_ISP_CA_YRATIO_LUT_LENGTH];/*RW;Range:[0,255];Format:8.0;Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   au8CPLutV[HI_ISP_CA_YRATIO_LUT_LENGTH];/*RW;Range:[0,255];Format:8.0;Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U8   au8CPLutY[HI_ISP_CA_YRATIO_LUT_LENGTH];/*RW;Range:[0,255];Format:8.0;*/
+    HI_U8   au8CPLutU[HI_ISP_CA_YRATIO_LUT_LENGTH];/*RW;Range:[0,255];Format:8.0;*/
+    HI_U8   au8CPLutV[HI_ISP_CA_YRATIO_LUT_LENGTH];/*RW;Range:[0,255];Format:8.0;*/
 } ISP_CP_LUT_S;
 
-/*Not support for Hi3559V200/Hi3556V200*/
 typedef struct hiISP_CA_ATTR_S
 {
-    HI_BOOL bEnable;            /*RW;Range:[0x0,0x1];Format:1.0;Not support for Hi3559V200/Hi3556V200*/
-    ISP_CA_TYPE_E eCaCpEn;      /*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    ISP_CA_LUT_S stCA;          /*Not support for Hi3559V200/Hi3556V200*/
-    ISP_CP_LUT_S stCP;          /*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_BOOL bEnable;            /*RW;Range:[0x0,0x1];Format:1.0;*/
+    ISP_CA_TYPE_E eCaCpEn;
+    ISP_CA_LUT_S stCA;
+    ISP_CP_LUT_S stCP;
 } ISP_CA_ATTR_S;
 
 // CSC
@@ -703,19 +679,17 @@ typedef struct hiISP_CSC_ATTR_S
 
 typedef struct hiISP_CLUT_ATTR_S
 {
-    HI_BOOL         bEnable         ; /* RW; Range:[0, 1];Format:1.0; Enable/Disable CLUT Function,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U32          u32GainR        ; /* RW; Range:[0,4095];Format:12.0,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U32          u32GainG        ; /* RW; Range:[0,4095];Format:12.0,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U32          u32GainB        ; /* RW; Range:[0,4095];Format:12.0,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_BOOL         bEnable         ; /* RW; Range:[0, 1];Format:1.0; Enable/Disable CLUT Function*/
+    HI_U32          u32GainR        ; /* RW; Range:[0,4095];Format:12.0*/
+    HI_U32          u32GainG        ; /* RW; Range:[0,4095];Format:12.0*/
+    HI_U32          u32GainB        ; /* RW; Range:[0,4095];Format:12.0*/
 } ISP_CLUT_ATTR_S;
 
 /*CLUT LUT*/
 
 typedef struct hiISP_CLUT_LUT_S
 {
-    HI_U32 au32lut[HI_ISP_CLUT_LUT_LENGTH];     /* RW; Range: Hi3559AV100 = [0, 4294967295] | Hi3519AV100 = [0x0, 1073741823]| Hi3516CV500 = [0x0, 1073741823]|
-                                                   Hi3516DV300 = [0x0, 1073741823] | Hi3559V200 = [0x0, 1073741823]| Hi3556V200 = [0x0, 1073741823];
-                                                   Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U32 au32lut[HI_ISP_CLUT_LUT_LENGTH];     /* RW; Range: Hi3559AV100 = [0, 4294967295] | Hi3519AV100 = [0x0, 1073741823];*/
 } ISP_CLUT_LUT_S;
 
 /*****************************************************************/
@@ -736,47 +710,29 @@ typedef enum hiISP_STATIC_DP_TYPE_E
 
 typedef struct hiISP_DP_STATIC_CALIBRATE_S
 {
-    HI_BOOL bEnableDetect;                  /* RW; Range: [0, 1];Format 1.0;Set 'HI_TRUE'to start static defect-pixel calibration, and firmware will set 'HI_FALSE' when finished,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300 */
-    ISP_STATIC_DP_TYPE_E enStaticDPType;    /* RW; Range: [0, 1];Format 1.0;Select static bright/dark defect-pixel calibration,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8StartThresh;                  /* RW; Range: [1, 255]; Format 8.0;Start threshold for static defect-pixel calibraiton,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CountMax;                    /* RW; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192]| Hi3516CV500 = [0, 6144] | Hi3516DV300 = [0, 6144] |
-                                               Hi3559V200 = [0, 6144] | Hi3556V200 = [0, 6144];Format 14.0;
-                                               limited Range: [0, STATIC_DP_COUNT_NORMAL*BlkNum],Limit of max number of static defect-pixel calibraiton.
-                                               Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CountMin;                    /* RW; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192]| Hi3516CV500 = [0, 6144] | Hi3516DV300 = [0, 6144]|
-                                               Hi3559V200 = [0, 6144] | Hi3556V200 = [0, 6144];Format 14.0;
-                                               limited Range: [0, u16CountMax],Limit of min number of static defect-pixel calibraiton.
-                                               Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16TimeLimit;                   /* RW; Range: [0x0, 1600];Format 11.0;Time limit for static defect-pixel calibraiton, in frame number,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_BOOL bEnableDetect;                  /* RW; Range: [0, 1];Format 1.0;Set 'HI_TRUE'to start static defect-pixel calibration, and firmware will set 'HI_FALSE' when finished. */
+    ISP_STATIC_DP_TYPE_E enStaticDPType;    /* RW; Range: [0, 1];Format 1.0;Select static bright/dark defect-pixel calibration */
+    HI_U8   u8StartThresh;                  /* RW; Range: [1, 255]; Format 8.0;Start threshold for static defect-pixel calibraiton.*/
+    HI_U16  u16CountMax;                    /* RW; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192] ;Format 14.0; limited Range: [0, STATIC_DP_COUNT_NORMAL*BlkNum]Limit of max number of static defect-pixel calibraiton.*/
+    HI_U16  u16CountMin;                    /* RW; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192] ;Format 14.0; limited Range: [0, u16CountMax],Limit of min number of static defect-pixel calibraiton.*/
+    HI_U16  u16TimeLimit;                   /* RW; Range: [0x0, 1600];Format 11.0;Time limit for static defect-pixel calibraiton, in frame number*/
 
-    HI_U32      au32Table[STATIC_DP_COUNT_MAX];  /* R;  [0,0x1FFF1FFF];Format 29.0;Static defect-pixel calibraiton table,0~12 bits represents the X coordinate of the defect pixel, 16~28 bits represent the Y coordinate of the defect pixel.
-                                                  Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8       u8FinishThresh;   /* R; Range: [0, 255];Format 8.0; Finish threshold for static defect-pixel calibraiton ,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16      u16Count;         /* R; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192] Hi3516CV500 = [0, 6144]| Hi3516DV300 = [0, 6144]|
-                                     Hi3559V200 = [0, 6144] | Hi3556V200 = [0, 6144];Format 14.0; Finish number for static defect-pixel calibraiton
-                                     Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    ISP_STATUS_E enStatus;        /* R; Range: [0, 2];Format 2.0;Status of static defect-pixel calibraiton,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U32      au32Table[STATIC_DP_COUNT_MAX];  /* R;  [0,0x1FFF1FFF];Format 29.0;Static defect-pixel calibraiton table,0~12 bits represents the X coordinate of the defect pixel, 16~28 bits represent the Y coordinate of the defect pixel. */
+    HI_U8       u8FinishThresh;   /* R; Range: [0, 255];Format 8.0; Finish threshold for static defect-pixel calibraiton. */
+    HI_U16      u16Count;         /* R; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192];Format 14.0; Finish number for static defect-pixel calibraiton. */
+    ISP_STATUS_E enStatus;        /* R; Range: [0, 2];Format 2.0;Status of static defect-pixel calibraiton. */
 } ISP_DP_STATIC_CALIBRATE_S;
 
 typedef struct hiISP_DP_STATIC_ATTR_S
 {
-    HI_BOOL bEnable;                /* RW; Range: [0, 1];Format 1.0;Enable/disable the static defect-pixel module,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16BrightCount;         /* RW; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192]| Hi3516CV500 = [0, 6144]| Hi3516DV300 = [0, 6144]|
-                                       Hi3559V200 = [0, 6144] | Hi3556V200 = [0, 6144];Format 14.0;limited Range: [0, STATIC_DP_COUNT_NORMAL*BlkNum],
-                                       When used as input(W), indicate the number of static bright defect pixels;As output(R),indicate the number of static bright and dark defect pixels.
-                                       Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16DarkCount;           /* RW; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192]| Hi3516CV500 = [0, 6144]| Hi3516DV300 = [0, 6144]|
-                                       Hi3559V200 = [0, 6144] | Hi3556V200 = [0, 6144];Format 14.0;limited Range: [0, STATIC_DP_COUNT_NORMAL*BlkNum],
-                                       When used as input(W), indicate the number of static dark defect pixels; As output(R), invalid value 0.
-                                       Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_BOOL bEnable;                /* RW; Range: [0, 1];Format 1.0;Enable/disable the static defect-pixel module*/
+    HI_U16  u16BrightCount;         /* RW; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192];Format 14.0;limited Range: [0, STATIC_DP_COUNT_NORMAL*BlkNum],When used as input(W), indicate the number of static bright defect pixels; As output(R),indicate the number of static bright and dark defect pixels */
+    HI_U16  u16DarkCount;           /* RW; Range:Hi3559AV100 = [0, 8192] | Hi3519AV100 = [0, 8192];Format 14.0;limited Range: [0, STATIC_DP_COUNT_NORMAL*BlkNum],When used as input(W), indicate the number of static dark defect pixels; As output(R), invalid value 0 */
     HI_U32  au32BrightTable[STATIC_DP_COUNT_MAX];   /* RW; Range: [0x0, 0x1FFF1FFF];Format 29.0;0~12 bits represents the X coordinate of the defect pixel, 16~28 bits represent the Y coordinate of the defect pixel
-                                                       Notice : When used as input(W), indicate static bright defect pixels table;  As output(R), indicate static bright and dark defect pixels table.
-                                                       Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-
+                                                       Notice : When used as input(W), indicate static bright defect pixels table;  As output(R), indicate static bright and dark defect pixels table*/
     HI_U32  au32DarkTable[STATIC_DP_COUNT_MAX];     /* RW; Range: [0x0, 0x1FFF1FFF];Format 29.0;0~12 bits represents the X coordinate of the defect pixel, 16~28 bits represent the Y coordinate of the defect pixel
-                                                       Notice : When used as input(W), indicate static dark defect pixels table;  As output(R), invalid value.
-                                                       Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_BOOL bShow;                  /*RW; Range: [0, 1];Format 1.0;RW;highlight static defect pixel,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+                                                       Notice : When used as input(W), indicate static dark defect pixels table;  As output(R), invalid value*/
+    HI_BOOL bShow;                  /*RW; Range: [0, 1];Format 1.0;RW;highlight static defect pixel*/
 } ISP_DP_STATIC_ATTR_S;
 
 typedef struct hiISP_DP_DYNAMIC_MANUAL_ATTR_S
@@ -804,16 +760,14 @@ typedef struct hiISP_DP_DYNAMIC_ATTR_S
 
 typedef struct hiISP_DIS_ATTR_S
 {
-    HI_BOOL bEnable;/* RW; Range: [0, 1];Format 1.0;Enable/disable dis module,Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+    HI_BOOL bEnable;/* RW; Range: [0, 1];Format 1.0;Enable/disable dis module*/
 } ISP_DIS_ATTR_S;
 
 
 typedef struct hiISP_SHADING_ATTR_S
 {
     HI_BOOL bEnable;            /*RW; Range:[0, 1];Format:1.0; HI_TRUE: enable lsc; HI_FALSE: disable lsc*/
-    HI_U16  u16MeshStr;         /*RW; Range:Hi3559AV100=[0, 65535]| Hi3519AV100=[0, 65535]|Hi3516CV500=[0, 65535]|Hi3516DV300=[0, 65535]|
-                                  Hi3559V200=[0, 65535]|Hi3556V200=[0, 65535] | Hi3516EV200 = [0x0, 1023] | Hi3516EV300 = [0x0,1023] | Hi3518EV300 = [0x0,1023];
-                                  The strength of the mesh shading correction*/
+    HI_U16  u16MeshStr;         /*RW; Range:[0, 65535];Format:16.0; the strength of the mesh shading correction*/
     HI_U16  u16BlendRatio;      /*RW; Range:[0, 256];Format:9.0; the blendratio of the two mesh gain lookup-table*/
 } ISP_SHADING_ATTR_S;
 
@@ -827,21 +781,17 @@ typedef struct hiISP_SHADING_LUT_S
 
 typedef struct hiISP_BNR_LSC_GAIN_LUT_S
 {
-    HI_U16  au16RGain[HI_ISP_RLSC_POINTS];  /*RW; Range:[0,65535];Member used to store the calibration data of the R channel required for BNR_LSC.Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  au16GrGain[HI_ISP_RLSC_POINTS]; /*RW; Range:[0,65535];Member used to store the calibration data of the Gr channel required for BNR_LSC.Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  au16GbGain[HI_ISP_RLSC_POINTS]; /*RW; Range:[0,65535];Member used to store the calibration data of the Gb channel required for BNR_LSC.Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  au16BGain[HI_ISP_RLSC_POINTS];  /*RW; Range:[0,65535];Member used to store the calibration data of the B channel required for BNR_LSC.Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U16  au16RGain[HI_ISP_RLSC_POINTS];  /*RW; Range:[0,65535];Member used to store the calibration data of the R channel required for BNR_LSC.*/
+    HI_U16  au16GrGain[HI_ISP_RLSC_POINTS]; /*RW; Range:[0,65535];Member used to store the calibration data of the Gr channel required for BNR_LSC.*/
+    HI_U16  au16GbGain[HI_ISP_RLSC_POINTS]; /*RW; Range:[0,65535];Member used to store the calibration data of the Gb channel required for BNR_LSC.*/
+    HI_U16  au16BGain[HI_ISP_RLSC_POINTS];  /*RW; Range:[0,65535];Member used to store the calibration data of the B channel required for BNR_LSC.*/
 } ISP_BNR_LSC_GAIN_LUT_S;
 
 typedef struct hiISP_SHADING_LUT_ATTR_S
 {
     HI_U8   u8MeshScale;        /*RW; Range:[0, 7];Format:3.0;Three bit value that selects the scale and precision for the 10 bit gain coefficients stored in mesh tables*/
-    HI_U16  au16XGridWidth[(HI_ISP_LSC_GRID_COL - 1) / 2]; /*RW; Range:Hi3559AV100=[4, 1988]| Hi3519AV100=[4, 1988]|Hi3516CV500=[4, 1092]|Hi3516DV300=[4, 1092]|
-                                                             Hi3559V200=[4, 1092]|Hi3556V200=[4, 1092] | Hi3516EV200 = [4,255]|Hi3516EV300 = [4,255]|Hi3518EV300 = [4,255];
-                                                             limited Range:[4, u32Width/4 - 60], Member used to store the width data of each GRID partition*/
-    HI_U16  au16YGridWidth[(HI_ISP_LSC_GRID_ROW - 1) / 2]; /*RW; Range:Hi3559AV100=[4, 1988]| Hi3519AV100=[4, 1988]|Hi3516CV500=[4, 1092]|Hi3516DV300=[4, 1092]|
-                                                             Hi3559V200=[4, 1092]|Hi3556V200=[4, 1092]|Hi3516EV200 = [4,255]|Hi3516EV300 =[4,255]| Hi3518EV300 = [0,255 ];
-                                                             limited Range:[4, u32Height/4 - 60]; Member used to store the height data of each GRID partition*/
+    HI_U16  au16XGridWidth[(HI_ISP_LSC_GRID_COL - 1) / 2]; /*RW; Range:[4, 1988];Format:11.0;limited Range:[4, u32Width/4 - 60],Member used to store the width data of each GRID partition*/
+    HI_U16  au16YGridWidth[(HI_ISP_LSC_GRID_ROW - 1) / 2]; /*RW; Range:[4, 1988];Format:11.0;limited Range:[4, u32Height/4 - 60],Member used to store the height data of each GRID partition*/
     ISP_SHADING_GAIN_LUT_S astLscGainLut[2];
     ISP_BNR_LSC_GAIN_LUT_S stBNRLscGainLut; /*Not support for Hi3559AV100/Hi3519AV100*/
 } ISP_SHADING_LUT_ATTR_S;
@@ -851,77 +801,66 @@ typedef struct hiISP_MLSC_CALIBRATION_CFG_S
     ISP_BAYER_FORMAT_E enBayer;   /* RW; Range: [0, 3];Format ENUM;Shows bayer pattern*/
     ISP_BAYER_RAWBIT_E enRawBit;  /* RW; Range: {8,10,12,14,16};Format ENUM;Shows input raw bitwidth*/
 
-    HI_U16  u16ImgHeight; /* RW; Range: [0, 65535];Format 16.0;Input raw image height*/
-    HI_U16  u16ImgWidth;  /* RW; Range: [0, 65535];Format 16.0;Input raw image width*/
+    HI_U16  u16ImgHeight; /* RW; Range: [0, 65535];Format 16.0;Shows image height value*/
+    HI_U16  u16ImgWidth;  /* RW; Range: [0, 65535];Format 16.0;Shows image width value*/
 
-    HI_U16  u16DstImgHeight; /* RW; Range: [0, 65535];Format 16.0;Image height that crop from input raw image, set to ImgHeight if don't need to crop*/
-    HI_U16  u16DstImgWidth;  /* RW; Range: [0, 65535];Format 16.0;Image width that crop from input raw image, set to ImgWidth if don't need to crop*/
-    HI_U16  u16OffsetX; /* RW; Range: [0, 65535];Format 16.0;Horizontal offset that crop from input raw image, set to 0 if don't need to crop*/
-    HI_U16  u16OffsetY; /* RW; Range: [0, 65535];Format 16.0;Vertical offset that crop from input raw image, set to 0 if don't need to crop*/
+    HI_U32  u32MeshScale; /* RW; Range: [0, 7];Format 32.0; Shows Mesh Scale value*/
 
-    HI_U32  u32MeshScale; /* RW; Range: [0, 7];Format 3.0; Shows Mesh Scale value*/
+    HI_U16  u16BLCOffsetR; /* RW; Range: [0, 65535];Format 16.0;BLC value for R channel*/
+    HI_U16  u16BLCOffsetGr;/* RW; Range: [0, 65535];Format 16.0;BLC value for Gr channel*/
+    HI_U16  u16BLCOffsetGb;/* RW; Range: [0, 65535];Format 16.0;BLC value for Gb channel*/
+    HI_U16  u16BLCOffsetB; /* RW; Range: [0, 65535];Format 16.0;BLC value for B channel*/
 
-    HI_U16  u16BLCOffsetR; /* RW; Range: [0, 4095];Format 12.0;BLC value for R channel*/
-    HI_U16  u16BLCOffsetGr;/* RW; Range: [0, 4095];Format 12.0;BLC value for Gr channel*/
-    HI_U16  u16BLCOffsetGb;/* RW; Range: [0, 4095];Format 12.0;BLC value for Gb channel*/
-    HI_U16  u16BLCOffsetB; /* RW; Range: [0, 4095];Format 12.0;BLC value for B channel*/
 } ISP_MLSC_CALIBRATION_CFG_S;
 
 typedef struct hiISP_MESH_SHADING_TABLE_S
 {
     HI_U8   u8MeshScale;       /*RW; Range:[0, 7];Format:3.0;Three bit value that selects the scale and precision for the 10 bit gain coefficients stored in mesh tables*/
-    HI_U16  au16XGridWidth[(HI_ISP_LSC_GRID_COL - 1) / 2];/*RW; Range:Hi3559AV100=[4, 16323]| Hi3519AV100=[4, 16323]|Hi3516CV500=[4, 16323]|Hi3516DV300=[4, 16323]|Hi3559V200=[4, 16323] |
-                                                            Hi3556V200=[4, 16323]|Hi3516EV200 = [4,255]|Hi3516EV300 =[4,255]| Hi3518EV300 = [0,255 ];
-                                                            limited Range:[4, u16ImgWidth /4 - 60],Member used to store the width data of each GRID partition*/
-    HI_U16  au16YGridWidth[(HI_ISP_LSC_GRID_ROW - 1) / 2];/*RW; Hi3559AV100=[4, 16323]| Hi3519AV100=[4, 16323]|Hi3516CV500=[4, 16323]|Hi3516DV300=[4, 16323]|Hi3559V200=[4, 16323] |
-                                                            Hi3556V200=[4, 16323]|Hi3516EV200 = [4,255]|Hi3516EV300 =[4,255]| Hi3518EV300 = [0,255 ];
-                                                            limited Range:[4, u16ImgHeight /4 - 60],Member used to store the height data of each GRID partition*/
+    HI_U16  au16XGridWidth[(HI_ISP_LSC_GRID_COL - 1) / 2];/*RW, Range:[4, u32Width/4 - 60],Member used to store the width data of each GRID partition*/
+    HI_U16  au16YGridWidth[(HI_ISP_LSC_GRID_ROW - 1) / 2];/*RW, Range:[4, u32Height/4 - 60],Member used to store the height data of each GRID partition*/
     ISP_SHADING_GAIN_LUT_S stLscGainLut;
-    ISP_BNR_LSC_GAIN_LUT_S stBNRLscGainLut; /*Not support for Hi3559AV100/Hi3519AV100/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    ISP_BNR_LSC_GAIN_LUT_S stBNRLscGainLut; /*Not support for Hi3559AV100/Hi3519AV100*/
 } ISP_MESH_SHADING_TABLE_S;
 
-/*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
 typedef struct hiISP_RADIAL_SHADING_ATTR_S
 {
-    HI_BOOL bEnable;          /*RW; Range:[0, 1];Format:1.0; HI_TRUE: enable rlsc; HI_FALSE: disable rlsc ,Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16RadialStr;     /*RW; Range:[0, 65535];Format:4.12; the strength of the mesh shading correction ,Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_BOOL bEnable;          /*RW; Range:[0, 1];Format:1.0; HI_TRUE: enable rlsc; HI_FALSE: disable rlsc*/
+    HI_U16  u16RadialStr;     /*RW; Range:[0, 65535];Format:4.12; the strength of the mesh shading correction*/
 } ISP_RADIAL_SHADING_ATTR_S;
 
-/*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
 typedef struct hiISP_RADIAL_SHADING_LUT_S
 {
-    HI_U16  au16RGain[HI_ISP_RLSC_POINTS];  /*RW; Range:[0,65535];Member used to store the calibration data of the R channel required for RLSC.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  au16GrGain[HI_ISP_RLSC_POINTS]; /*RW; Range:[0,65535];Member used to store the calibration data of the Gr channel required for RLSC.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  au16GbGain[HI_ISP_RLSC_POINTS]; /*RW; Range:[0,65535];Member used to store the calibration data of the Gb channel required for RLSC.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  au16BGain[HI_ISP_RLSC_POINTS];  /*RW; Range:[0,65535];Member used to store the calibration data of the B channel required for RLSC.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U16  au16RGain[HI_ISP_RLSC_POINTS];  /*RW; Range:[0,65535];Member used to store the calibration data of the R channel required for RLSC.*/
+    HI_U16  au16GrGain[HI_ISP_RLSC_POINTS]; /*RW; Range:[0,65535];Member used to store the calibration data of the Gr channel required for RLSC.*/
+    HI_U16  au16GbGain[HI_ISP_RLSC_POINTS]; /*RW; Range:[0,65535];Member used to store the calibration data of the Gb channel required for RLSC.*/
+    HI_U16  au16BGain[HI_ISP_RLSC_POINTS];  /*RW; Range:[0,65535];Member used to store the calibration data of the B channel required for RLSC.*/
 } ISP_RADIAL_SHADING_GAIN_LUT_S;
 
-/*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
 typedef struct hiISP_RADIAL_SHADING_LUT_ATTR_S
 {
-    OPERATION_MODE_E enLightMode;   /*RW; Range:[0, 1];Format:1.0; HI_TRUE: manual mode; HI_FALSE: auto mode.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16BlendRatio;          /*RW; Range:[0, 256];Format:8.0; Used in manual mode only, indicates the light blending strength for the first light info.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8LightType1;           /*RW; Range:[0, 2];Format:2.0; Used in manual mode only, indicates the first light source selected.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8LightType2;           /*RW; Range:[0, 2];Format:2.0; Used in manual mode only, indicates the second light source selected.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8RadialScale;          /*RW; Range:[0, 13];Format:4.0;Four bit value that selects the scale and precision for the 10 bit gain coefficients.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CenterRX;     /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Width], shows x value of the position of optical center of red channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CenterRY;     /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Height], shows y value of the position of optical center of red channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CenterGrX;    /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Width], shows x value of the position of optical center of gr channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CenterGrY;    /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Height], shows y value of the position of optical center of gr channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CenterGbX;    /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Width], shows x value of the position of optical center of gb channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CenterGbY;    /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Height], shows y value of the position of optical center of gb channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CenterBX;     /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Width], shows x value of the position of optical center of blue channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CenterBY;     /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Height], shows y value of the position of optical center of blue channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16OffCenterR;   /*RW; Range:[0, 65535];Format:16.0;related to the 1/R^2 value of red channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16OffCenterGr;  /*RW; Range:[0, 65535];Format:16.0;related to the 1/R^2 value of gr channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16OffCenterGb;  /*RW; Range:[0, 65535];Format:16.0;related to the 1/R^2 value of gb channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16OffCenterB;   /*RW; Range:[0, 65535];Format:16.0;related to the 1/R^2 value of blue channel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    ISP_RADIAL_SHADING_GAIN_LUT_S astRLscGainLut[3];/*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    OPERATION_MODE_E enLightMode; /*RW; Range:[0, 1];Format:1.0; HI_TRUE: manual mode; HI_FALSE: auto mode*/
+    HI_U16  u16BlendRatio;          /*RW; Range:[0, 256];Format:8.0; Used in manual mode only, indicates the light blending strength for the first light info*/
+    HI_U8   u8LightType1;    /*RW; Range:[0, 2];Format:2.0; Used in manual mode only, indicates the first light source selected*/
+    HI_U8   u8LightType2;    /*RW; Range:[0, 2];Format:2.0; Used in manual mode only, indicates the second light source selected*/
+    HI_U8   u8RadialScale;      /*RW; Range:[0, 13];Format:4.0;Four bit value that selects the scale and precision for the 10 bit gain coefficients*/
+    HI_U16  u16CenterRX;     /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Width], shows x value of the position of optical center of red channel*/
+    HI_U16  u16CenterRY;     /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Height], shows y value of the position of optical center of red channel*/
+    HI_U16  u16CenterGrX;    /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Width], shows x value of the position of optical center of gr channel*/
+    HI_U16  u16CenterGrY;    /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Height], shows y value of the position of optical center of gr channel*/
+    HI_U16  u16CenterGbX;    /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Width], shows x value of the position of optical center of gb channel*/
+    HI_U16  u16CenterGbY;    /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Height], shows y value of the position of optical center of gb channel*/
+    HI_U16  u16CenterBX;     /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Width], shows x value of the position of optical center of blue channel*/
+    HI_U16  u16CenterBY;     /*RW; Range:[0, 65535];Format:16.0;Limited Range:[0, Height], shows y value of the position of optical center of blue channel*/
+    HI_U16  u16OffCenterR;   /*RW; Range:[0, 65535];Format:16.0;related to the 1/R^2 value of red channel*/
+    HI_U16  u16OffCenterGr;  /*RW; Range:[0, 65535];Format:16.0;related to the 1/R^2 value of gr channel*/
+    HI_U16  u16OffCenterGb;  /*RW; Range:[0, 65535];Format:16.0;related to the 1/R^2 value of gb channel*/
+    HI_U16  u16OffCenterB;   /*RW; Range:[0, 65535];Format:16.0;related to the 1/R^2 value of blue channel*/
+    ISP_RADIAL_SHADING_GAIN_LUT_S astRLscGainLut[3];
 } ISP_RADIAL_SHADING_LUT_ATTR_S;
 
 typedef struct hiISP_NR_MANUAL_ATTR_S
 {
-    HI_U8   au8ChromaStr[ISP_BAYER_CHN_NUM];   /*RW;Range:[0x0,0x3];Format:2.0;Strength of Chrmoa noise reduction for R/Gr/Gb/B channel,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U8   au8ChromaStr[ISP_BAYER_CHN_NUM];   /*RW;Range:[0x0,0x3];Format:2.0;Strength of Chrmoa noise reduction for R/Gr/Gb/B channel*/
     HI_U8   u8FineStr;                         /*RW;Range:[0x0,0x80];Format:8.0;Strength of Luma noise reduction*/
     HI_U16  u16CoringWgt;                      /*RW;Range:[0x0,0xc80];Format:12.0;Strength of reserving the random noise*/
     HI_U16  au16CoarseStr[ISP_BAYER_CHN_NUM];  /*RW;Range:[0x0,0x360];Format:10.0; Coarse Strength of noise reduction*/
@@ -929,7 +868,7 @@ typedef struct hiISP_NR_MANUAL_ATTR_S
 
 typedef struct hiISP_NR_AUTO_ATTR_S
 {
-    HI_U8   au8ChromaStr[ISP_BAYER_CHN_NUM][ISP_AUTO_ISO_STRENGTH_NUM];  /*RW;Range:[0x0,0x3];Format:2.0; Strength of chrmoa noise reduction for R/Gr/Gb/B channel,Not support for Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U8   au8ChromaStr[ISP_BAYER_CHN_NUM][ISP_AUTO_ISO_STRENGTH_NUM];  /*RW;Range:[0x0,0x3];Format:2.0; Strength of chrmoa noise reduction for R/Gr/Gb/B channel*/
     HI_U8   au8FineStr[ISP_AUTO_ISO_STRENGTH_NUM];                       /*RW;Range:[0x0,0x80];Format:8.0; Strength of luma noise reduction*/
     HI_U16  au16CoringWgt[ISP_AUTO_ISO_STRENGTH_NUM];                    /*RW;Range:[0x0,0xc80];Format:12.0; Strength of reserving the random noise*/
     HI_U16  au16CoarseStr[ISP_BAYER_CHN_NUM][ISP_AUTO_ISO_STRENGTH_NUM]; /*RW;Range:[0x0,0x360];Format:10.0; Coarse Strength of noise reduction*/
@@ -938,17 +877,17 @@ typedef struct hiISP_NR_AUTO_ATTR_S
 typedef struct hiISP_NR_WDR_ATTR_S
 {
     HI_U8    au8WDRFrameStr[WDR_MAX_FRAME_NUM];       /*RW;Range:[0x0,0x50];Format:7.0; Strength of each frame in wdr mode*/
-    HI_U8    au8FusionFrameStr[WDR_MAX_FRAME_NUM];    /*RW;Range:[0x0,0x50];Format:7.0; Strength of each frame in wdr mode. Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U8    au8FusionFrameStr[WDR_MAX_FRAME_NUM];    /*RW;Range:[0x0,0x50];Format:7.0; Strength of each frame in wdr mode; not support*/
 } ISP_NR_WDR_ATTR_S;
 
 typedef struct hiISP_NR_ATTR_S
 {
     HI_BOOL  bEnable;                                     /*RW;Range:[0x0,0x1];Format:1.0; Nr Enable*/
-    HI_BOOL  bLowPowerEnable;                             /*RW;Range:[0x0,0x1];Format:1.0; Nr Low Power Enable. Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_BOOL  bLowPowerEnable;                             /*RW;Range:[0x0,0x1];Format:1.0; Nr Low Power Enable*/
     HI_BOOL  bNrLscEnable;                                /*RW;Range:[0x0,0x1];Format:1.0; HI_TRUE: Noise reduction refers to lens shading; HI_FALSE: Noise reduction not refers to lens shading;*/
-    HI_U8    u8NrLscRatio;                                /*RW;Range:[0x0,0xff];Format:8.0; Ratio of referring to lens shading. Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8    u8BnrLscMaxGain;                             /*RW;Range:[0x0,0xbf];Format:2.6; Max gain for referring to lens shading.Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16   u16BnrLscCmpStrength;                        /*RW;Range:[0x0,0x100];Format:1.8; Compare strength for referring to lens shading.Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U8    u8NrLscRatio;                                /*RW;Range:[0x0,0xff];Format:8.0; Ratio of referring to lens shading*/
+    HI_U8    u8BnrLscMaxGain;                             /*RW;Range:[0x0,0xff];Format:2.6; Max gain for referring to lens shading;  not support*/
+    HI_U16   u16BnrLscCmpStrength;                        /*RW;Range:[0x0,0x100];Format:1.8; Compare strength for referring to lens shading;  not support*/
     HI_U16   au16CoringRatio[HI_ISP_BAYERNR_LUT_LENGTH];  /*RW;Range:[0x0,0x3ff];Format:12.0; Strength of reserving the random noise according to luma*/
 
     ISP_OP_TYPE_E enOpType;
@@ -957,75 +896,33 @@ typedef struct hiISP_NR_ATTR_S
     ISP_NR_WDR_ATTR_S  stWdr;
 } ISP_NR_ATTR_S;
 
-/*Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+/*not support*/
 typedef struct hiISP_DE_MANUAL_ATTR_S
 {
-    HI_U16       u16GlobalGain;         /*RW;Range:[0x0,0x100];Format:1.8; Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
-    HI_U16       u16GainLF;             /*RW;Range:[0x0,0x20];Format:2.4; Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
-    HI_U16       u16GainHF;             /*RW;Range:[0x0,0x20];Format:2.4;Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+    HI_U16       u16GlobalGain;        /*RW;Range:[0x0,0x100];Format:1.8; not support*/
+    HI_U16       u16GainLF;              /*RW;Range:[0x0,0x20];Format:2.4; not support*/
+    HI_U16       u16GainHF;             /*RW;Range:[0x0,0x20];Format:2.4;not support*/
 } ISP_DE_MANUAL_ATTR_S;
 
-/*Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+/*not support*/
 typedef struct hiISP_DE_AUTO_ATTR_S
 {
-    HI_U16       au16GlobalGain[ISP_AUTO_ISO_STRENGTH_NUM];         /*RW;Range:[0x0,0x100];Format:1.8; Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
-    HI_U16       au16GainLF[ISP_AUTO_ISO_STRENGTH_NUM];             /*RW;Range:[0x0,0x20];Format:2.4; Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
-    HI_U16       au16GainHF[ISP_AUTO_ISO_STRENGTH_NUM];             /*RW;Range:[0x0,0x20];Format:2.4; Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+    HI_U16       au16GlobalGain[ISP_AUTO_ISO_STRENGTH_NUM];         /*RW;Range:[0x0,0x100];Format:1.8; not support*/
+    HI_U16       au16GainLF[ISP_AUTO_ISO_STRENGTH_NUM];               /*RW;Range:[0x0,0x20];Format:2.4; not support*/
+    HI_U16       au16GainHF[ISP_AUTO_ISO_STRENGTH_NUM];              /*RW;Range:[0x0,0x20];Format:2.4; not support*/
 } ISP_DE_AUTO_ATTR_S;
 
 
-/*Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+/*not support*/
 typedef struct hiISP_DE_ATTR_S
 {
-    HI_BOOL       bEnable;                                    /*RW;Range:[0x0,0x1];Format:1.0; De Enable,Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
-    HI_U16        au16LumaGainLut[HI_ISP_DE_LUMA_GAIN_LUT_N]; /*RW;Range:[0x0,0x100];Format:1.8; Only used for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+    HI_BOOL       bEnable;                /*RW;Range:[0x0,0x1];Format:1.0; De Enable,not support*/
+    HI_U16        au16LumaGainLut[HI_ISP_DE_LUMA_GAIN_LUT_N]; /*RW;Range:[0x0,0x100];Format:1.8; not support*/
 
     ISP_OP_TYPE_E        enOpType;
     ISP_DE_AUTO_ATTR_S   stAuto;
     ISP_DE_MANUAL_ATTR_S stManual;
 } ISP_DE_ATTR_S;
-
-#define ISP_CVTMAT_NUM 12
-#define ISP_EXP_CTRL_NUM 2
-
-/*Only support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-typedef enum hiISP_IRBAYER_FORMAT_E
-{
-    IRBAYER_GRGBI = 0,
-    IRBAYER_RGBGI = 1,
-    IRBAYER_GBGRI = 2,
-    IRBAYER_BGRGI = 3,
-    IRBAYER_IGRGB = 4,
-    IRBAYER_IRGBG = 5,
-    IRBAYER_IBGRG = 6,
-    IRBAYER_IGBGR = 7,
-    IRBAYER_BUTT
-
-} ISP_IRBAYER_FORMAT_E;
-
-/*Only support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-typedef enum hiISP_IR_CVTMAT_MODE_E
-{
-    ISP_IR_CVTMAT_MODE_NORMAL = 0,
-    ISP_IR_CVTMAT_MODE_MONO,
-    ISP_IR_CVTMAT_MODE_USER,
-    ISP_IR_CVTMAT_MODE_BUTT
-
-} ISP_IR_CVTMAT_MODE_E;
-
-/* Only support Hi3516EV200/Hi3516EV300/Hi3518EV300 */
-typedef struct hiISP_RGBIR_ATTR_S
-{
-    HI_BOOL              bEnable    ;      /*RW;Range:[0x0,0x1];Format:1.0; Enable/Disable RGBIR module,Only support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    ISP_IRBAYER_FORMAT_E enInPattern;      /*RW;Range:[0x0,0x7];Format:3.0; IR pattern of the input signal ,Only support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    ISP_BAYER_FORMAT_E   enOutPattern;     /*RW;Range:[0x0,0x3];Format:2.0; Bayer pattern of the output signal ,Only support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-
-    HI_U16               au16ExpCtrl[ISP_EXP_CTRL_NUM];    /*RW;Range:[0, 2047];Format:11.0; Over expose control parameter ,Only support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16               au16Gain[ISP_EXP_CTRL_NUM];       /*RW;Range:[0, 511];Format:9.0; Over expose control parameter ,Only support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-
-    ISP_IR_CVTMAT_MODE_E enIRCvtMatMode;
-    HI_S16               as16CvtMatrix[ISP_CVTMAT_NUM]; /*RW;Range:[-32768, 32767];Format:s15.0; RGBIR to Bayer image Convert matrix coefficients(need calibration) ,Only support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-} ISP_RGBIR_ATTR_S;
 
 /*
 Defines the type of the ISP gamma curve
@@ -1038,7 +935,7 @@ typedef enum hiISP_GAMMA_CURVE_TYPE_E
 {
     ISP_GAMMA_CURVE_DEFAULT = 0x0,
     ISP_GAMMA_CURVE_SRGB,
-    ISP_GAMMA_CURVE_HDR,    /*Only used for Hi3559AV100*/
+    ISP_GAMMA_CURVE_HDR,                   /*Only used for Hi3559AV100*/
     ISP_GAMMA_CURVE_USER_DEFINE,
     ISP_GAMMA_CURVE_BUTT
 } ISP_GAMMA_CURVE_TYPE_E;
@@ -1050,23 +947,23 @@ typedef struct hiISP_GAMMA_ATTR_S
     ISP_GAMMA_CURVE_TYPE_E enCurveType;    /*RW; Range:[0, 3]; Format:2.0;Gamma curve type*/
 } ISP_GAMMA_ATTR_S;
 
-/*Not support for Hi3559V200/Hi3556V200*/
 typedef struct hiISP_PREGAMMA_ATTR_S
 {
-    HI_BOOL   bEnable;                         /*RW; Range:[0, 1]; Format:1.0;Enable/Disable PreGamma Function.Not support for Hi3559V200/Hi3556V200*/
-    HI_U32    au32Table[PREGAMMA_NODE_NUM];    /*RW; Range:Hi3559AV100 = [0, 0x100000] | Hi3519AV100 = [0, 0x100000] | Hi3516CV500 = [0, 0xFFFFF] |Hi3516DV300 = [0, 0xFFFFF] |
-                                                 Hi3516EV200 = [0x0, 0xFFFFF]|Hi3516EV300 = [0x0, 0xFFFFF]|Hi3518EV300 = [0x0,0xFFFFF];
-                                                 Format:21.0;PreGamma LUT nodes value.Not support for Hi3559V200/Hi3556V200*/
+    HI_BOOL   bEnable;                         /*RW; Range:[0, 1]; Format:1.0;Enable/Disable PreGamma Function*/
+    HI_U32    au32Table[PREGAMMA_NODE_NUM];    /*RW; Range:[0, 1048576]; Format:21.0;PreGamma LUT nodes value*/
+
 } ISP_PREGAMMA_ATTR_S;
 
 typedef struct hiISP_PRELOGLUT_ATTR_S
 {
-    HI_BOOL                 bEnable;    /*RW; Range:[0, 1]; Format:1.0;Enable/Disable PreLogLUT Function.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+    HI_BOOL                 bEnable;    /*RW; Range:[0, 1]; Format:1.0;Enable/Disable PreLogLUT Function*/
+
 } ISP_PRELOGLUT_ATTR_S;
 
 typedef struct hiISP_LOGLUT_ATTR_S
 {
-    HI_BOOL                 bEnable;    /*RW; Range:[0, 1]; Format:1.0;Enable/Disable LogLUT Function.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+    HI_BOOL                 bEnable;    /*RW; Range:[0, 1]; Format:1.0;Enable/Disable LogLUT Function*/
+
 } ISP_LOGLUT_ATTR_S;
 
 #define     ISP_SHARPEN_FREQ_CORING_LENGTH      (8)
@@ -1074,11 +971,9 @@ typedef struct hiISP_LOGLUT_ATTR_S
 
 typedef struct hiISP_SHARPEN_MANUAL_ATTR_S
 {
-    HI_U8  au8LumaWgt[ISP_SHARPEN_LUMA_NUM];     /* RW; Range: Hi3559AV100 =[0,127]|Hi3519AV100=[0,127]|Hi3516CV500 = [0, 127]|Hi3516DV300 =[0, 127]|
-                                                    Hi3559V200 = [0, 127]| Hi3556V200 =[0, 127]| Hi3516EV200 = [0x0, 31]|Hi3516EV300 = [0x0, 31]|Hi3518EV300 = [0x0, 31]; Format:0.7;
-                                                    Adjust the sharpen strength according to luma. Sharpen strength will be weaker when it decrease. */
-    HI_U16 au16TextureStr[ISP_SHARPEN_GAIN_NUM]; /* RW; Range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
-    HI_U16 au16EdgeStr[ISP_SHARPEN_GAIN_NUM];    /* RW; Range: [0, 4095]; Format:7.5;Directional sharpen strength for edge enhancement*/
+    HI_U8  au8LumaWgt[ISP_SHARPEN_LUMA_NUM];     /* RW; Range: [0, 127]; Format:0.7;Adjust the sharpen strength according to luma. Sharpen strength will be weaker when it decrease. */
+    HI_U16 au16TextureStr[ISP_SHARPEN_GAIN_NUM];        /* RW; Range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
+    HI_U16 au16EdgeStr[ISP_SHARPEN_GAIN_NUM];        /* RW; Range: [0, 4095]; Format:7.5;Directional sharpen strength for edge enhancement*/
     HI_U16 u16TextureFreq;         /* RW; Range: [0, 4095];Format:6.6; Texture frequency adjustment. Texture and detail will be finer when it increase*/
     HI_U16 u16EdgeFreq;            /* RW; Range: [0, 4095];Format:6.6; Edge frequency adjustment. Edge will be narrower and thiner when it increase*/
     HI_U8  u8OverShoot;            /* RW; Range: [0, 127]; Format:7.0;u8OvershootAmt*/
@@ -1088,37 +983,31 @@ typedef struct hiISP_SHARPEN_MANUAL_ATTR_S
     HI_U8  u8DetailCtrl;           /* RW; Range: [0, 255]; Format:8.0;Different sharpen strength for detail and edge. When it is bigger than 128, detail sharpen strength will be stronger than edge.*/
     HI_U8  u8DetailCtrlThr;        /* RW; Range: [0, 255]; Format:8.0; The threshold of DetailCtrl, it is used to distinguish detail and edge. */
     HI_U8  u8EdgeFiltStr;          /* RW; Range: [0, 63]; Format:6.0;The strength of edge filtering.*/
-    HI_U8  u8RGain;                /* RW; Range: [0, 31];   Format:5.0;Sharpen Gain for Red Area*/
-    HI_U8  u8GGain;                /* RW; Range: [0, 255]; Format:8.0; Sharpen Gain for Green Area*/
-    HI_U8  u8BGain;                /* RW; Range: [0, 31];   Format:5.0;Sharpen Gain for Blue Area*/
+    HI_U8  u8RGain;                /* RW; Range: Hi3559AV100 = [0, 31] | Hi3519AV100 = [0, 32]; Format:5.0;Sharpen Gain for Red Area*/
+    HI_U8  u8BGain;                /* RW; Range: Hi3559AV100 = [0, 31] | Hi3519AV100 = [0, 32]; Format:5.0;Sharpen Gain for Blue Area*/
     HI_U8  u8SkinGain;             /* RW; Range: [0, 31]; Format:5.0;Sharpen Gain for Skin Area*/
     HI_U16  u16MaxSharpGain;       /* RW; Range: [0, 0x7FF]; Format:8.3; Maximum sharpen gain*/
-    HI_U8  u8WeakDetailGain;       /* RW; Range: [0, 127];  Only support for Hi3516EV200/Hi3516EV300/Hi3518EV300; sharpen Gain for weakdetail*/
 } ISP_SHARPEN_MANUAL_ATTR_S;
 
 
 typedef struct hiISP_SHARPEN_AUTO_ATTR_S
 {
-    HI_U8  au8LumaWgt[ISP_SHARPEN_LUMA_NUM][ISP_AUTO_ISO_STRENGTH_NUM];      /* RW; Range:Hi3559AV100 =[0,127]|Hi3519AV100=[0,127]|Hi3516CV500 = [0, 127]|
-                                                                                Hi3516DV300 =[0, 127]| Hi3559V200 = [0, 127] |Hi3556V200 = [0, 127]| Hi3556V200 =[0, 127]| Hi3516EV200 = [0x0, 31]|Hi3516EV300 = [0x0, 31]|Hi3518EV300 = [0x0, 31]
-                                                                                Format:0.7; Adjust the sharpen strength according to luma. Sharpen strength will be weaker when it decrease. */
-    HI_U16 au16TextureStr[ISP_SHARPEN_GAIN_NUM][ISP_AUTO_ISO_STRENGTH_NUM];  /* RW; Range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
-    HI_U16 au16EdgeStr[ISP_SHARPEN_GAIN_NUM][ISP_AUTO_ISO_STRENGTH_NUM];     /* RW; Range: [0, 4095]; Format:7.5;Directional sharpen strength for edge enhancement*/
-    HI_U16 au16TextureFreq[ISP_AUTO_ISO_STRENGTH_NUM];   /* RW; Range: [0, 4095]; Format:6.6;Texture frequency adjustment. Texture and detail will be finer when it increase*/
-    HI_U16 au16EdgeFreq[ISP_AUTO_ISO_STRENGTH_NUM];      /* RW; Range: [0, 4095]; Format:6.6;Edge frequency adjustment. Edge will be narrower and thiner when it increase*/
-    HI_U8  au8OverShoot[ISP_AUTO_ISO_STRENGTH_NUM];      /* RW; Range: [0, 127];  Format:7.0;u8OvershootAmt*/
-    HI_U8  au8UnderShoot[ISP_AUTO_ISO_STRENGTH_NUM];     /* RW; Range: [0, 127];  Format:7.0;u8UndershootAmt*/
-    HI_U8  au8ShootSupStr[ISP_AUTO_ISO_STRENGTH_NUM];    /* RW; Range: [0, 255]; Format:8.0;overshoot and undershoot suppression strength, the amplitude and width of shoot will be decrease when shootSupSt increase*/
-    HI_U8  au8ShootSupAdj[ISP_AUTO_ISO_STRENGTH_NUM];    /* RW; Range: [0, 15]; Format:4.0;overshoot and undershoot suppression adjusting, adjust the edge shoot suppression strength*/
-    HI_U8  au8DetailCtrl[ISP_AUTO_ISO_STRENGTH_NUM];     /* RW; Range: [0, 255]; Format:8.0;Different sharpen strength for detail and edge. When it is bigger than 128, detail sharpen strength will be stronger than edge.*/
-    HI_U8  au8DetailCtrlThr[ISP_AUTO_ISO_STRENGTH_NUM];  /* RW; Range: [0, 255]; Format:8.0; The threshold of DetailCtrl, it is used to distinguish detail and edge. */
-    HI_U8  au8EdgeFiltStr[ISP_AUTO_ISO_STRENGTH_NUM];    /* RW; Range: [0, 63]; Format:6.0;The strength of edge filtering.*/
-    HI_U8  au8RGain[ISP_AUTO_ISO_STRENGTH_NUM];                 /* RW; Range: [0, 31];   Format:5.0; Sharpen Gain for Red Area*/
-    HI_U8  au8GGain[ISP_AUTO_ISO_STRENGTH_NUM];                 /* RW; Range: [0, 255]; Format:8.0; Sharpen Gain for Green Area*/
-    HI_U8  au8BGain[ISP_AUTO_ISO_STRENGTH_NUM];                 /* RW; Range: [0, 31];   Format:5.0; Sharpen Gain for Blue Area*/
-    HI_U8  au8SkinGain[ISP_AUTO_ISO_STRENGTH_NUM];       /* RW; Range: [0, 31]; Format:5.0;Sharpen Gain for Skin Area*/
-    HI_U16  au16MaxSharpGain[ISP_AUTO_ISO_STRENGTH_NUM]; /* RW; Range: [0, 0x7FF]; Format:8.3; Maximum sharpen gain*/
-    HI_U8  au8WeakDetailGain[ISP_AUTO_ISO_STRENGTH_NUM]; /* RW; Range: [0, 127]; Format:7.0; Only support for Hi3516EV200/Hi3516EV300/Hi3518EV300; sharpen Gain for weakdetail */
+    HI_U8  au8LumaWgt[ISP_SHARPEN_LUMA_NUM][ISP_AUTO_ISO_STRENGTH_NUM];      /* RW; Range: [0, 127]; Format:0.7;Adjust the sharpen strength according to luma. Sharpen strength will be weaker when it decrease. */
+    HI_U16 au16TextureStr[ISP_SHARPEN_GAIN_NUM][ISP_AUTO_ISO_STRENGTH_NUM];     /* RW; Range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
+    HI_U16 au16EdgeStr[ISP_SHARPEN_GAIN_NUM][ISP_AUTO_ISO_STRENGTH_NUM];        /* RW; Range: [0, 4095]; Format:7.5;Directional sharpen strength for edge enhancement*/
+    HI_U16 au16TextureFreq[ISP_AUTO_ISO_STRENGTH_NUM];         /* RW; Range: [0, 4095]; Format:6.6;Texture frequency adjustment. Texture and detail will be finer when it increase*/
+    HI_U16 au16EdgeFreq[ISP_AUTO_ISO_STRENGTH_NUM];            /* RW; Range: [0, 4095]; Format:6.6;Edge frequency adjustment. Edge will be narrower and thiner when it increase*/
+    HI_U8  au8OverShoot[ISP_AUTO_ISO_STRENGTH_NUM];            /* RW; Range: [0, 127];  Format:7.0;u8OvershootAmt*/
+    HI_U8  au8UnderShoot[ISP_AUTO_ISO_STRENGTH_NUM];           /* RW; Range: [0, 127];  Format:7.0;u8UndershootAmt*/
+    HI_U8  au8ShootSupStr[ISP_AUTO_ISO_STRENGTH_NUM];         /* RW; Range: [0, 255]; Format:8.0;overshoot and undershoot suppression strength, the amplitude and width of shoot will be decrease when shootSupSt increase*/
+    HI_U8  au8ShootSupAdj[ISP_AUTO_ISO_STRENGTH_NUM];         /* RW; Range: [0, 15]; Format:4.0;overshoot and undershoot suppression adjusting, adjust the edge shoot suppression strength*/
+    HI_U8  au8DetailCtrl[ISP_AUTO_ISO_STRENGTH_NUM];            /* RW; Range: [0, 255]; Format:8.0;Different sharpen strength for detail and edge. When it is bigger than 128, detail sharpen strength will be stronger than edge.  [0, 255] */
+    HI_U8  au8DetailCtrlThr[ISP_AUTO_ISO_STRENGTH_NUM];            /* RW; Range: [0, 255]; Format:8.0; The threshold of DetailCtrl, it is used to distinguish detail and edge. */
+    HI_U8  au8EdgeFiltStr[ISP_AUTO_ISO_STRENGTH_NUM];           /* RW; Range: [0, 63]; Format:6.0;The strength of edge filtering.*/
+    HI_U8  au8RGain[ISP_AUTO_ISO_STRENGTH_NUM];                 /* RW; Range: Hi3559AV100 = [0, 31] | Hi3519AV100 = [0, 32]; Format:5.0;Sharpen Gain for Red Area*/
+    HI_U8  au8BGain[ISP_AUTO_ISO_STRENGTH_NUM];                 /* RW; Range: Hi3559AV100 = [0, 31] | Hi3519AV100 = [0, 32]; Format:5.0;Sharpen Gain for Blue Area*/
+    HI_U8  au8SkinGain[ISP_AUTO_ISO_STRENGTH_NUM];              /* RW; Range: [0, 31]; Format:5.0;Sharpen Gain for Skin Area*/
+    HI_U16  au16MaxSharpGain[ISP_AUTO_ISO_STRENGTH_NUM];              /* RW; Range: [0, 0x7FF]; Format:8.3; Maximum sharpen gain*/
 } ISP_SHARPEN_AUTO_ATTR_S;
 
 typedef struct hiISP_SHARPEN_ATTR_S
@@ -1133,39 +1022,33 @@ typedef struct hiISP_SHARPEN_ATTR_S
     ISP_SHARPEN_AUTO_ATTR_S   stAuto;
 } ISP_SHARPEN_ATTR_S;
 
-/*Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
 typedef struct hiISP_EDGEMARK_ATTR_S
 {
-    HI_BOOL bEnable;              /* RW; Range:[0, 1]; Format:1.0;Enable/Disable Edge Mark. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8Threshold;          /* RW; Range: [0, 255];  Format:8.0;Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U32  u32Color;             /* RW; Range: [0, 0xFFFFFF];  Format:32.0;Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_BOOL bEnable;              /* RW; Range:[0, 1]; Format:1.0;Enable/Disable Edge Mark*/
+    HI_U8   u8Threshold;          /* RW; Range: [0, 255];  Format:8.0;*/
+    HI_U32  u32Color;             /* RW; Range: [0, 0xFFFFFF];  Format:32.0;*/
 } ISP_EDGEMARK_ATTR_S;
 
 //High Light Constraint
-/*Not support for Hi3559AV100/Hi3559V200/Hi3556V200*/
+
 typedef struct hiISP_HLC_ATTR_S
 {
-    HI_BOOL bEnable;              /*RW; Range:[0, 1];  Format:1.0;Enable/Disable HLC module,Only used for Hi3519AV100/Hi3516CV500/Hi3516DV300*/
-    HI_U8   u8LumaThr;            /*RW; Range:[0, 255];Format:8.0;Only used for Hi3519AV100/Hi3516CV500/Hi3516DV300*/
-    HI_U8   u8LumaTarget;         /*RW; Range:[0, 255];Format:8.0;Only used for Hi3519AV100/Hi3516CV500/Hi3516DV300*/
+    HI_BOOL bEnable;                            /*RW; Range:[0, 1];  Format:1.0;Enable/Disable HLC module,Only used for Hi3519AV100   */
+    HI_U8   u8LumaThr;                          /*RW; Range:[0, 255];Format:8.0;Only used for Hi3519AV100                             */
+    HI_U8   u8LumaTarget;                       /*RW; Range:[0, 255];Format:8.0;Only used for Hi3519AV100                             */
 } ISP_HLC_ATTR_S;
 
 /*Crosstalk Removal*/
-/*Not support for Hi3559V200/Hi3556V200*/
+
 typedef struct hiISP_CR_ATTR_S
 {
-    HI_BOOL  bEnable;       /* RW; Range: [0, 1];Format 1.0;Enable/disable the crosstalk removal module*/
-    HI_U8    u8Slope;       /* RW; Range: Hi3559AV100 = [0, 14] | Hi3519AV100 = [0, 14]|Hi3516CV500 = [0, 14]|Hi3516DV300 =[0, 14] | Hi3516EV200 = [0,16]|Hi3516EV300 = [0,16]|Hi3518EV300 = [0,16];
-                               Crosstalk slope value.*/
-    HI_U8    u8SensiSlope;  /* RW; Range: Hi3559AV100 = [0, 14] | Hi3519AV100 = [0, 14]|Hi3516CV500 = [0, 14]|Hi3516DV300 =[0, 14]| Hi3516EV200 = [0,16]|Hi3516EV300 = [0,16]|Hi3518EV300 = [0,16];
-                               Crosstalk sensitivity.*/
-    HI_U16   u16SensiThr;   /* RW; Range: Hi3559AV100 = [0, 16383] | Hi3519AV100 = [0, 16383]|Hi3516CV500 = [0, 16383]|Hi3516DV300 =[0, 16383]|Hi3516EV200 = [0,65535]|Hi3516EV300 = [0,65535]|Hi3565535EV300 = [0,65535];
-                               Crosstalk sensitivity threshold.*/
-    HI_U16   au16Strength[ISP_AUTO_ISO_STRENGTH_NUM];   /* RW; Range: [0,256];Crosstalk strength value.*/
-    HI_U16   au16Threshold[ISP_AUTO_ISO_STRENGTH_NUM];  /* RW; Range: Hi3559AV100 = [0, 16383] | Hi3519AV100 = [0, 16383]|Hi3516CV500 = [0, 16383]|Hi3516DV300 =[0, 16383] |
-                                                           Hi3516EV200 = [0,65535]|Hi3516EV300 = [0,65535]|Hi3565535EV300 = [0,65535]; Crosstalk threshold.*/
-    HI_U16   au16NpOffset[ISP_AUTO_ISO_STRENGTH_NUM];   /* RW; Range: Hi3559AV100 = [512, 16383] | Hi3519AV100 = [512, 16383]|Hi3516CV500 = [512, 16383]|Hi3516DV300 =[512, 16383] |
-                                                           Hi3516EV200 = [8192,65535]|Hi3516EV300 = [8192,65535]|Hi3565535EV300 = [8192,65535];  Set Noise profile value.*/
+    HI_BOOL  bEnable;                   /* RW; Range: [0, 1];Format 1.0;Enable/disable the crosstalk removal module*/
+    HI_U8    u8Slope;                   /* RW; Range: [0, 14];Format 4.0;Crosstalk slope value.*/
+    HI_U8    u8SensiSlope;              /* RW; Range: [0, 14];Format 4.0;Crosstalk sensitivity.*/
+    HI_U16   u16SensiThr;               /* RW; Range: [0, 16383];Format 14.0;Crosstalk sensitivity threshold.*/
+    HI_U16   au16Strength[ISP_AUTO_ISO_STRENGTH_NUM];   /* RW; Range: [0, 256];Format 9.0;Crosstalk strength value.*/
+    HI_U16   au16Threshold[ISP_AUTO_ISO_STRENGTH_NUM];  /* RW; Range: [0, 16383];Format 14.0;Crosstalk threshold.*/
+    HI_U16   au16NpOffset[ISP_AUTO_ISO_STRENGTH_NUM];   /* RW; Range: [512, 16383];Format 14.0;Set Noise profile value.*/
 } ISP_CR_ATTR_S;
 
 typedef struct hiISP_ANTIFALSECOLOR_MANUAL_ATTR_S
@@ -1191,28 +1074,18 @@ typedef struct hiISP_ANTIFALSECOLOR_ATTR_S
 typedef struct hiISP_DEMOSAIC_MANUAL_ATTR_S
 {
     HI_U8   u8NonDirStr;            /*RW; Range:[0x0, 0xFF]; Format:4.4; Non-direction strength*/
-    HI_U8   u8NonDirMFDetailEhcStr; /*RW; Range:Hi3559AV100 = [0x0, 0x10] |Hi3519AV100 = [0x0, 0x7f] |Hi3516CV500= [0x0, 0x7f]|Hi3516DV300= [0x0, 0x7f]| Hi3559V200= [0x0, 0x7f]|Hi3556V200= [0x0, 0x7f]|
-                                      Hi3516EV200 = [0x0, 0x7f]|Hi3516EV300 = [0x0, 0x7f]|Hi3518EV300 = [0x0, 0x7f];
-                                      Format:3.4; Non-direction medium frequent detail enhance  strength*/
+    HI_U8   u8NonDirMFDetailEhcStr; /*RW; Range:Hi3559AV100 = [0x0, 0x10] |Hi3519AV100 = [0x0, 0x7f] ; Format:3.4; Non-direction medium frequent detail enhance  strength*/
     HI_U8   u8NonDirHFDetailEhcStr; /*RW; Range:[0x0,0x10];  Format:2.2; Non-direction high detail enhance strength*/
-    HI_U8   u8DetailSmoothRange;    /*RW; Range:Hi3559AV100 = [0x1, 0x8] |Hi3519AV100 = [0x1, 0x7] |Hi3516CV500 = [0x1, 0x7]|Hi3516DV300 = [0x1, 0x7]| Hi3559V200 = [0x1, 0x7]|Hi3556V200 = [0x1, 0x7] |
-                                      Hi3516EV200 = [0x1, 0x7]|Hi3516EV300 = [0x1, 0x7]|Hi3518EV300 = [0x1, 0x7];
-                                      Format:4.0; Detail smooth range*/
+    HI_U8   u8DetailSmoothRange;    /*RW; Range:Hi3559AV100 = [0x1, 0x8] |Hi3519AV100 = [0x1, 0x7]; Format:4.0; Detail smooth range*/
     HI_U16  u16DetailSmoothStr;     /*RW;Range:[0x0,0x100]; Format:9.0;   Strength of detail smooth, Only used for Hi3559AV100*/
 } ISP_DEMOSAIC_MANUAL_ATTR_S;
 
 typedef struct hiISP_DEMOSAIC_AUTO_ATTR_S
 {
     HI_U8   au8NonDirStr[ISP_AUTO_ISO_STRENGTH_NUM];            /*RW; Range:[0x0, 0xFF]; Format:4.4; Non-direction strength*/
-    HI_U8   au8NonDirMFDetailEhcStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:Hi3559AV100 = [0x0, 0x10] |Hi3519AV100 = [0x0, 0x7f] |Hi3516CV500= [0x0, 0x7f]|
-                                                                  Hi3516DV300= [0x0, 0x7f]|Hi3559V200 = [0x0, 0x7f] |Hi3556V200= [0x0, 0x7f] |
-                                                                  Hi3516EV200= [0x0, 0x7f]|Hi3516EV300 = [0x0, 0x7f] |Hi3518EV300= [0x0, 0x7f];
-                                                                  Format:3.4; Non-direction medium frequent detail enhance  strength*/
+    HI_U8   au8NonDirMFDetailEhcStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:Hi3559AV100 = [0x0, 0x10] |Hi3519AV100 = [0x0, 0x7f] ; Format:3.4; Non-direction medium frequent detail enhance  strength*/
     HI_U8   au8NonDirHFDetailEhcStr[ISP_AUTO_ISO_STRENGTH_NUM]; /*RW; Range:[0x0,0x10];  Format:2.2; Non-direction high frequent detail enhance  strength*/
-    HI_U8   au8DetailSmoothRange[ISP_AUTO_ISO_STRENGTH_NUM];    /*RW; Range:Hi3559AV100 = [0x1, 0x8] |Hi3519AV100 = [0x1, 0x7] |Hi3516CV500 = [0x1, 0x7]|
-                                                                  Hi3516DV300 = [0x1, 0x7]|Hi3559V200 = [0x1, 0x7] |Hi3556V200 = [0x1, 0x7]|
-                                                                  Hi3516EV200= [0x1, 0x7]|Hi3516EV300 = [0x, 0x7] |Hi3518EV300= [0x1, 0x7] ;
-                                                                  Format:4.0; Detail smooth range*/
+    HI_U8   au8DetailSmoothRange[ISP_AUTO_ISO_STRENGTH_NUM];    /*RW; Range:Hi3559AV100 = [0x1, 0x8] |Hi3519AV100 = [0x1, 0x7]; Format:4.0; Detail smooth range*/
     HI_U16  au16DetailSmoothStr[ISP_AUTO_ISO_STRENGTH_NUM];     /*RW;Range:[0x0,0x100]; Format:9.0;   Strength of detail smooth, Only used for Hi3559AV100*/
 } ISP_DEMOSAIC_AUTO_ATTR_S;
 
@@ -1243,7 +1116,7 @@ typedef enum hiISP_FPN_TYPE_E
     ISP_FPN_TYPE_BUTT
 } ISP_FPN_TYPE_E;
 
-/*Defines the information about calibrated black frames. Not support for Hi3559V200/Hi3556V200*/
+/*Defines the information about calibrated black frames*/
 typedef struct hiISP_FPN_FRAME_INFO_S
 {
     HI_U32              u32Iso;             /* RW;Range:[0x64,0xFFFFFFFF];Format:32.0;FPN CALIBRATE ISO */
@@ -1252,7 +1125,7 @@ typedef struct hiISP_FPN_FRAME_INFO_S
     VIDEO_FRAME_INFO_S  stFpnFrame;         /* FPN frame info, 8bpp,10bpp,12bpp,16bpp. Compression or not */
 } ISP_FPN_FRAME_INFO_S;
 
-/*Defines the calibration attribute of the FPN removal module. Not support for Hi3559V200/Hi3556V200*/
+/*Defines the calibration attribute of the FPN removal module*/
 typedef struct hiISP_FPN_CALIBRATE_ATTR_S
 {
     HI_U32                          u32Threshold;        /* RW;Range:[1,0xFFF];Format:12.0;pix value > threshold means defective pixel */
@@ -1260,19 +1133,19 @@ typedef struct hiISP_FPN_CALIBRATE_ATTR_S
     ISP_FPN_TYPE_E                  enFpnType;           /* frame mode or line mode */
     ISP_FPN_FRAME_INFO_S            stFpnCaliFrame;
 } ISP_FPN_CALIBRATE_ATTR_S;
-/*Defines the manual correction attribute of the FPN removal module. Not support for Hi3559V200/Hi3556V200*/
+/*Defines the manual correction attribute of the FPN removal module*/
 typedef struct hiISP_FPN_MANUAL_ATTR_S
 {
     HI_U32               u32Strength;         /* RW;Range:[0,1023];Format:10.0;Manual correction strength */
 } ISP_FPN_MANUAL_ATTR_S;
 
-/*Defines the automatic correction attribute of the FPN removal module. Not support for Hi3559V200/Hi3556V200*/
+/*Defines the automatic correction attribute of the FPN removal module*/
 typedef struct hiISP_FPN_AUTO_ATTR_S
 {
     HI_U32               u32Strength;          /* RW;Range:[0,1023];Format:10.0;Auto correction strength */
 } ISP_FPN_AUTO_ATTR_S;
 
-/*Defines the correction attribute of the FPN removal module. Not support for Hi3559V200/Hi3556V200*/
+/*Defines the correction attribute of the FPN removal module*/
 typedef struct hiISP_FPN_ATTR_S
 {
     HI_BOOL               bEnable;            /* RW;Range:[0,1];Format:1.0;*/
@@ -1334,61 +1207,59 @@ typedef struct hiISP_LOCAL_CAC_ATTR_S
     ISP_DEPURPLESTR_AUTO_ATTR_S   stAuto;
 } ISP_LOCAL_CAC_ATTR_S;
 
-/*Defines the lateral chromatic aberration correction attribute, Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+/*Defines the lateral chromatic aberration correction attribute*/
 typedef struct hiISP_GLOBAL_CAC_ATTR_S
 {
     HI_BOOL bEnable;            /* RW; Range: [0, 1];Format: 1.0;  enable/disable global cac*/
-    HI_U16  u16VerCoordinate;   /* RW; Range: [0, 8191];Format: 13.0; limited Range: [0, ImageHeight - 1],Vertical coordinate of the optical center.  Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16HorCoordinate;   /* RW; Range: [0, 8191];Format: 13.0; limited range : [0, ImageWidth - 1],Horizontal coordinate of the optical center. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_S16  s16ParamRedA;       /* RW; Range: [-256, 255];Format: 9.0; Coefficient a of the radius polynomial corresponding to channel R. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_S16  s16ParamRedB;       /* RW; Range: [-256, 255];Format: 9.0; Coefficient b of the radius polynomial corresponding to channel R. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_S16  s16ParamRedC;       /* RW; Range: [-256, 255];Format: 9.0; Coefficient c of the radius polynomial corresponding to channel R. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_S16  s16ParamBlueA;      /* RW; Range: [-256, 255];Format: 9.0; Coefficient a of the radius polynomial corresponding to channel B. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_S16  s16ParamBlueB;      /* RW; Range: [-256, 255];Format: 9.0; Coefficient b of the radius polynomial corresponding to channel B. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_S16  s16ParamBlueC;      /* RW; Range: [-256, 255];Format: 9.0; Coefficient c of the radius polynomial corresponding to channel B. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8VerNormShift;     /* RW; Range: [0, 7];Format: 3.0; Normalized shift parameter in the vertical direction. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8VerNormFactor;    /* RW; Range: [0, 31];Format: 5.0;Normalized coefficient in the vertical direction. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8HorNormShift;     /* RW; Range: [0, 7];Format: 3.0; Normalized shift parameter in the horizontal direction. Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8   u8HorNormFactor;    /* RW; Range: [0, 31];Format: 5.0;Normalized coefficient in the horizontal direction.Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16  u16CorVarThr;       /* RW; Range: [0, 4095];Format: 12.0;Variance threshold of lateral chromatic aberration correction.Not support for Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U16  u16VerCoordinate;   /* RW; Range: [0, 8191];Format: 13.0; limited Range: [0, ImageHeight - 1],Vertical coordinate of the optical center*/
+    HI_U16  u16HorCoordinate;   /* RW; Range: [0, 8191];Format: 13.0; limited range : [0, ImageWidth - 1],Horizontal coordinate of the optical center*/
+    HI_S16  s16ParamRedA;       /* RW; Range: [-256, 255];Format: 9.0; Coefficient a of the radius polynomial corresponding to channel R*/
+    HI_S16  s16ParamRedB;       /* RW; Range: [-256, 255];Format: 9.0; Coefficient b of the radius polynomial corresponding to channel R*/
+    HI_S16  s16ParamRedC;       /* RW; Range: [-256, 255];Format: 9.0; Coefficient c of the radius polynomial corresponding to channel R*/
+    HI_S16  s16ParamBlueA;      /* RW; Range: [-256, 255];Format: 9.0; Coefficient a of the radius polynomial corresponding to channel B*/
+    HI_S16  s16ParamBlueB;      /* RW; Range: [-256, 255];Format: 9.0; Coefficient b of the radius polynomial corresponding to channel B*/
+    HI_S16  s16ParamBlueC;      /* RW; Range: [-256, 255];Format: 9.0; Coefficient c of the radius polynomial corresponding to channel B*/
+    HI_U8   u8VerNormShift;     /* RW; Range: [0, 7];Format: 3.0; Normalized shift parameter in the vertical direction*/
+    HI_U8   u8VerNormFactor;    /* RW; Range: [0, 31];Format: 5.0;Normalized coefficient in the vertical direction*/
+    HI_U8   u8HorNormShift;     /* RW; Range: [0, 7];Format: 3.0; Normalized shift parameter in the horizontal direction*/
+    HI_U8   u8HorNormFactor;    /* RW; Range: [0, 31];Format: 5.0;Normalized coefficient in the horizontal direction*/
+    HI_U16  u16CorVarThr;       /* RW; Range: [0, 4095];Format: 12.0;Variance threshold of lateral chromatic aberration correction*/
 } ISP_GLOBAL_CAC_ATTR_S;
 
 /*Defines the Radial Crop attribute*/
 typedef struct hiISP_RC_ATTR_S
 {
-    HI_BOOL bEnable;       /*RW;Range:[0,1];Format:1.0; HI_TRUE: enable ridial crop; HI_FALSE: disable ridial crop.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
-    POINT_S stCenterCoor;  /*RW;the coordinate of central pixel.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
-    HI_U32  u32Radius;     /*RW;Range:[0,11586];Format:14.0; when the distance to central pixel is greater than u32Radius,the pixel value becomes 0.
-                                                 Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
+    HI_BOOL bEnable;            /*RW;Range:[0,1];Format:1.0; HI_TRUE: enable ridial crop; HI_FALSE: disable ridial crop*/
+    POINT_S stCenterCoor;       /*RW;the coordinate of central pixel*/
+    HI_U32  u32Radius;          /*RW;Range:[0,11586];Format:14.0; when the distance to central pixel is greater than u32Radius,the pixel value becomes 0 */
 } ISP_RC_ATTR_S;
 
 typedef struct hiISP_INNER_STATE_INFO_S
 {
 
-    HI_U16 au16TextureStr[ISP_SHARPEN_GAIN_NUM];     /* RW; range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
+    HI_U16 au16TextureStr[ISP_SHARPEN_GAIN_NUM];        /* RW; range: [0, 4095]; Format:7.5;Undirectional sharpen strength for texture and detail enhancement*/
     HI_U16 au16EdgeStr[ISP_SHARPEN_GAIN_NUM];        /* RW; range: [0, 4095]; Format:7.5;Directional sharpen strength for edge enhancement*/
     HI_U16 u16TextureFreq;         /* RW; range: [0, 4095];Format:6.6; Texture frequency adjustment. Texture and detail will be finer when it increase*/
     HI_U16 u16EdgeFreq;            /* RW; range: [0, 4095];Format:6.6; Edge frequency adjustment. Edge will be narrower and thiner when it increase*/
     HI_U8  u8OverShoot;            /* RW; range: [0, 127]; Format:7.0;u8OvershootAmt*/
     HI_U8  u8UnderShoot;           /* RW; range: [0, 127]; Format:7.0;u8UndershootAmt*/
-    HI_U8  u8ShootSupStr;          /* RW; range: [0, 255]; Format:8.0;overshoot and undershoot suppression strength, the amplitude and width of shoot will be decrease when shootSupSt increase*/
+    HI_U8  u8ShootSupStr;         /* RW; range: [0, 255]; Format:8.0;overshoot and undershoot suppression strength, the amplitude and width of shoot will be decrease when shootSupSt increase*/
 
-    HI_U8   u8NrLscRatio;                       /*RW;Range:[0x0,0xff];Format:8.0; Strength of reserving the random noise according to luma*/
-    HI_U16  au16CoarseStr[ISP_BAYER_CHN_NUM];   /*RW;Range:[0x0,0x3ff];Format:10.0; Coarse Strength of noise reduction */
+    HI_U8   u8NrLscRatio;                              /*RW;Range:[0x0,0xff];Format:8.0; Strength of reserving the random noise according to luma*/
+    HI_U16  au16CoarseStr[BAYER_BUTT];     /*RW;Range:[0x0,0x3ff];Format:10.0; Coarse Strength of noise reduction */
     HI_U8   au8WDRFrameStr[WDR_MAX_FRAME_NUM];  /*RW;Range:[0x0,0x50];Format:7.0; Coarse strength of each frame in wdr mode*/
-    HI_U8   au8ChromaStr[ISP_BAYER_CHN_NUM];    /*RW;Range:[0x0,0x3];Format:2.0;Strength of Chrmoa noise reduction for R/Gr/Gb/B channel*/
+    HI_U8   au8ChromaStr[BAYER_BUTT];  /*RW;Range:[0x0,0x3];Format:2.0;Strength of Chrmoa noise reduction for R/Gr/Gb/B channel*/
     HI_U8   u8FineStr;                 /*RW;Range:[0x0,0x80];Format:8.0;Strength of Luma noise reduction*/
     HI_U16  u16CoringWgt;              /*RW;Range:[0x0,0xC80];Format:12.0;Strength of reserving the random noise*/
 
     HI_U16 u16DeHazeStrengthActual;      /* RW;Range:[0,0xFF];Format:8.0;actual dehze strength */
-    HI_U16 u16DrcStrengthActual;         /* RW;Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF] | Hi3516CV500 = [0x0, 0x3FF]| Hi3516DV300 = [0x0, 0x3FF]|Hi3559V200 = [0x0, 0x3FF]| Hi3556V200 = [0x0, 0x3FF]|
-                                            Hi3516EV200 = [0x0, 0x3FF]|Hi3516EV300 = [0x0, 0x3FF]|Hi3518EV300 = [0x0, 0x3FF] ;Strength of dynamic range compression.
-                                            Higher values lead to higher differential gain between shadows and highlights. */
-    HI_U32 u32WDRExpRatioActual[3];      /* RW; Range:[0x40, 0x4000]; Format:26.6; 0x40 means 1 times.
-                                                                        When enExpRatioType is OP_TYPE_AUTO, u32ExpRatio is invalid.
-                                                                        When enExpRatioType is OP_TYPE_MANUAL, u32ExpRatio is quotient of long exposure time / short exposure time. */
-    HI_BOOL bWDRSwitchFinish;            /* RW; Range:[0, 1];Format:1.0;HI_TRUE: WDR switch is finished*/
-    HI_BOOL bResSwitchFinish;            /* RW; Range:[0, 1];Format:1.0;HI_TRUE: Resolution switch is finished*/
+    HI_U16 u16DrcStrengthActual;          /* RW;Range: Hi3559AV100 = [0x0, 0xFF] | Hi3519AV100 = [0x0, 0x3FF];Strength of dynamic range compression.
+                                                           Higher values lead to higher differential gain between shadows and highlights. */
+    HI_U32 u32WDRExpRatioActual[3];        /*RW; Range:[0x40, 0x4000]; Format:26.6; 0x40 means 1 times.
+                                                             When enExpRatioType is OP_TYPE_AUTO, u32ExpRatio is invalid.
+                                                             When enExpRatioType is OP_TYPE_MANUAL, u32ExpRatio is quotient of long exposure time / short exposure time. */
+    HI_BOOL bWDRSwitchFinish;           /* RW; Range:[0, 1];Format:1.0;HI_TRUE: WDR switch is finished*/
+    HI_BOOL bResSwitchFinish;           /* RW; Range:[0, 1];Format:1.0;HI_TRUE: Resolution switch is finished*/
     HI_U16 au16BLActual[ISP_BAYER_CHN_NUM]; /* RW; Range: [0x0, 0xFFF];Format:12.0;Actual Black level values that correspond to the black levels of the R,Gr, Gb, and B components respectively.*/
 } ISP_INNER_STATE_INFO_S;
 
@@ -1448,11 +1319,11 @@ typedef enum hiISP_AE_HIST_OFFSET_Y_E
 typedef struct hiISP_AE_HIST_CONFIG_S
 {
     ISP_AE_HIST_SKIP_E enHistSkipX;    /*RW; Range:[0,6]; Format:4.0;
-                                                                    Histogram decimation in horizontal direction: 0=every pixel; 1=every 2nd pixel; 2=every
-                                                                    3rd pixel; 3=every 4th pixel; 4=every 5th pixel; 5=every 8th pixel ; 6+=every 9th pixel */
+                          Histogram decimation in horizontal direction: 0=every pixel; 1=every 2nd pixel; 2=every
+                                          3rd pixel; 3=every 4th pixel; 4=every 5th pixel; 5=every 8th pixel ; 6+=every 9th pixel */
     ISP_AE_HIST_SKIP_E enHistSkipY;    /*RW; Range:[0,6]; Format:4.0;
-                                                                    Histogram decimation in vertical direction: 0=every pixel; 1=every 2nd pixel; 2=every
-                                                                    3rd pixel; 3=every 4th pixel; 4=every 5th pixel; 5=every 8th pixel ; 6+=every 9th pixel */
+                          Histogram decimation in vertical direction: 0=every pixel; 1=every 2nd pixel; 2=every
+                                          3rd pixel; 3=every 4th pixel; 4=every 5th pixel; 5=every 8th pixel ; 6+=every 9th pixel */
     ISP_AE_HIST_OFFSET_X_E enHistOffsetX;  /*RW; Range:[0,1]; Format:1.0; 0= start from the first column; 1=start from second column */
     ISP_AE_HIST_OFFSET_Y_E enHistOffsetY;  /*RW; Range:[0,1]; Format:1.0; 0= start from the first row; 1= start from second row */
 } ISP_AE_HIST_CONFIG_S;
@@ -1464,24 +1335,6 @@ typedef enum hiISP_AE_STAT_MODE__E
     ISP_AE_MODE_BUTT
 } ISP_AE_STAT_MODE_E;
 
-/*Crops the input image of the AE module*/
-typedef struct hiISP_AE_CROP_S
-{
-    HI_BOOL bEnable;    /* RW; Range: [0,1];  Format:1.0;AE crop enable.*/
-    HI_U16  u16X;       /* RW; Range: Hi3559AV100 = [0, 8192 - 256]|Hi3519AV100 = [0, 8192 - 256]|Hi3516CV500 = [0, 4608 - 256]|Hi3516DV300 = [0, 4608 - 256]| Hi3559V200   = [0, 4608 - 256]|Hi3556V200  = [0, 4608 - 256]|
-                           Hi3516EV200 = [0,3072 - 256]|Hi3516EV300 = [0,3072 - 256]|Hi3518EV300 = [0,3072 - 256];
-                           Format:13.0;AE image crop start x, limited range:[0, ImageWidth - 256] */
-    HI_U16  u16Y;       /* RW; Range: Hi3559AV100 = [0, 8192 - 120]|Hi3519AV100 = [0, 8192 - 120]|Hi3516CV500 = [0, 4608 - 120]|Hi3516DV300 = [0, 4608 - 120]| Hi3559V200   = [0, 4608 - 120]|Hi3556V200   = [0, 4608 - 120]|
-                           Hi3516EV200 = [0,3072 - 120]|Hi3516EV300 = [0,3072 - 120]|Hi3518EV300 = [0,3072 - 120];
-                           Format:13.0;AEimage crop start y, limited range:[0, ImageHeight - 120]  */
-    HI_U16  u16W;       /* RW; Range: Hi3559AV100 = [256, 8192]|Hi3519AV100 = [256, 8192]|Hi3516CV500 = [256, 4608]|Hi3516DV300 = [256, 4608] |Hi3559V200   = [256, 4608]| Hi3556V200  = [256, 4608]|
-                           Hi3516EV200 = [256, 3072]|Hi3516EV300 = [256, 3072]|Hi3518EV300 = [256, 3072];
-                           Format:14.0;AE image crop width,  limited range:[256, ImageWidth] */
-    HI_U16  u16H;       /* RW; Range: Hi3559AV100 = [120, 8192]|Hi3519AV100 = [120, 8192]|Hi3516CV500 = [120, 4608]|Hi3516DV300 = [120, 4608] |  Hi3559V200   = [120, 4608]| Hi3556V200  = [120, 4608]|
-                           Hi3516EV200 = [120, 3072]|Hi3516EV300 = [120, 3072]|Hi3518EV300 = [120, 3072];
-                           Format:14.0;AE image crop height  limited range:[120, ImageHeight] */
-} ISP_AE_CROP_S;
-
 /* config of statistics structs */
 #define HIST_THRESH_NUM     (4)
 typedef struct hiISP_AE_STATISTICS_CFG_S
@@ -1492,26 +1345,10 @@ typedef struct hiISP_AE_STATISTICS_CFG_S
     ISP_AE_STAT_MODE_E       enHistMode;          /*RW; Range:[0,1]; Format:2.0;AE Hist Rooting Mode*/
     ISP_AE_STAT_MODE_E       enAverMode;          /*RW; Range:[0,1]; Format:2.0;AE Aver Rooting Mode*/
     ISP_AE_STAT_MODE_E       enMaxGainMode;       /*RW; Range:[0,1]; Format:2.0;Max Gain Rooting Mode*/
-    ISP_AE_CROP_S            stCrop;
     HI_U8 au8Weight[AE_ZONE_ROW][AE_ZONE_COLUMN]; /*RW; Range:[0x0, 0xF]; Format:4.0; AE weighting table*/
 } ISP_AE_STATISTICS_CFG_S;
 
-//Smart Info
-#define SMART_CLASS_MAX                 (2)
-
-typedef struct hiISP_SMART_ROI_S
-{
-    HI_BOOL  bEnable;
-	HI_BOOL  bAvailable;
-    HI_U8    u8Luma ;
-} ISP_SMART_ROI_S;
-
-typedef struct hiISP_SMART_INFO_S
-{
-    ISP_SMART_ROI_S  stROI[SMART_CLASS_MAX];
-} ISP_SMART_INFO_S;
-
-/*fines whether the peak value of the zoned IIR statistics is calculated. Not support for Hi3559V200/Hi3556V200 */
+/*fines whether the peak value of the zoned IIR statistics is calculated*/
 typedef enum hiISP_AF_PEAK_MODE_E
 {
     ISP_AF_STA_NORM         = 0,    /* use every value of the block statistic*/
@@ -1519,131 +1356,122 @@ typedef enum hiISP_AF_PEAK_MODE_E
     ISP_AF_STA_BUTT
 } ISP_AF_PEAK_MODE_E;
 
-/*Defines whether the zoned statistics are squared in square mode. Not support for Hi3559V200/Hi3556V200 */
+/*Defines whether the zoned statistics are squared in square mode*/
 typedef enum hiISP_AF_SQU_MODE_E
 {
     ISP_AF_STA_SUM_NORM     = 0,    /* statistic value accumlate*/
     ISP_AF_STA_SUM_SQU         ,    /* statistic value square then accumlate*/
     ISP_AF_STA_SUM_BUTT
 } ISP_AF_SQU_MODE_E;
-/*Crops the input image of the AF module. Not support for Hi3559V200/Hi3556V200 */
+/*Crops the input image of the AF module*/
 typedef struct hiISP_AF_CROP_S
 {
-    HI_BOOL bEnable; /* RW; Range: [0,1];  Format:1.0; AF crop enable*/
-    HI_U16  u16X;    /* RW; Range: Hi3559AV100 = [0, 7936]|Hi3519AV100 = [0, 7936]|Hi3516CV500 = [0, 4352]|Hi3516DV300 = [0, 4352]|
-                        Hi3516EV200 = [0, 2816]|Hi3516EV300 = [0, 2816]|Hi3518EV300 = [0, 2816];
-                        Format:13.0;AF image crop start x, limited range:[0, ImageWidth-256]*/
-    HI_U16  u16Y;    /* RW; Range: Hi3559AV100 = [0, 8072]|Hi3519AV100 = [0, 8072]|Hi3516CV500 = [0, 4488]|Hi3516DV300 = [0, 4488]|
-                        Hi3516EV200 = [0, 2952]|Hi3516EV300 = [0,2952]|Hi3518EV300 = [0,2952];
-                        Format:13.0;AF image crop start y, limited range:[0, ImageHeight-120] */
-    HI_U16  u16W;    /* RW; Range: Hi3559AV100 = [256, 8192]|Hi3519AV100 = [256, 8192]|Hi3516CV500 = [256, 4608]|Hi3516DV300 = [256, 4608]|
-                        Hi3516EV200 = [256, 3072]|Hi3516EV300 = [256, 3072]|Hi3518EV300 = [256, 3072];
-                                       Format:14.0;AF image crop width, limited range:[256, ImageWidth] */
-    HI_U16  u16H;    /* RW; Range: Hi3559AV100 = [120, 8192]|Hi3519AV100 = [120, 8192]|Hi3516CV500 = [120, 4608]|Hi3516DV300 = [120, 4608]|
-                        Hi3516EV200 = [120,3072]|Hi3516EV300 = [120,3072]|Hi3518EV300 = [120, 3072];
-                        Format:14.0;AF image crop height, limited range:[120, ImageHeight]*/
+    HI_BOOL             bEnable;    /* RW; Range: [0,1];  Format:1.0;ble.               */
+    HI_U16              u16X;       /* RW; Range: [0, 8192 - 256]; Format:13.0;AF image crop start x  */
+    HI_U16              u16Y;       /* RW; Range: [0, 8192 - 120]; Format:13.0;AF image crop start y  */
+    HI_U16              u16W;       /* RW; Range: [256, 8192]; Format:14.0;AF image crop width   */
+    HI_U16              u16H;       /* RW; Range: [120, 8192]; Format:14.0;AF image crop height   */
 } ISP_AF_CROP_S;
 
-/*Defines the position of AF module statistics. Not support for Hi3559V200/Hi3556V200*/
+/*Defines the position of AF module statistics*/
 typedef enum hiISP_AF_STATISTICS_POS_E
 {
     ISP_AF_STATISTICS_AFTER_DGAIN    = 0,//The AF module is placed in the raw field for statistics,AF after DGain
     ISP_AF_STATISTICS_AFTER_DRC         ,//The AF module is placed in the raw field for statistics,AF after DRC
     ISP_AF_STATISTICS_AFTER_CSC         ,//The AF module is placed in the YUV field for statistics,AF after CSC
     ISP_AF_STATISTICS_BUTT
+
 } ISP_AF_STATISTICS_POS_E;
 
-/*Configures the Bayer field of the AF module. Not support for Hi3559V200/Hi3556V200*/
+/*Configures the Bayer field of the AF module*/
 typedef struct hiISP_AF_RAW_CFG_S
 {
-    HI_U8               GammaGainLimit; /* RW; Range: [0x0, 0x5]; Format:3.0,Not support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U8               GammaValue;     /* RW; Range: Hi3559AV100 = [0x0, 0x6] | Hi3519AV100 = [0x0, 0x6] | Hi3516CV500 = [0x0, 0x6] | Hi3516DV300 = [0x0, 0x6];
-                                         Hi3516EV200 = [0x0, 0x1]|Hi3516EV300 = [0x0, 0x1]|Hi3518EV300 = [0x0, 0x1];*/
+    HI_U8               GammaGainLimit; /* RW; Range: [0x0, 0x5]; Format:3.0;  */
+    HI_U8               GammaValue;     /* RW; Range: [0x0, 0x6]; Format:3.0;  */
     ISP_BAYER_FORMAT_E  enPattern;      /* RW; Range: [0x0, 0x3]; Format:2.0;raw domain pattern*/
+
 } ISP_AF_RAW_CFG_S;
-/*Configures the pre-filter of the AF module. Not support for Hi3559V200/Hi3556V200*/
+/*Configures the pre-filter of the AF module*/
 typedef struct hiISP_AF_PRE_FILTER_CFG_S
 {
     HI_BOOL             bEn;         /* RW; Range: [0,1]; Format:1.0; pre filter enable  .          */
     HI_U16              u16strength; /* RW; Range: [0x0, 0xFFFF]; Format:16.0;pre filter strength    */
+
 } ISP_AF_PRE_FILTER_CFG_S;
 
-/*Defines AF statistics configuration parameters. Not support for Hi3559V200/Hi3556V200 */
+/*Defines AF statistics configuration parameters*/
 typedef struct hiISP_AF_CFG_S
 {
-    HI_BOOL                 bEnable;        /* RW; Range: [0,1];   AF enable.*/
+    HI_BOOL                 bEnable;        /* RW; Range: [0,1];   AF enable.                             */
     HI_U16                  u16Hwnd;        /* RW; Range: [1, 17]; AF statistic window horizontal block.  */
-    HI_U16                  u16Vwnd;        /* RW; Range: [1, 15]; AF statistic window veritical block.  */
-    HI_U16                  u16Hsize;       /* RW; Range: Hi3559AV100 = [256, 8192]|Hi3519AV100 = [256, 8192]|Hi3516CV500 = [256, 4608]|Hi3516DV300 = [256, 4608]|Hi3516EV200 = [256,3072]|Hi3516EV300 = [256,3072]|Hi3518EV300 = [256,3072];
-                                               limited Range: [256, ImageWidth],AF image width.*/
-    HI_U16                  u16Vsize;       /* RW; Range: Hi3559AV100 = [120, 8192]|Hi3519AV100 = [120, 8192]|Hi3516CV500 = [120, 4608]|Hi3516DV300 = [120, 4608]|Hi3516EV200 = [120,3072]|Hi3516EV300 = [120,3072]|Hi3518EV300 = [120,3072];
-                                               limited Range: [120, ImageHeight],AF image height. */
-    ISP_AF_PEAK_MODE_E      enPeakMode;     /* RW; Range: [0,1]; AF peak value statistic mode.*/
-    ISP_AF_SQU_MODE_E       enSquMode;      /* RW; Range: [0,1]; AF statistic square accumulate.*/
-    ISP_AF_CROP_S           stCrop;         /* RW; AF input image crop*/
+    HI_U16                  u16Vwnd;        /* RW; Range: [1, 15]; AF statistic window veritical block.   */
+    HI_U16                  u16Hsize;       /* RW; Range: [256, 8192]; limited Range: [256, RES_WIDTH_MAX],AF image width.*/
+    HI_U16                  u16Vsize;       /* RW; Range: [120, 8192]; limited Range: [120, RES_HEIGHT_MAX],AF image height.           */
+    ISP_AF_PEAK_MODE_E      enPeakMode;     /* RW; Range: [0,1]; AF peak value statistic mode.            */
+    ISP_AF_SQU_MODE_E       enSquMode;      /* RW; Range: [0,1]; AF statistic square accumulate.          */
+    ISP_AF_CROP_S           stCrop;         /* RW; AF input image crop                                    */
     ISP_AF_STATISTICS_POS_E enStatisticsPos;/* RW; Range: [0,2]; AF statistic position, it can be set to yuv or raw */
     ISP_AF_RAW_CFG_S        stRawCfg;       /* RW; When AF locate at RAW domain, these para should be cfg.*/
-    ISP_AF_PRE_FILTER_CFG_S stPreFltCfg;    /* RW; pre filter cfg*/
-    HI_U16                  u16HighLumaTh;  /* RW; Range: [0,0xFF]; high luma threshold.*/
+    ISP_AF_PRE_FILTER_CFG_S stPreFltCfg;    /* RW; pre filter cfg                                         */
+    HI_U16                  u16HighLumaTh;  /* RW; Range: [0,0xFF]; high luma threshold.                  */
+
 } ISP_AF_CFG_S;
-/*Configures the AF level depend gain module. Not support for Hi3559V200/Hi3556V200*/
+/*Configures the AF level depend gain module*/
 typedef struct hiISP_AF_LD_S
 {
-    HI_BOOL     bLdEn;                      /* RW; Range: [0, 1]; FILTER level depend gain enable.*/
-    HI_U16      u16ThLow;                   /* RW; range: [0x0, 0xFF]; FILTER level depend th low*/
-    HI_U16      u16GainLow;                 /* RW; range: [0x0, 0xFF]; FILTER level depend gain low */
-    HI_U16      u16SlpLow;                  /* RW; range: [0x0, 0xF];  FILTER level depend slope low*/
-    HI_U16      u16ThHigh;                  /* RW; range: [0x0, 0xFF]; FILTER level depend th high*/
-    HI_U16      u16GainHigh;                /* RW; range: [0x0, 0xFF]; FILTER level depend gain high*/
-    HI_U16      u16SlpHigh;                 /* RW; range: [0x0, 0xF];  FILTER level depend slope high*/
+    HI_BOOL     bLdEn;                      /* RW; Range: [0, 1]; FILTER level depend gain enable.        */
+    HI_U16      u16ThLow;                   /* RW; range: [0x0, 0xFF]; FILTER level depend th low         */
+    HI_U16      u16GainLow;                 /* RW; range: [0x0, 0xFF]; FILTER level depend gain low       */
+    HI_U16      u16SlpLow;                  /* RW; range: [0x0, 0xF];  FILTER level depend slope low      */
+    HI_U16      u16ThHigh;                  /* RW; range: [0x0, 0xFF]; FILTER level depend th high        */
+    HI_U16      u16GainHigh;                /* RW; range: [0x0, 0xFF]; FILTER level depend gain high      */
+    HI_U16      u16SlpHigh;                 /* RW; range: [0x0, 0xF];  FILTER level depend slope high     */
+
 } ISP_AF_LD_S;
-/*Configures the AF coring module. Not support for Hi3559V200/Hi3556V200*/
+/*Configures the AF coring module*/
 typedef struct hiISP_AF_CORING_S
 {
-    HI_U16      u16Th;                      /* RW; Range: [0x0, 0x7FF];FILTER coring threshold.*/
-    HI_U16      u16Slp;                     /* RW; Range: [0x0, 0xF];  FILTER Coring Slope*/
-    HI_U16      u16Lmt;                     /* RW; Range: [0x0, 0x7FF];FILTER coring limit */
+    HI_U16      u16Th;                      /* RW; Range: [0x0, 0x7FF];FILTER coring threshold.           */
+    HI_U16      u16Slp;                     /* RW; Range: [0x0, 0xF];  FILTER Coring Slope                */
+    HI_U16      u16Lmt;                     /* RW; Range: [0x0, 0x7FF];FILTER coring limit                */
+
 } ISP_AF_CORING_S ;
 
 
 #define IIR_EN_NUM      (3)
 #define IIR_GAIN_NUM    (7)
 #define IIR_SHIFT_NUM   (4)
-/*Defines the IIR parameter configuration of horizontal filters for AF statistics. Not support for Hi3559V200/Hi3556V200 */
+/*Defines the IIR parameter configuration of horizontal filters for AF statistics*/
 typedef struct hiISP_AF_H_PARAM_S
 {
-    HI_BOOL         bNarrowBand;                /* RW; Range: [0, 1]; IIR narrow band enable. */
-    HI_BOOL         abIIREn[IIR_EN_NUM];        /* RW; Range: [0, 1]; IIR enable. */
-    HI_U8           u8IIRShift;                 /* RW; Range: [0, 63]; IIR Shift. Not support for Hi3516CV500/Hi3516DV300/16EV200/16EV300/18EV300*/
-    HI_S16          as16IIRGain[IIR_GAIN_NUM];  /* RW; Range: [-511, 511]. IIR gain,gain0 range:[0,255].*/
-    HI_U16          au16IIRShift[IIR_SHIFT_NUM];/* RW; Range: [0x0, 0x7];  IIR shift.*/
-    ISP_AF_LD_S     stLd;                       /* RW; filter level depend. */
-    ISP_AF_CORING_S stCoring;                   /* RW; filter coring. */
+    HI_BOOL         bNarrowBand;                /* RW; Range: [0, 1]; IIR narrow band enable.                 */
+    HI_BOOL         abIIREn[IIR_EN_NUM];        /* RW; Range: [0, 1]; IIR enable.                             */
+    HI_U8           u8IIRShift;                 /* RW; Range: [0, 63]; IIR Shift                            */
+    HI_S16          as16IIRGain[IIR_GAIN_NUM];  /* RW; Range: [-511, 511]. IIR gain,gain0 range:[0,255].    */
+    HI_U16          au16IIRShift[IIR_SHIFT_NUM];/* RW; Range: [0x0, 0x7];  IIR shift.                         */
+    ISP_AF_LD_S     stLd;                       /* RW; filter level depend.                                   */
+    ISP_AF_CORING_S stCoring;                   /* RW; filter coring.                                         */
+
 } ISP_AF_H_PARAM_S;
 
 #define FIR_GAIN_NUM    (5)
-
-/*Not support for Hi3559V200/Hi3556V200 */
 typedef struct hiISP_AF_V_PARAM_S
 {
-    HI_S16          as16FIRH[FIR_GAIN_NUM]; /* RW; Range: [-31, 31];   FIR gain. */
-    ISP_AF_LD_S     stLd;                   /* RW; filter level depend. */
-    ISP_AF_CORING_S stCoring;               /* RW; filter coring.  */
+    HI_S16          as16FIRH[FIR_GAIN_NUM]; /* RW; Range: [-31, 31];   FIR gain.                          */
+    ISP_AF_LD_S     stLd;                   /* RW; filter level depend.                                   */
+    ISP_AF_CORING_S stCoring;               /* RW; filter coring.                                         */
 } ISP_AF_V_PARAM_S;
 
 #define ACC_SHIFT_H_NUM (2)
 #define ACC_SHIFT_V_NUM (2)
-
-/*Not support for Hi3559V200/Hi3556V200 */
 typedef struct hiISP_AF_FV_PARAM_S
 {
-    HI_U16 u16AccShiftY;                    /* RW; Range: [0x0, 0xF]; luminance Y statistic shift.*/
-    HI_U16 au16AccShiftH[ACC_SHIFT_H_NUM];  /* RW; Range: [0x0, 0xF]; IIR statistic shift.*/
-    HI_U16 au16AccShiftV[ACC_SHIFT_V_NUM];  /* RW; Range: [0x0, 0xF]; FIR statistic shift. */
-    HI_U16 u16HlCntShift;                   /* RW; Range: [0x0, 0xF]; High luminance counter shift*/
+    HI_U16 u16AccShiftY;                    /* RW; Range: [0x0, 0xF]; luminance Y statistic shift.        */
+    HI_U16 au16AccShiftH[ACC_SHIFT_H_NUM];  /* RW; Range: [0x0, 0xF]; IIR statistic shift.                */
+    HI_U16 au16AccShiftV[ACC_SHIFT_V_NUM];  /* RW; Range: [0x0, 0xF]; FIR statistic shift.                */
+    HI_U16 u16HlCntShift;                   /* RW; Range: [0x0, 0xF]; High luminance counter shift        */
 } ISP_AF_FV_PARAM_S;
 
-/*Not support for Hi3559V200/Hi3556V200 */
 typedef struct hiISP_FOCUS_STATISTICS_CFG_S
 {
     ISP_AF_CFG_S        stConfig;
@@ -1669,17 +1497,17 @@ typedef union hiISP_STATISTICS_CTRL_U
     {
         HI_U64  bit1FEAeGloStat     : 1 ;   /* [0] */
         HI_U64  bit1FEAeLocStat     : 1 ;   /* [1] */
-        HI_U64  bit1FEAeStiGloStat  : 1 ;   /* [2] .Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-        HI_U64  bit1FEAeStiLocStat  : 1 ;   /* [3] .Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+        HI_U64  bit1FEAeStiGloStat  : 1 ;   /* [2] */
+        HI_U64  bit1FEAeStiLocStat  : 1 ;   /* [3] */
         HI_U64  bit1BEAeGloStat     : 1 ;   /* [4] */
         HI_U64  bit1BEAeLocStat     : 1 ;   /* [5] */
-        HI_U64  bit1BEAeStiGloStat  : 1 ;   /* [6] .Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-        HI_U64  bit1BEAeStiLocStat  : 1 ;   /* [7] .Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+        HI_U64  bit1BEAeStiGloStat  : 1 ;   /* [6] */
+        HI_U64  bit1BEAeStiLocStat  : 1 ;   /* [7] */
         HI_U64  bit1AwbStat1        : 1 ;   /* [8] */
         HI_U64  bit1AwbStat2        : 1 ;   /* [9] */
         HI_U64  bit2Rsv0            : 2 ;   /* [10:11] */
-        HI_U64  bit1FEAfStat        : 1 ;   /* [12] .Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-        HI_U64  bit1BEAfStat        : 1 ;   /* [13] .Not support for Hi3559V200/Hi3556V200*/
+        HI_U64  bit1FEAfStat        : 1 ;   /* [12] */
+        HI_U64  bit1BEAfStat        : 1 ;   /* [13] */
         HI_U64  bit2Rsv1            : 2 ;   /* [14:15] */
         HI_U64  bit1Dehaze          : 1 ;   /* [16] */
         HI_U64  bit1MgStat          : 1 ;   /* [17] */
@@ -1695,63 +1523,29 @@ typedef union hiISP_STATISTICS_CTRL_U
 #define WDR_CHN_MAX         (4)
 #define ISP_CHN_MAX_NUM     (4)
 
-typedef struct hiISP_AE_GRID_INFO_S
-{
-    HI_U16 au16GridYPos[AE_ZONE_ROW + 1];   /*R*/
-    HI_U16 au16GridXPos[AE_ZONE_COLUMN + 1];/*R*/
-    HI_U8  u8Status;                        /*R;0:not update, 1: update,others:reserved*/
-} ISP_AE_GRID_INFO_S;
-
-typedef struct hiISP_MG_GRID_INFO_S
-{
-    HI_U16 au16GridYPos[MG_ZONE_ROW + 1];    /*R*/
-    HI_U16 au16GridXPos[MG_ZONE_COLUMN + 1]; /*R*/
-    HI_U8  u8Status;                         /*R;0:not update, 1: update,others:reserved*/
-} ISP_MG_GRID_INFO_S;
-
-typedef struct hiISP_AWB_GRID_INFO_S
-{
-    HI_U16 au16GridYPos[AWB_ZONE_ORIG_ROW  + 1];   /*R*/
-    HI_U16 au16GridXPos[AWB_ZONE_ORIG_COLUMN + 1]; /*R*/
-    HI_U8  u8Status;                               /*R;0:not update, 1: update,others:reserved*/
-} ISP_AWB_GRID_INFO_S;
-
-typedef struct hiISP_FOCUS_GRID_INFO_S
-{
-    HI_U16 au16GridYPos[AF_ZONE_ROW + 1];    /*R*/
-    HI_U16 au16GridXPos[AF_ZONE_COLUMN + 1]; /*R*/
-    HI_U8  u8Status;                         /*R;0:not update, 1: update,others:reserved*/
-} ISP_FOCUS_GRID_INFO_S;
-
-
 typedef struct hiISP_AE_STATISTICS_S
 {
     HI_U32 au32FEHist1024Value[ISP_CHN_MAX_NUM][HIST_NUM];                                 /*R; Range: [0x0, 0xFFFFFFFF]; Format:32.0; Global 1024 bins histogram of FE*/
-    HI_U16 au16FEGlobalAvg[ISP_CHN_MAX_NUM][BAYER_PATTERN_NUM];                            /*R; Range: [0x0, 0xFFFF]; Format:16.0; Global average value of FE,Not support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16 au16FEZoneAvg[ISP_CHN_MAX_NUM][AE_ZONE_ROW][AE_ZONE_COLUMN][BAYER_PATTERN_NUM]; /*R; Range: [0x0, 0xFFFF]; Format:16.0; Zone average value of FE, Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200's Fe1 and Fe3,
-                                                                                            Not support Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U16 au16FEGlobalAvg[ISP_CHN_MAX_NUM][BAYER_PATTERN_NUM];                            /*R; Range: [0x0, 0xFFFF]; Format:16.0; Global average value of FE*/
+    HI_U16 au16FEZoneAvg[ISP_CHN_MAX_NUM][AE_ZONE_ROW][AE_ZONE_COLUMN][BAYER_PATTERN_NUM]; /*R; Range: [0x0, 0xFFFF]; Format:16.0; Zone average value of FE*/
     HI_U32 au32BEHist1024Value[HIST_NUM];                                                  /*R; Range: [0x0, 0xFFFFFFFF]; Format:32.0; Global 1024 bins histogram of BE*/
     HI_U16 au16BEGlobalAvg[BAYER_PATTERN_NUM];                                             /*R; Range: [0x0, 0xFFFF]; Format:16.0; Global average value of BE*/
     HI_U16 au16BEZoneAvg[AE_ZONE_ROW][AE_ZONE_COLUMN][BAYER_PATTERN_NUM];                  /*R; Range: [0x0, 0xFFFF]; Format:16.0; Zone average value of BE*/
-    ISP_AE_GRID_INFO_S stFEGridInfo;
-    ISP_AE_GRID_INFO_S stBEGridInfo;
 } ISP_AE_STATISTICS_S;
 
-/*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200*/
 typedef struct hiISP_AE_STITCH_STATISTICS_S
 {
-    HI_U32 au32FEHist1024Value[ISP_CHN_MAX_NUM][HIST_NUM];                                                  /*R; Range: [0x0, 0xFFFFFFFF]; Format:32.0; Global 1024 bins histogram of FE.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16 au16FEGlobalAvg[ISP_CHN_MAX_NUM][BAYER_PATTERN_NUM];                                             /*R; Range: [0x0, 0xFFFF]; Format:16.0; Global average value of FE.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16 au16FEZoneAvg[VI_MAX_PIPE_NUM][ISP_CHN_MAX_NUM][AE_ZONE_ROW][AE_ZONE_COLUMN][BAYER_PATTERN_NUM]; /*R; Range: [0x0, 0xFFFF]; Format:16.0; Zone average value of FE.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U32 au32BEHist1024Value[HIST_NUM];                                                                   /*R; Range: [0x0, 0xFFFFFFFF]; Format:32.0; Global 1024 bins histogram of BE.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16 au16BEGlobalAvg[BAYER_PATTERN_NUM];                                                              /*R; Range: [0x0, 0xFFFF]; Format:16.0; Global average value of BE.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
-    HI_U16 au16BEZoneAvg[VI_MAX_PIPE_NUM][AE_ZONE_ROW][AE_ZONE_COLUMN][BAYER_PATTERN_NUM];                  /*R; Range: [0x0, 0xFFFF]; Format:16.0; Zone average value of BE.Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300*/
+    HI_U32 au32FEHist1024Value[ISP_CHN_MAX_NUM][HIST_NUM];                                                  /*R; Range: [0x0, 0xFFFFFFFF]; Format:32.0; Global 1024 bins histogram of FE*/
+    HI_U16 au16FEGlobalAvg[ISP_CHN_MAX_NUM][BAYER_PATTERN_NUM];                                             /*R; Range: [0x0, 0xFFFF]; Format:16.0; Global average value of FE*/
+    HI_U16 au16FEZoneAvg[VI_MAX_PIPE_NUM][ISP_CHN_MAX_NUM][AE_ZONE_ROW][AE_ZONE_COLUMN][BAYER_PATTERN_NUM]; /*R; Range: [0x0, 0xFFFF]; Format:16.0; Zone average value of FE*/
+    HI_U32 au32BEHist1024Value[HIST_NUM];                                                                   /*R; Range: [0x0, 0xFFFFFFFF]; Format:32.0; Global 1024 bins histogram of BE*/
+    HI_U16 au16BEGlobalAvg[BAYER_PATTERN_NUM];                                                              /*R; Range: [0x0, 0xFFFF]; Format:16.0; Global average value of BE*/
+    HI_U16 au16BEZoneAvg[VI_MAX_PIPE_NUM][AE_ZONE_ROW][AE_ZONE_COLUMN][BAYER_PATTERN_NUM];                  /*R; Range: [0x0, 0xFFFF]; Format:16.0; Zone average value of BE*/
 } ISP_AE_STITCH_STATISTICS_S;
 
 typedef struct hiISP_MG_STATISTICS_S
 {
     HI_U16 au16ZoneAvg[MG_ZONE_ROW][MG_ZONE_COLUMN][BAYER_PATTERN_NUM];         /*R; Range: [0x0, 0xFF]; Format:8.0; Zone average value*/
-    ISP_MG_GRID_INFO_S stGridInfo;
 } ISP_MG_STATISTICS_S;
 
 
@@ -1765,32 +1559,13 @@ typedef enum hiISP_AWB_SWITCH_E
     ISP_AWB_SWITCH_BUTT
 } ISP_AWB_SWITCH_E;
 
-/*Crops the input image of the AWB module*/
-typedef struct hiISP_AWB_CROP_S
-{
-    HI_BOOL bEnable;  /* RW; Range: [0,1];  Format:1.0;AWB crop enable*/
-    HI_U16  u16X;     /* RW; Range: Hi3559AV100 = [0, 8192 - 60]|Hi3519AV100 = [0, 8192 - 60]|Hi3516CV500 = [0, 4608 - 60]|Hi3516DV300 = [0, 4608 - 60]|
-                         Hi3559V200   = [0, 4608 - 60]|Hi3556V200   = [0, 4608 - 60]|Hi3516EV200 = [0,3072- 60]|Hi3516EV300 = [0,3072- 60]|Hi3518EV300 = [0,3072- 60];
-                         ; Format:13.0;AWB image crop start x, limited range:[0, ImageWidth - u16ZoneCol * 60]*/
-    HI_U16  u16Y;     /* RW; Range: Hi3559AV100 = [0, 8192 - 14]|Hi3519AV100 = [0, 8192 - 14]|Hi3516CV500 = [0, 4608 - 14]|Hi3516DV300 = [0, 4608 - 14]|
-                         Hi3559V200   = [0, 4608 - 14]|Hi3556V200   = [0, 4608 - 14]|Hi3516EV200 = [0,3072-14]|Hi3516EV300 = [0,3072-14]|Hi3518EV300 = [0,3072-14];
-                         Format:13.0;AWB image crop start y,limited range:[0, ImageHeight - u16ZoneRow * 14] */
-    HI_U16  u16W;     /* RW; Range: Hi3559AV100 = [60, 8192]|Hi3519AV100 = [60, 8192]|Hi3516CV500 = [60, 4608]|Hi3516DV300 = [60, 4608] |
-                         Hi3559V200   = [60, 4608]| Hi3556V200  = [60, 4608]|Hi3516EV200 = [60,3072]|Hi3516EV300 = [60,3072]|Hi3518EV300 = [60,3072];
-                         Format:14.0;AWB image crop width, limited range:[u16ZoneCol * 60, ImageWidth]*/
-    HI_U16  u16H;     /* RW; Range: Hi3559AV100 = [14, 8192]|Hi3519AV100 = [14, 8192]|Hi3516CV500 = [14, 4608]|Hi3516DV300 = [14, 4608] | Hi3559V200 = [14, 4608]| Hi3556V200 = [14, 4608] |
-                         Hi3516EV200 = [14,3072]|Hi3516EV300 = [14,3072]|Hi3518EV300 = [14,3072];
-                         ; Format:14.0;AWB image crop height, limited range:[u16ZoneRow * 14, ImageHeight]*/
-} ISP_AWB_CROP_S;
-
 /*Defines the AWB statistics configuration*/
 typedef struct hiISP_WB_STATISTICS_CFG_S
 {
     ISP_AWB_SWITCH_E enAWBSwitch;         /*RW; Range: [0x0, 0x2]; Position of AWB statistics in pipeline*/
-    HI_U16 u16ZoneRow;                    /*RW; Range: [0x1, 0x20]; Vertical Blocks, limited range:[1, min(32, ImageHeight /AWB_MIN_HEIGHT)]*/
-    HI_U16 u16ZoneCol;                    /*RW; Range: [0x1, 0x20]; Horizontal Blocks, limited range:[BlkNum, min(32, Width /AWB_MIN_WIDTH)]*/
-    HI_U16 u16ZoneBin;                    /*RW; Range:Hi3559AV100 = [1, 4] | Hi3519AV100 = [1, 4] | Hi3516CV500 = [1, 1]|Hi3516DV300 = [1, 1]| Hi3559V200 = [1, 1]|Hi3556V200 = [1, 1]|
-                                            Hi3516EV200 = [1,1]|Hi3516EV300 = [1,1]|Hi3518EV300 = [1,1];            Brightness Bins*/
+    HI_U16 u16ZoneRow;                    /*RW; Range: [0x1, 0x20]; Vertical Blocks*/
+    HI_U16 u16ZoneCol;                    /*RW; Range: [0x1, 0x20]; Horizontal Blocks*/
+    HI_U16 u16ZoneBin;                    /*RW; Range: [0x1, 0x4]; Brightness Bins*/
     HI_U16 au16HistBinThresh[4];          /*RW; Range: [0x0, 0xFFFF]; Bin Threshold*/
     HI_U16 u16WhiteLevel;       /*RW; Range: [0x0, 0xFFFF];Upper limit of valid data for white region,  for Bayer statistics, [0x0, 0x3FF] for RGB statistics*/
     HI_U16 u16BlackLevel;       /*RW; Range: [0x0, 0xFFFF];limited range: [0x0, u16WhiteLevel],Lower limit of valid data for white region . for Bayer statistics, bitwidth is 12, for RGB statistics, bitwidth is 10*/
@@ -1798,7 +1573,6 @@ typedef struct hiISP_WB_STATISTICS_CFG_S
     HI_U16 u16CbMin;            /*RW; Range: [0x0, 0xFFF];limited range: [0x0, u16CbMax]Minimum value of B/G for white region */
     HI_U16 u16CrMax;            /*RW; Range: [0x0, 0xFFF];Maximum value of R/G for white region */
     HI_U16 u16CrMin;            /*RW; Range: [0x0, 0xFFF];limited range: [0x0, u16CrMax],Minimum value of R/G for white region */
-    ISP_AWB_CROP_S stCrop;
 } ISP_WB_STATISTICS_CFG_S;
 
 typedef struct hiISP_WB_STITCH_STATISTICS_S
@@ -1822,7 +1596,6 @@ typedef struct hiISP_WB_STATISTICS_S
     HI_U16 au16ZoneAvgG[AWB_ZONE_NUM];            /*R; Range: [0x0, 0xFFFF];Zone Average G */
     HI_U16 au16ZoneAvgB[AWB_ZONE_NUM];            /*R; Range: [0x0, 0xFFFF];Zone Average B */
     HI_U16 au16ZoneCountAll[AWB_ZONE_NUM];        /*R; Range: [0x0, 0xFFFF];normalized number of Gray points */
-    ISP_AWB_GRID_INFO_S stGridInfo;
 } ISP_WB_STATISTICS_S;
 
 typedef struct hiISP_FOCUS_ZONE_S
@@ -1847,10 +1620,8 @@ typedef struct hiISP_BE_FOCUS_STATISTICS_S
 
 typedef struct hiISP_AF_STATISTICS_S
 {
-    ISP_FE_FOCUS_STATISTICS_S      stFEAFStat;/*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300 */
-    ISP_BE_FOCUS_STATISTICS_S      stBEAFStat;/*Not support for Hi3559V200/Hi3556V200 */
-    ISP_FOCUS_GRID_INFO_S          stFEAFGridInfo;/*Not support for Hi3516CV500/Hi3516DV300/Hi3559V200/Hi3556V200/Hi3516EV200/Hi3516EV300/Hi3518EV300 */
-    ISP_FOCUS_GRID_INFO_S          stBEAFGridInfo;/*Not support for Hi3559V200/Hi3556V200 */
+    ISP_FE_FOCUS_STATISTICS_S      stFEAFStat;
+    ISP_BE_FOCUS_STATISTICS_S      stBEAFStat;
 } ISP_AF_STATISTICS_S;
 
 
@@ -1859,7 +1630,7 @@ typedef struct hiISP_STATISTICS_CFG_S
     ISP_STATISTICS_CTRL_U       unKey;
     ISP_AE_STATISTICS_CFG_S     stAECfg;
     ISP_WB_STATISTICS_CFG_S     stWBCfg;
-    ISP_FOCUS_STATISTICS_CFG_S  stFocusCfg;/*Not support for Hi3559V200/Hi3556V200 */
+    ISP_FOCUS_STATISTICS_CFG_S  stFocusCfg;
 } ISP_STATISTICS_CFG_S;
 
 typedef struct hiISP_INIT_ATTR_S
@@ -2320,24 +2091,6 @@ typedef struct hiISP_HDR_EXPOSURE_ATTR_S
 } ISP_HDR_EXPOSURE_ATTR_S;
 
 
-typedef struct hiISP_SMART_EXPOSURE_ATTR_S
-{
-    HI_BOOL bEnable;                /*RW; Range:[0, 1]; Format:1.0; smart ae enable or not*/
-    HI_BOOL bIRMode;                /*RW; Range:[0, 1]; Format:1.0; smart ae IR mode or not*/
-    ISP_OP_TYPE_E enSmartExpType;   /*RW; Range:[0, 1]; Format:1.0; OP_TYPE_AUTO: The ExpCoef used in ISP is generated by firmware; OP_TYPE_MANUAL: The ExpCoef used in ISP is set by u32ExpCoef */
-    HI_U16	u16ExpCoef;             /*RW; Range:[0x0, 0xFFFF]; Format:6.10; 0x400 means 1 times.
-                                            When enExpHDRLvType is OP_TYPE_AUTO, u32ExpCoef is invalid.
-                                            When enExpHDRLvType is OP_TYPE_MANUAL, u32ExpCoef is the quotient of exposure. */
-    HI_U8   u8LumaTarget;	        /*RW; Range:[0x0, 0x100]; Format:8.0; luma target of smart ae. */
-    HI_U16	u16ExpCoefMax;          /*RW; Range:[0x0, 0xFFFF]; Format:6.10; 0x400 means 1 times.
-                                            When enExpHDRLvType is OP_TYPE_AUTO, u32ExpCoefvMax is max(upper limit) of ExpCoef generated by firmware.
-                                            When enExpHDRLvType is OP_TYPE_MANUAL, u32ExpCoefMax is invalid. */
-    HI_U16	u16ExpCoefMin;	        /*RW; Range:[0x0, 0xFFFF]; Format:6.10; 0x400 means 1 times.
-                                            When enExpHDRLvType is OP_TYPE_AUTO, u32ExpCoefMax is min(lower limit) of ExpCoef generated by firmware.
-                                            When enExpHDRLvType is OP_TYPE_MANUAL, u32ExpCoefMin is invalid. */
-} ISP_SMART_EXPOSURE_ATTR_S;
-
-
 /********************* AWB structs ************************/
 /*
 Defines the AWB online calibration type
@@ -2486,7 +2239,7 @@ typedef struct hiISP_AWB_ATTR_S
     ISP_AWB_CBCR_TRACK_ATTR_S stCbCrTrack;
     ISP_AWB_LUM_HISTGRAM_ATTR_S stLumaHist;
     HI_BOOL bAWBZoneWtEn;                           /*RW, Range: [0, 1]; Format:1.0; if enabled, user can set weight for each zones*/
-    HI_U8   au8ZoneWt[AWB_ZONE_ORIG_ROW *AWB_ZONE_ORIG_COLUMN];   /*RW; Range: [0, 255]; Format:8.0;Zone Wt Table*/
+    HI_U8   au8ZoneWt[AWB_ZONE_ORIG_ROW * AWB_ZONE_ORIG_COLUMN];  /*RW; Range: [0, 255]; Format:8.0;Zone Wt Table*/
 } ISP_AWB_ATTR_S;
 
 /* Attr for SPC AWB */
@@ -2509,8 +2262,8 @@ typedef struct hiISP_SPECAWB_KELVIN_DBB_MAP_S
 
 typedef struct  hiISP_SPECKCWB_S
 {
-    HI_S32    s32RGain;/* RW;Range:[-2147483648, 2147483647]; RgainValue */
-    HI_S32    s32BGain;/* RW;Range:[-2147483648, 2147483647]; BgainValue */
+    HI_S32    s32RGain;/* RW;Range:[-2147483648, 214747647]; RgainValue */
+    HI_S32    s32BGain;/* RW;Range:[-2147483648, 214747647]; BgainValue */
 } ISP_SPECKCWB_S;
 
 typedef struct  hiISP_SPECKCWBS16_S
@@ -2554,8 +2307,8 @@ typedef struct  hiISP_SPECAWB_ATTR_S
 
 typedef struct  hiISP_SPECAWB_CAA_CONVERSION_S
 {
-    HI_S32 s32SrcKelvin;    /* RW;Range:[-2147483648, 2147483647]; Source kelvin*/
-    HI_S32 s32DstKelvin;    /* RW;Range:[-2147483648, 2147483647]; Destination kelvin*/
+    HI_S32 s32SrcKelvin;    /* RW;Range:[-2147483648, 214747647]; Source kelvin*/
+    HI_S32 s32DstKelvin;    /* RW;Range:[-2147483648, 214747647]; Destination kelvin*/
 } ISP_SPECAWB_CAA_CONVERSION_S;
 typedef struct  hiISP_SPECAWB_CAA_TBL_S
 {
