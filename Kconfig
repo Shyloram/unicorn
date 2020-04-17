@@ -1,0 +1,136 @@
+#
+# For a description of the syntax of this configuration file,
+# see config/Kconfig-language.txt
+#
+mainmenu "Zmodo App Configuration"
+
+menu "Platform"
+
+choice
+    prompt "suppliers name"
+    default ZMD_APP_HISI
+    help
+      select suppliers name.
+
+config ZMD_APP_HISI
+    bool "Hisilicon"
+
+config ZMD_APP_AMBA
+    bool "Ambarella"
+
+endchoice
+
+choice
+    depends on  ZMD_APP_HISI
+    prompt "OS Type"
+    default ZMD_APP_HISI_LINUX
+    help
+      select OS type.
+	  
+config ZMD_APP_HISI_LINUX
+    bool "Linux"
+
+config ZMD_APP_HISI_LITEOS
+    bool "Liteos"
+
+endchoice
+
+config ZMD_APP_HISI_LITEOS_INIT_SENSOR_IN_UBOOT
+	depends on ZMD_APP_HISI_LITEOS
+	bool "LITEOS_INIT_SENSOR_IN_UBOOT"
+	default n
+	help
+		CFG_INIT_SENSOR_IN_UBOOT
+
+choice
+    depends on  ZMD_APP_HISI
+    prompt "Chip Type"
+    default ZMD_APP_HI3516E300
+    help
+      select Chip type.
+
+config ZMD_APP_HI3518E200
+    bool "hi3518E200"
+
+config ZMD_APP_HI3516E300
+    bool "hi3516E300"
+
+endchoice
+
+endmenu
+
+source "src/Kconfig"
+source "thirdparty/Kconfig"
+
+menuconfig ZMD_APP_DEBUG 
+	bool "Debug Log Switch"
+	default y
+	help
+		this module provide extra debug log.
+
+if ZMD_APP_DEBUG
+
+config ZMD_APP_DEBUG_ITF
+	bool "interface debug log"
+	default y
+	help
+		this module provide interface debug log.
+
+config ZMD_APP_DEBUG_AUD
+	depends on ZMD_APP_ENCODE_AUDIO
+	bool "audio debug log"
+	default y
+	help
+		this module provide audio debug log.
+
+config ZMD_APP_DEBUG_BUF
+	depends on ZMD_APP_ENCODE_BUFFERMANAGE
+	bool "buffer manage debug log"
+	default y
+	help
+		this module provide buffer manage debug log.
+
+config ZMD_APP_DEBUG_VID
+	depends on ZMD_APP_ENCODE_VIDEO
+	bool "video debug log"
+	default y
+	help
+		this module provide video debug log.
+		
+config ZMD_APP_DEBUG_ZSP
+	depends on ZMD_APP_ZSP
+	bool "ZSP debug log"
+	default y
+	help
+		this module provide ZSP debug log.
+
+config ZMD_APP_DEBUG_MSH
+	depends on ZMD_APP_MESHARE
+	bool "meshare debug log"
+	default y
+	help
+		this module provide meshare debug log.
+		
+config ZMD_APP_DEBUG_RWC
+	depends on ZMD_APP_RWCONDIF
+	bool "rwconfig debug log"
+	default y
+	help
+		this module provide rwconfig debug log.
+endif
+
+menu "Release Note"
+
+config ZMD_APP_SOFTWARE_VERSION
+	string "sortware version"
+	default "V0.0.0.01"
+	help
+		this is sortware version number
+
+config ZMD_APP_HARDWARE_VERSION
+	string "hardware version"
+	default "V0.0.0.01"
+	help
+		this is hardware version number
+
+endmenu

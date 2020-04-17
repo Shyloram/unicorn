@@ -1,0 +1,44 @@
+menu "Function Module"
+
+menuconfig ZMD_APP_ENCODE
+    bool "media function module"
+	default y
+	select ZMD_APP_ENCODE_VIDEO
+	select ZMD_APP_ENCODE_BUFFERMANAGE
+	help
+		this module provide video encode,audio encode and decode,buffer manage function etc.
+
+source src/encode/Kconfig
+
+config ZMD_APP_MESHARE
+    bool "meshare function module"
+	default y
+	select ZMD_APP_THREADPOOL
+	select ZMD_APP_THI_MBEDTLS 
+	select ZMD_APP_THI_CURL
+	select ZMD_APP_THI_JSON
+	select ZMD_APP_THI_NOPOLL 
+	help
+		this module provide network connect to meshare cloud.
+
+config ZMD_APP_ZSP
+    bool "zmdnetlib function module"
+	default y
+	select ZMD_APP_THREADPOOL
+	select ZMD_APP_THI_MBEDTLS 
+	help
+		this module provide network connect to PC tool.
+
+config ZMD_APP_RWCONDIF
+    bool "rwconfig function module"
+	default y
+	help
+		this module provide read or write parameter on flash or filesystem.
+
+config ZMD_APP_THREADPOOL
+    bool "threadpool function module"
+	default n
+	help
+		this module provide network connect to meshare cloud API.
+		
+endmenu

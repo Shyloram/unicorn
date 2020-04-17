@@ -1,0 +1,36 @@
+if ZMD_APP_ENCODE
+
+#video config
+config ZMD_APP_ENCODE_VIDEO
+    bool "video function module"
+	default y
+	help
+		this module provide video encode and config option function etc.
+
+config ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM
+	depends on ZMD_APP_ENCODE_VIDEO
+	int "total channel number(1~3)"
+	range 1 3
+	default 3
+
+config ZMD_APP_ENCODE_AUDIO
+    bool "audio function module"
+	default y
+	help
+		this module provide audio encode, decode and play function.
+
+config ZMD_APP_ENCODE_BUFFERMANAGE
+    bool "buffer manage function module"
+	default y
+	help
+		this module provide source buffer manage function.
+
+config ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION
+	depends on ZMD_APP_ENCODE_BUFFERMANAGE
+	bool "I Frame encryption"
+	default y
+	select ZMD_APP_THI_MBEDTLS
+	help
+		it will encrypt the I frame.
+
+endif #ZMD_APP_ENCODE

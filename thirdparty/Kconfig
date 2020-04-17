@@ -1,0 +1,30 @@
+menu "Thirdparty"
+
+config ZMD_APP_THI_CURL
+    bool "curl-7.59.0"
+	default n
+	help
+		command line tool and library for transferring data with URLs
+
+config ZMD_APP_THI_JSON
+    bool "json-c-0.13"
+	default n
+	help
+		JSON (JavaScript Object Notation) is a lightweight data-interchange format. 
+
+config ZMD_APP_THI_MBEDTLS
+    bool "mbedtls-2.9.0"
+	default n
+	help
+		mbed TLS (formerly known as PolarSSL) makes it trivially easy for developers to 
+		include cryptographic and SSL/TLS capabilities in their (embedded) products, 
+		facilitating this functionality with a minimal coding footprint.
+
+config ZMD_APP_THI_NOPOLL
+    bool "nopoll-encrypt"
+	default n
+	help
+		noPoll is a OpenSource WebSocket implementation (RFC 6455), written in ansi C, 
+		that allows building pure WebSocket solutions or to provide WebSocket support to existing TCP oriented applications.
+
+endmenu
