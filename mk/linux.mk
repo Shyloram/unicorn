@@ -7,17 +7,22 @@ RemoveDir       	 = $(shell [ -d $1 ] && rm -rf $1 && echo -e "rmdir '$1'\t [ OK
 
 dummy 				:= $(call CreateDir, $(ZMD_OUT_ROOT))
 
-ifeq ($(ZMD_APP_HI3516E300),y)
-HIARCH              := hi3516ev200
+ifeq ($(ZMD_APP_HI3519A100),y)
+HIARCH              := hi3519av100
 endif
 
-CROSS               := arm-himix100-linux-
+CROSS               := arm-himix200-linux-
 CC 					:=$(CROSS)gcc
 GPP 				:=$(CROSS)g++
 AR 					:=$(CROSS)ar
 LD 					:=$(CROSS)ld
 
-SENSOR_TYPE 		:= SMART_SC2235_DC_2M_30FPS_12BIT
+SENSOR0_TYPE 		?= SONY_IMX334_MIPI_8M_30FPS_12BIT
+SENSOR1_TYPE 		?= SONY_IMX290_SLAVE_MIPI_2M_60FPS_10BIT
+SENSOR2_TYPE 		?= SONY_IMX290_SLAVE_MIPI_2M_60FPS_10BIT
+SENSOR3_TYPE 		?= SONY_IMX290_SLAVE_MIPI_2M_60FPS_10BIT
+SENSOR4_TYPE 		?= SONY_IMX334_MIPI_8M_30FPS_12BIT
+
 ISP_VERSION 		:= ISP_V2
 HI_FPGA 			:= HI_XXXX
 
@@ -40,7 +45,12 @@ CFLAGS 				:= -Wall -g -D$(HIARCH) -D$(HI_FPGA) -lpthread -lm -ldl -D$(ISP_VERSI
 CFLAGS 				+= -lstdc++
 CFLAGS 				+= $(LIBS_CFLAGS)
 CFLAGS 				+= $(MPP_CFLAGS)
-CFLAGS 				+= -DSENSOR0_TYPE=$(SENSOR_TYPE)  
+CFLAGS 				+= -DSENSOR0_TYPE=$(SENSOR0_TYPE)
+CFLAGS 				+= -DSENSOR1_TYPE=$(SENSOR1_TYPE)
+CFLAGS 				+= -DSENSOR2_TYPE=$(SENSOR2_TYPE)
+CFLAGS 				+= -DSENSOR3_TYPE=$(SENSOR3_TYPE)
+CFLAGS 				+= -DSENSOR4_TYPE=$(SENSOR4_TYPE)
+
 
 ifeq ($(ZMD_APP_ENCODE_AUDIO),y)
 CFLAGS 				+= -DHI_ACODEC_TYPE_INNER
@@ -52,11 +62,19 @@ SENSOR_LIBS         += $(ZMD_LIB_ROOT_LINUX)/lib_hidehaze.a
 SENSOR_LIBS         += $(ZMD_LIB_ROOT_LINUX)/lib_hidrc.a
 SENSOR_LIBS         += $(ZMD_LIB_ROOT_LINUX)/lib_hildci.a
 SENSOR_LIBS         += $(ZMD_LIB_ROOT_LINUX)/lib_hiawb.a
-SENSOR_LIBS 		+= $(ZMD_LIB_ROOT_LINUX)/libsns_sc2235.a
+
+SENSOR_LIBS 		+= $(ZMD_LIB_ROOT_LINUX)/libsns_imx290.a
+SENSOR_LIBS 		+= $(ZMD_LIB_ROOT_LINUX)/libsns_imx290_slave.a
+SENSOR_LIBS 		+= $(ZMD_LIB_ROOT_LINUX)/libsns_imx334.a
+
 MPI_LIBS 			:= $(ZMD_LIB_ROOT_LINUX)/libmpi.a
+MPI_LIBS 			+= $(ZMD_LIB_ROOT_LINUX)/libhdmi.a
+MPI_LIBS 			+= $(ZMD_LIB_ROOT_LINUX)/libdsp.a
 AUDIO_LIBA          := $(ZMD_LIB_ROOT_LINUX)/libVoiceEngine.a \
 					   $(ZMD_LIB_ROOT_LINUX)/libupvqe.a \
-					   $(ZMD_LIB_ROOT_LINUX)/libdnvqe.a
+					   $(ZMD_LIB_ROOT_LINUX)/libdnvqe.a \
+					   $(ZMD_LIB_ROOT_LINUX)/libaacenc.a\
+					   $(ZMD_LIB_ROOT_LINUX)/libaacdec.a
 
 LINUX_LIBDEP 		:= -Wl,--start-group $(MPI_LIBS) $(SENSOR_LIBS) $(AUDIO_LIBA) $(ZMD_LIB_ROOT_LINUX)/libsecurec.a $(ZMD_LIB) $(ZMD_TIR_LIB) -Wl,--end-group
 

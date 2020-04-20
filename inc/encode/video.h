@@ -39,7 +39,6 @@ class ZMDVideo : public Video
 		virtual int VideoStop();
 		int VideoEncStreamThreadBody(void);
 		int RequestIFrame(int ch);
-		int IspSeting(void);
 };
 
 #endif //__VIDEO_H__

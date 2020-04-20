@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <pthread.h>
 #include "modinterface.h"
 
 /*进程与线程信号处理函数*/

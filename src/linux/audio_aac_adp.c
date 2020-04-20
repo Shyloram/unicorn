@@ -4,62 +4,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "audio_aac_adp.h"
-#include "audio_dl_adp.h"
-
-#include <aacdec.h>
-#include <aacenc.h>
-
-#define HI_AUDIO_ASSERT(x) {if (HI_TRUE != (x))return -1;}
-
-#define AAC_ENC_LIB_NAME "libaacenc.so"
-#define AAC_DEC_LIB_NAME "libaacdec.so"
-
-//# aac enc lib
-typedef HI_S32 (*pHI_AACENC_GetVersion_Callback)(AACENC_VERSION_S* pVersion);
-typedef HI_S32 (*pAACInitDefaultConfig_Callback)(AACENC_CONFIG* pstConfig);
-typedef HI_S32 (*pAACEncoderOpen_Callback)(AAC_ENCODER_S** phAacPlusEnc, AACENC_CONFIG* pstConfig);
-typedef HI_S32 (*pAACEncoderFrame_Callback)(AAC_ENCODER_S* hAacPlusEnc, HI_S16* ps16PcmBuf,
-                        HI_U8* pu8Outbuf, HI_S32* ps32NumOutBytes);
-typedef HI_VOID (*pAACEncoderClose_Callback)(AAC_ENCODER_S* hAacPlusEnc);
-
-//# aac dec lib
-typedef HI_S32 (*pHI_AACDEC_GetVersion_Callback)(AACDEC_VERSION_S* pVersion);
-typedef HAACDecoder (*pAACInitDecoder_Callback)(AACDECTransportType enTranType);
-typedef HI_VOID (*pAACFreeDecoder_Callback)(HAACDecoder hAACDecoder);
-typedef HI_S32 (*pAACSetRawMode_Callback)(HAACDecoder hAACDecoder, HI_S32 nChans, HI_S32 sampRate);
-typedef HI_S32 (*pAACDecodeFindSyncHeader_Callback)(HAACDecoder hAACDecoder, HI_U8** ppInbufPtr, HI_S32* pBytesLeft);
-typedef HI_S32 (*pAACDecodeFrame_Callback)(HAACDecoder hAACDecoder, HI_U8** ppInbufPtr, HI_S32* pBytesLeft, HI_S16* pOutPcm);
-typedef HI_S32 (*pAACGetLastFrameInfo_Callback)(HAACDecoder hAACDecoder, AACFrameInfo* aacFrameInfo);
-typedef HI_S32 (*pAACDecoderSetEosFlag_Callback)(HAACDecoder hAACDecoder, HI_S32 s32Eosflag);
-typedef HI_S32 (*pAACFlushCodec_Callback)(HAACDecoder hAACDecoder);
-
-typedef struct
-{
-    HI_S32 s32OpenCnt;
-    HI_VOID *pLibHandle;
-
-    pHI_AACENC_GetVersion_Callback pHI_AACENC_GetVersion;
-    pAACInitDefaultConfig_Callback pAACInitDefaultConfig;
-    pAACEncoderOpen_Callback pAACEncoderOpen;
-    pAACEncoderFrame_Callback pAACEncoderFrame;
-    pAACEncoderClose_Callback pAACEncoderClose;
-}AACENC_FUN_S;
-
-typedef struct
-{
-    HI_S32 s32OpenCnt;
-    HI_VOID *pLibHandle;
-
-    pHI_AACDEC_GetVersion_Callback pHI_AACDEC_GetVersion;
-    pAACInitDecoder_Callback pAACInitDecoder;
-    pAACFreeDecoder_Callback pAACFreeDecoder;
-    pAACSetRawMode_Callback pAACSetRawMode;
-    pAACDecodeFindSyncHeader_Callback pAACDecodeFindSyncHeader;
-    pAACDecodeFrame_Callback pAACDecodeFrame;
-    pAACGetLastFrameInfo_Callback pAACGetLastFrameInfo;
-    pAACDecoderSetEosFlag_Callback pAACDecoderSetEosFlag;
-    pAACFlushCodec_Callback pAACFlushCodec;
-}AACDEC_FUN_S;
 
 //#define DUMP_AACENC
 #ifdef DUMP_AACENC
@@ -77,360 +21,7 @@ FILE *pfdout_DEC_L = NULL;
 int cnt_aenc = 100000;
 int cnt_adec = 100000;
 
-static HI_S32 g_AacEncHandle = 0;
-static HI_S32 g_AacDecHandle = 0;
-
-static AACENC_FUN_S g_stAacEncFunc = {0};
-static AACDEC_FUN_S g_stAacDecFunc = {0};
-
-static HI_S32 InitAacAencLib(void)
-{
-    HI_S32 s32Ret = HI_FAILURE;;
-
-    if(0 == g_stAacEncFunc.s32OpenCnt)
-    {
-        AACENC_FUN_S stAacEncFunc;
-        memset(&stAacEncFunc, 0, sizeof(AACENC_FUN_S));
-
-        s32Ret = Audio_Dlopen(&(stAacEncFunc.pLibHandle), AAC_ENC_LIB_NAME);
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "load aenc lib fail!\n");
-            return HI_ERR_AENC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacEncFunc.pHI_AACENC_GetVersion), stAacEncFunc.pLibHandle, "HI_AACENC_GetVersion");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_AENC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacEncFunc.pAACInitDefaultConfig), stAacEncFunc.pLibHandle, "AACInitDefaultConfig");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_AENC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacEncFunc.pAACEncoderOpen), stAacEncFunc.pLibHandle, "AACEncoderOpen");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_AENC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacEncFunc.pAACEncoderFrame), stAacEncFunc.pLibHandle, "AACEncoderFrame");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_AENC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacEncFunc.pAACEncoderClose), stAacEncFunc.pLibHandle, "AACEncoderClose");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_AENC_NOT_SUPPORT;
-        }
-
-        memcpy(&g_stAacEncFunc, &stAacEncFunc, sizeof(AACENC_FUN_S));
-    }
-    g_stAacEncFunc.s32OpenCnt++;
-    return HI_SUCCESS;
-}
-
-HI_VOID DeInitAacAencLib(HI_VOID)
-{
-    if(0 != g_stAacEncFunc.s32OpenCnt)
-    {
-        g_stAacEncFunc.s32OpenCnt --;
-    }
-
-    if(0 == g_stAacEncFunc.s32OpenCnt)
-    {
-        if(HI_NULL != g_stAacEncFunc.pLibHandle)
-        {
-            Audio_Dlclose(g_stAacEncFunc.pLibHandle);
-        }
-        memset(&g_stAacEncFunc, 0, sizeof(AACENC_FUN_S));
-    }
-
-    return;
-}
-
-HI_S32 HI_AACENC_GetVersion_Adp(AACENC_VERSION_S* pVersion)
-{
-    if(NULL == g_stAacEncFunc.pHI_AACENC_GetVersion)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_AENC_NOT_SUPPORT;
-    }
-    return g_stAacEncFunc.pHI_AACENC_GetVersion(pVersion);
-}
-
-HI_S32 AACInitDefaultConfig_Adp(AACENC_CONFIG* pstConfig)
-{
-    if(NULL == g_stAacEncFunc.pAACInitDefaultConfig)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_AENC_NOT_SUPPORT;
-    }
-    return g_stAacEncFunc.pAACInitDefaultConfig(pstConfig);
-}
-
-HI_S32 AACEncoderOpen_Adp(AAC_ENCODER_S** phAacPlusEnc, AACENC_CONFIG* pstConfig)
-{
-    if(NULL == g_stAacEncFunc.pAACEncoderOpen)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_AENC_NOT_SUPPORT;
-    }
-    return g_stAacEncFunc.pAACEncoderOpen(phAacPlusEnc, pstConfig);
-}
-
-HI_S32 AACEncoderFrame_Adp(AAC_ENCODER_S* hAacPlusEnc, HI_S16* ps16PcmBuf, HI_U8* pu8Outbuf, HI_S32* ps32NumOutBytes)
-{
-    if(NULL == g_stAacEncFunc.pAACEncoderFrame)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_AENC_NOT_SUPPORT;
-    }
-    return g_stAacEncFunc.pAACEncoderFrame(hAacPlusEnc, ps16PcmBuf, pu8Outbuf, ps32NumOutBytes);
-}
-
-HI_VOID AACEncoderClose_Adp(AAC_ENCODER_S* hAacPlusEnc)
-{
-    if(NULL == g_stAacEncFunc.pAACEncoderClose)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return;
-    }
-    return g_stAacEncFunc.pAACEncoderClose(hAacPlusEnc);
-}
-
-static HI_S32 InitAacAdecLib(void)
-{
-    HI_S32 s32Ret = HI_FAILURE;
-    if(0 == g_stAacDecFunc.s32OpenCnt)
-    {
-        AACDEC_FUN_S stAacDecFunc;
-        memset(&stAacDecFunc, 0, sizeof(AACDEC_FUN_S));
-
-        s32Ret  = Audio_Dlopen(&(stAacDecFunc.pLibHandle), AAC_DEC_LIB_NAME);
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "load aenc lib fail!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pHI_AACDEC_GetVersion), stAacDecFunc.pLibHandle, "HI_AACDEC_GetVersion");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pAACInitDecoder), stAacDecFunc.pLibHandle, "AACInitDecoder");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pAACFreeDecoder), stAacDecFunc.pLibHandle, "AACFreeDecoder");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pAACSetRawMode), stAacDecFunc.pLibHandle, "AACSetRawMode");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pAACDecodeFindSyncHeader), stAacDecFunc.pLibHandle, "AACDecodeFindSyncHeader");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pAACDecodeFrame), stAacDecFunc.pLibHandle, "AACDecodeFrame");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pAACGetLastFrameInfo), stAacDecFunc.pLibHandle, "AACGetLastFrameInfo");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pAACDecoderSetEosFlag), stAacDecFunc.pLibHandle, "AACDecoderSetEosFlag");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        s32Ret = Audio_Dlsym((HI_VOID** )&(stAacDecFunc.pAACFlushCodec), stAacDecFunc.pLibHandle, "AACFlushCodec");
-        if(HI_SUCCESS != s32Ret)
-        {
-            printf("[Func]:%s [Line]:%d [Info]:%s\n",
-                __FUNCTION__, __LINE__, "find symbol error!\n");
-            return HI_ERR_ADEC_NOT_SUPPORT;
-        }
-
-        memcpy(&g_stAacDecFunc, &stAacDecFunc, sizeof(AACDEC_FUN_S));
-    }
-    g_stAacDecFunc.s32OpenCnt++;
-    return HI_SUCCESS;
-}
-
-HI_VOID DeInitAacAdecLib(HI_VOID)
-{
-    if(0 != g_stAacDecFunc.s32OpenCnt)
-    {
-        g_stAacDecFunc.s32OpenCnt --;
-    }
-
-    if(0 == g_stAacDecFunc.s32OpenCnt)
-    {
-        if(HI_NULL != g_stAacDecFunc.pLibHandle)
-        {
-            Audio_Dlclose(g_stAacDecFunc.pLibHandle);
-        }
-        memset(&g_stAacDecFunc, 0, sizeof(AACDEC_FUN_S));
-    }
-
-    return;
-}
-
-HI_S32 HI_AACDEC_GetVersion_Adp(AACDEC_VERSION_S* pVersion)
-{
-    if(NULL == g_stAacDecFunc.pHI_AACDEC_GetVersion)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_ADEC_NOT_SUPPORT;
-    }
-    return g_stAacDecFunc.pHI_AACDEC_GetVersion(pVersion);
-}
-
-HAACDecoder AACInitDecoder_Adp(AACDECTransportType enTranType)
-{
-    if(NULL == g_stAacDecFunc.pAACInitDecoder)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_NULL;
-    }
-    return g_stAacDecFunc.pAACInitDecoder(enTranType);
-}
-
-HI_VOID AACFreeDecoder_Adp(HAACDecoder hAACDecoder)
-{
-    if(NULL == g_stAacDecFunc.pAACFreeDecoder)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return;
-    }
-    return g_stAacDecFunc.pAACFreeDecoder(hAACDecoder);
-}
-
-HI_S32 AACSetRawMode_Adp(HAACDecoder hAACDecoder, HI_S32 nChans, HI_S32 sampRate)
-{
-    if(NULL == g_stAacDecFunc.pAACSetRawMode)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_ADEC_NOT_SUPPORT;
-    }
-    return g_stAacDecFunc.pAACSetRawMode(hAACDecoder, nChans, sampRate);
-}
-
-HI_S32 AACDecodeFindSyncHeader_Adp(HAACDecoder hAACDecoder, HI_U8** ppInbufPtr, HI_S32* pBytesLeft)
-{
-    if(NULL == g_stAacDecFunc.pAACDecodeFindSyncHeader)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_ADEC_NOT_SUPPORT;
-    }
-    return g_stAacDecFunc.pAACDecodeFindSyncHeader(hAACDecoder, ppInbufPtr, pBytesLeft);
-}
-
-HI_S32 AACDecodeFrame_Adp(HAACDecoder hAACDecoder, HI_U8** ppInbufPtr, HI_S32* pBytesLeft, HI_S16* pOutPcm)
-{
-    if(NULL == g_stAacDecFunc.pAACDecodeFrame)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_ADEC_NOT_SUPPORT;
-    }
-    return g_stAacDecFunc.pAACDecodeFrame(hAACDecoder, ppInbufPtr, pBytesLeft, pOutPcm);
-}
-
-HI_S32 AACGetLastFrameInfo_Adp(HAACDecoder hAACDecoder, AACFrameInfo* aacFrameInfo)
-{
-    if(NULL == g_stAacDecFunc.pAACGetLastFrameInfo)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_ADEC_NOT_SUPPORT;
-    }
-    return g_stAacDecFunc.pAACGetLastFrameInfo(hAACDecoder, aacFrameInfo);
-}
-
-HI_S32 AACDecoderSetEosFlag_Adp(HAACDecoder hAACDecoder, HI_S32 s32Eosflag)
-{
-    if(NULL == g_stAacDecFunc.pAACDecoderSetEosFlag)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_ADEC_NOT_SUPPORT;
-    }
-    return g_stAacDecFunc.pAACDecoderSetEosFlag(hAACDecoder, s32Eosflag);
-}
-
-HI_S32 AACFlushCodec_Adp(HAACDecoder hAACDecoder)
-{
-    if(NULL == g_stAacDecFunc.pAACFlushCodec)
-    {
-        printf("[Func]:%s [Line]:%d [Info]:%s\n",
-            __FUNCTION__, __LINE__, "call aac function fail!\n");
-        return HI_ERR_ADEC_NOT_SUPPORT;
-    }
-    return g_stAacDecFunc.pAACFlushCodec(hAACDecoder);
-}
+#define HI_AUDIO_ASSERT(x) {if (HI_TRUE != (x))return -1;}
 
 static HI_S32 AencCheckAACAttr(const AENC_ATTR_AAC_S *pstAACAttr)
 {
@@ -1075,7 +666,7 @@ HI_S32 OpenAACEncoder(HI_VOID *pEncoderAttr, HI_VOID **ppEncoder)
     *ppEncoder = (HI_VOID *)pstEncoder;
 
     /* set default config to encoder */
-    s32Ret = AACInitDefaultConfig_Adp(&config);
+    s32Ret = AACInitDefaultConfig(&config);
     if (s32Ret)
     {
         free(pstEncoder);
@@ -1113,7 +704,7 @@ HI_S32 OpenAACEncoder(HI_VOID *pEncoderAttr, HI_VOID **ppEncoder)
     }
 
     /* create encoder */
-    s32Ret = AACEncoderOpen_Adp(&pstEncoder->pstAACState, &config);
+    s32Ret = AACEncoderOpen(&pstEncoder->pstAACState, &config);
     if (s32Ret)
     {
         free(pstEncoder);
@@ -1229,7 +820,7 @@ HI_S32 EncodeAACFrm(HI_VOID *pEncoder, const AUDIO_FRAME_S *pstData,
     }
 #endif
 
-    s32Ret = AACEncoderFrame_Adp(pstEncoder->pstAACState, aData, pu8Outbuf, (HI_S32*)pu32OutLen);
+    s32Ret = AACEncoderFrame(pstEncoder->pstAACState, aData, pu8Outbuf, (HI_S32*)pu32OutLen);
     if (HI_SUCCESS != s32Ret)
     {
         printf("[Func]:%s [Line]:%d [Info]:%s\n", __FUNCTION__, __LINE__, "AAC encode failed");
@@ -1255,7 +846,7 @@ HI_S32 CloseAACEncoder(HI_VOID *pEncoder)
     HI_AUDIO_ASSERT(pEncoder != NULL);
     pstEncoder = (AENC_AAC_ENCODER_S *)pEncoder;
 
-    AACEncoderClose_Adp(pstEncoder->pstAACState);
+    AACEncoderClose(pstEncoder->pstAACState);
 
     free(pstEncoder);
 
@@ -1297,7 +888,7 @@ HI_S32 OpenAACDecoder(HI_VOID *pDecoderAttr, HI_VOID **ppDecoder)
 
     /* create decoder */
     //printf("~~~~~~~~ADEC trans type:%d ~~~~~~~~~\n", pstAttr->enTransType);
-    pstDecoder->pstAACState = AACInitDecoder_Adp((AACDECTransportType)pstAttr->enTransType);
+    pstDecoder->pstAACState = AACInitDecoder((AACDECTransportType)pstAttr->enTransType);
     if (!pstDecoder->pstAACState)
     {
         free(pstDecoder);
@@ -1343,7 +934,7 @@ HI_S32 DecodeAACFrm(HI_VOID *pDecoder, HI_U8 **pu8Inbuf,HI_S32 *ps32LeftByte,
 
     pstDecoder = (ADEC_AAC_DECODER_S *)pDecoder;
 
-    s32FrmLen = AACDecodeFindSyncHeader_Adp(pstDecoder->pstAACState, pu8Inbuf, ps32LeftByte);
+    s32FrmLen = AACDecodeFindSyncHeader(pstDecoder->pstAACState, pu8Inbuf, ps32LeftByte);
     if (s32FrmLen < 0)
     {
         printf("[Func]:%s [Line]:%d [Info]:%s\n", __FUNCTION__, __LINE__, "AAC decoder can't find sync header");
@@ -1355,7 +946,7 @@ HI_S32 DecodeAACFrm(HI_VOID *pDecoder, HI_U8 **pu8Inbuf,HI_S32 *ps32LeftByte,
 #endif
 
     /*Notes: pInbuf will updated*/
-    s32Ret = AACDecodeFrame_Adp(pstDecoder->pstAACState, pu8Inbuf, ps32LeftByte, (HI_S16 *)pu16Outbuf);
+    s32Ret = AACDecodeFrame(pstDecoder->pstAACState, pu8Inbuf, ps32LeftByte, (HI_S16 *)pu16Outbuf);
     if (s32Ret)
     {
         printf("aac decoder failed!, s32Ret:0x%x\n", s32Ret);
@@ -1375,7 +966,7 @@ HI_S32 DecodeAACFrm(HI_VOID *pDecoder, HI_U8 **pu8Inbuf,HI_S32 *ps32LeftByte,
 
     }
     #endif
-    AACGetLastFrameInfo_Adp(pstDecoder->pstAACState, &aacFrameInfo);
+    AACGetLastFrameInfo(pstDecoder->pstAACState, &aacFrameInfo);
     aacFrameInfo.nChans = ((aacFrameInfo.nChans != 0) ? aacFrameInfo.nChans : 1);
     /* samples per frame of one sound track*/
     s32Samples = aacFrameInfo.outputSamps/aacFrameInfo.nChans;
@@ -1429,7 +1020,7 @@ HI_S32 GetAACFrmInfo(HI_VOID *pDecoder, HI_VOID *pInfo)
     pstDecoder = (ADEC_AAC_DECODER_S *)pDecoder;
     pstAacFrm = (AAC_FRAME_INFO_S *)pInfo;
 
-    AACGetLastFrameInfo_Adp(pstDecoder->pstAACState, &aacFrameInfo);
+    AACGetLastFrameInfo(pstDecoder->pstAACState, &aacFrameInfo);
 
     pstAacFrm->s32Samplerate = aacFrameInfo.sampRateOut;
     pstAacFrm->s32BitRate = aacFrameInfo.bitRate;
@@ -1448,7 +1039,7 @@ HI_S32 CloseAACDecoder(HI_VOID *pDecoder)
     HI_AUDIO_ASSERT(pDecoder != NULL);
     pstDecoder = (ADEC_AAC_DECODER_S *)pDecoder;
 
-    AACFreeDecoder_Adp(pstDecoder->pstAACState);
+    AACFreeDecoder(pstDecoder->pstAACState);
 
     free(pstDecoder);
 
@@ -1482,10 +1073,10 @@ HI_S32 ResetAACDecoder(HI_VOID *pDecoder)
     HI_AUDIO_ASSERT(pDecoder != NULL);
     pstDecoder = (ADEC_AAC_DECODER_S *)pDecoder;
 
-    AACFreeDecoder_Adp(pstDecoder->pstAACState);
+    AACFreeDecoder(pstDecoder->pstAACState);
 
     /* create decoder */
-    pstDecoder->pstAACState = AACInitDecoder_Adp((AACDECTransportType)pstDecoder->stAACAttr.enTransType);
+    pstDecoder->pstAACState = AACInitDecoder((AACDECTransportType)pstDecoder->stAACAttr.enTransType);
     if (!pstDecoder->pstAACState)
     {
         printf("[Func]:%s [Line]:%d [Info]:%s\n", __FUNCTION__, __LINE__, "AACResetDecoder failed");
@@ -1495,16 +1086,12 @@ HI_S32 ResetAACDecoder(HI_VOID *pDecoder)
     return HI_SUCCESS;
 }
 
+
+
 HI_S32 HI_MPI_AENC_AacInit(HI_VOID)
 {
     HI_S32 s32Handle, s32Ret;
     AENC_ENCODER_S stAac;
-
-    s32Ret = InitAacAencLib();
-    if (s32Ret)
-    {
-        return s32Ret;
-    }
 
     stAac.enType = PT_AAC;
     snprintf(stAac.aszName, sizeof(stAac.aszName), "Aac");
@@ -1517,21 +1104,6 @@ HI_S32 HI_MPI_AENC_AacInit(HI_VOID)
     {
         return s32Ret;
     }
-    g_AacEncHandle = s32Handle;
-
-    return HI_SUCCESS;
-}
-
-HI_S32 HI_MPI_AENC_AacDeInit(HI_VOID)
-{
-    HI_S32 s32Ret;
-    s32Ret = HI_MPI_AENC_UnRegisterEncoder(g_AacEncHandle);
-    if (s32Ret)
-    {
-        return s32Ret;
-    }
-
-    DeInitAacAencLib();
 
     return HI_SUCCESS;
 }
@@ -1539,13 +1111,8 @@ HI_S32 HI_MPI_AENC_AacDeInit(HI_VOID)
 HI_S32 HI_MPI_ADEC_AacInit(HI_VOID)
 {
     HI_S32 s32Handle, s32Ret;
-    ADEC_DECODER_S stAac;
 
-    s32Ret = InitAacAdecLib();
-    if (s32Ret)
-    {
-        return s32Ret;
-    }
+    ADEC_DECODER_S stAac;
 
     stAac.enType = PT_AAC;
     snprintf(stAac.aszName, sizeof(stAac.aszName), "Aac");
@@ -1559,21 +1126,7 @@ HI_S32 HI_MPI_ADEC_AacInit(HI_VOID)
     {
         return s32Ret;
     }
-    g_AacDecHandle = s32Handle;
 
     return HI_SUCCESS;
 }
 
-HI_S32 HI_MPI_ADEC_AacDeInit(HI_VOID)
-{
-    HI_S32 s32Ret;
-    s32Ret = HI_MPI_ADEC_UnRegisterDecoder(g_AacDecHandle);
-    if (s32Ret)
-    {
-        return s32Ret;
-    }
-
-    DeInitAacAdecLib();
-
-    return HI_SUCCESS;
-}

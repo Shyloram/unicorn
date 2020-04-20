@@ -45,7 +45,7 @@ config ZMD_APP_HISI_LITEOS_INIT_SENSOR_IN_UBOOT
 choice
     depends on  ZMD_APP_HISI
     prompt "Chip Type"
-    default ZMD_APP_HI3516E300
+    default ZMD_APP_HI3519A100
     help
       select Chip type.
 
@@ -55,6 +55,8 @@ config ZMD_APP_HI3518E200
 config ZMD_APP_HI3516E300
     bool "hi3516E300"
 
+config ZMD_APP_HI3519A100
+    bool "hi3519A100"
 endchoice
 
 endmenu
