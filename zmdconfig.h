@@ -1,16 +1,16 @@
 /*
  * Automatically generated C config: don't edit
  * Zmodo App Configuration
- * Mon Apr 20 23:52:12 2020
+ * Tue Apr 21 07:13:44 2020
  */
 
 #ifndef ZMD_APP_AUTO_CONFIG
 #define ZMD_APP_AUTO_CONFIG
 
-#define ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION 1
 #define ZMD_APP_HI3519A100 1
 #define ZMD_APP_HARDWARE_VERSION "V0.0.0.01"
 #define ZMD_APP_DEBUG_ITF 1
+#define ZMD_APP_RTSP 1
 #define ZMD_APP_DEBUG_ZSP 1
 #define ZMD_APP_SOFTWARE_VERSION "V0.0.0.01"
 #define ZMD_APP_ENCODE_VIDEO 1

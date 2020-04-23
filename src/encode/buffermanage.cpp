@@ -607,7 +607,7 @@ int BufferManageCtrl::GetFrame(void* para)
 	{
 		if(uinf->ch < 0 || uinf->ch >= ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM)
 		{
-			BUFERR("ch error!\n");
+			BUFERR("ch:%d,ch error!\n",uinf->ch);
 			return -1;
 		}
 		if(m_pBufferManage[uinf->ch] != NULL)

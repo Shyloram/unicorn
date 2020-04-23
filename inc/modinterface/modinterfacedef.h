@@ -30,6 +30,7 @@ typedef enum
 typedef enum
 {
 	MOD_ENC = 0,
+	MOD_RTSP,
 	MOD_RWC,
 	MOD_MSH,
 	MOD_ZSP,

@@ -3,6 +3,7 @@
 #include "meshareinterface.h"
 #include "zspinterface.h"
 #include "rwconfiginterface.h"
+#include "rtspinterface.h"
 
 ModInterface* ModInterface::m_instance = new ModInterface;
 
@@ -17,6 +18,8 @@ Interface* ModInterface::GetModInstance(MFI_MOD mod)
 	{
 		case MOD_ENC:
 			return EncodeInterface::GetInstance();
+		case MOD_RTSP:
+			return RTSPInterface::GetInstance();
 		case MOD_MSH:
 			return MeshareInterface::GetInstance();
 		case MOD_ZSP:

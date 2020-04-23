@@ -254,16 +254,17 @@ ZMDVideo::~ZMDVideo()
 {
 }
 
+//PIC_3840x2160
 int ZMDVideo::VideoInit(void)
 {
 	HI_S32                 i;
 	HI_S32                 s32Ret;
 	SIZE_S                 stSize[3];
-	PIC_SIZE_E             enSize[3]       = {PIC_1080P, PIC_720P, PIC_CIF};
+	PIC_SIZE_E             enSize[3]       = {PIC_3840x2160, PIC_720P, PIC_CIF};
 	HI_S32                 s32ChnNum       = 1;
 	VENC_CHN               VencChn[3]      = {0,1,2};
 	HI_U32                 u32Profile[3]   = {0,0,0};
-	PAYLOAD_TYPE_E         enPayLoad       = PT_H264;
+	PAYLOAD_TYPE_E         enPayLoad       = PT_H265;
 	VENC_GOP_MODE_E        enGopMode;
 	VENC_GOP_ATTR_S        stGopAttr;
 	SAMPLE_RC_E            enRcMode;

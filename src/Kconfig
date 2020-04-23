@@ -10,6 +10,12 @@ menuconfig ZMD_APP_ENCODE
 
 source src/encode/Kconfig
 
+config ZMD_APP_RTSP
+	bool "rtsp server"
+	default n
+	help
+		this module provide rtsp server.
+
 config ZMD_APP_MESHARE
     bool "meshare function module"
 	default y
