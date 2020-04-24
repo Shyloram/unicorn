@@ -35,12 +35,6 @@ config ZMD_APP_ZSP
 	help
 		this module provide network connect to PC tool.
 
-config ZMD_APP_RWCONDIF
-    bool "rwconfig function module"
-	default y
-	help
-		this module provide read or write parameter on flash or filesystem.
-
 config ZMD_APP_THREADPOOL
     bool "threadpool function module"
 	default n

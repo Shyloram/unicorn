@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Zmodo App Configuration
- * Tue Apr 21 07:13:44 2020
+ * Sat Apr 25 00:17:04 2020
  */
 
 #ifndef ZMD_APP_AUTO_CONFIG

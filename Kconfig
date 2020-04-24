@@ -14,10 +14,6 @@ choice
 
 config ZMD_APP_HISI
     bool "Hisilicon"
-
-config ZMD_APP_AMBA
-    bool "Ambarella"
-
 endchoice
 
 choice
@@ -29,18 +25,7 @@ choice
 	  
 config ZMD_APP_HISI_LINUX
     bool "Linux"
-
-config ZMD_APP_HISI_LITEOS
-    bool "Liteos"
-
 endchoice
-
-config ZMD_APP_HISI_LITEOS_INIT_SENSOR_IN_UBOOT
-	depends on ZMD_APP_HISI_LITEOS
-	bool "LITEOS_INIT_SENSOR_IN_UBOOT"
-	default n
-	help
-		CFG_INIT_SENSOR_IN_UBOOT
 
 choice
     depends on  ZMD_APP_HISI
@@ -49,16 +34,9 @@ choice
     help
       select Chip type.
 
-config ZMD_APP_HI3518E200
-    bool "hi3518E200"
-
-config ZMD_APP_HI3516E300
-    bool "hi3516E300"
-
 config ZMD_APP_HI3519A100
     bool "hi3519A100"
 endchoice
-
 endmenu
 
 source "src/Kconfig"
@@ -112,13 +90,6 @@ config ZMD_APP_DEBUG_MSH
 	default y
 	help
 		this module provide meshare debug log.
-		
-config ZMD_APP_DEBUG_RWC
-	depends on ZMD_APP_RWCONDIF
-	bool "rwconfig debug log"
-	default y
-	help
-		this module provide rwconfig debug log.
 endif
 
 menu "Release Note"

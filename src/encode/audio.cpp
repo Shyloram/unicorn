@@ -146,10 +146,6 @@ int ZMDAudio::AudioInit()
 	}
 	AUDLOG("bind adec:%d to ao(%d,%d) ok \n", AdChn, AoDev, AoChn);
 
-#ifdef CFG_SCATTER_FLAG
-	AudioStart();
-#endif
-
 	return s32Ret;
 }
 

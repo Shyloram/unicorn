@@ -24,8 +24,6 @@ Interface* ModInterface::GetModInstance(MFI_MOD mod)
 			return MeshareInterface::GetInstance();
 		case MOD_ZSP:
 			return ZSPInterface::GetInstance();
-		case MOD_RWC:
-			return RwConfigInterface::GetInstance();
 		default:
 			return NULL;
 	}
@@ -121,36 +119,14 @@ int ModInterface::CMD_handle(MFI_MOD mod,MFI_CMD cmd,void* para)
 
 extern "C"
 {
-#ifdef CFG_SCATTER_FLAG
-int mainloop_init(void)
-{
-	ModInterface* modinterface = ModInterface::GetInstance(); 
-	if(modinterface != NULL)
+	int mainloop(void)
 	{
-		modinterface->init();
+		ModInterface* modinterface = ModInterface::GetInstance(); 
+		if(modinterface != NULL)
+		{
+			modinterface->init();
+			modinterface->start();
+		}
+		return 0;
 	}
-	return 0;
-}
-
-int mainloop_start(void)
-{
-	ModInterface* modinterface = ModInterface::GetInstance(); 
-	if(modinterface != NULL)
-	{
-		modinterface->start();
-	}
-	return 0;
-}
-#else
-int mainloop(void)
-{
-	ModInterface* modinterface = ModInterface::GetInstance(); 
-	if(modinterface != NULL)
-	{
-		modinterface->init();
-		modinterface->start();
-	}
-	return 0;
-}
-#endif
 }

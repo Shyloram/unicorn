@@ -110,7 +110,6 @@ int EncodeInterface::release()
 
 int EncodeInterface::start()
 {
-#ifndef CFG_SCATTER_FLAG
 	int ret = 0;
 	Video* pvideo = ZMDVideo::GetInstance();
 	if(pvideo != NULL)
@@ -137,7 +136,6 @@ int EncodeInterface::start()
 #endif
 
 	ITFLOG("EncodeInterface start success!\n");
-#endif
 	return 0;
 }
 

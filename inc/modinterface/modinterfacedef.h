@@ -20,9 +20,6 @@ typedef enum
 	CMD_ZSP_FUNC1,
 	CMD_ZSP_FUNC2,
 	CMD_ZSP_FUNC3,
-
-	//Rwconfig
-	CMD_RWC_HANDLE,
 	
 	CMD_MAX
 }MFI_CMD;
@@ -31,7 +28,6 @@ typedef enum
 {
 	MOD_ENC = 0,
 	MOD_RTSP,
-	MOD_RWC,
 	MOD_MSH,
 	MOD_ZSP,
 	MOD_MAX
