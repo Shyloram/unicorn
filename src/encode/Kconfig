@@ -9,7 +9,7 @@ config ZMD_APP_ENCODE_VIDEO
 
 config ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM
 	depends on ZMD_APP_ENCODE_VIDEO
-	int "total channel number(1~3)"
+	int "total venc channel number(1~3)"
 	range 1 3
 	default 3
 

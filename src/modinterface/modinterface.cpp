@@ -2,7 +2,6 @@
 #include "encodeinterface.h"
 #include "meshareinterface.h"
 #include "zspinterface.h"
-#include "rwconfiginterface.h"
 #include "rtspinterface.h"
 
 ModInterface* ModInterface::m_instance = new ModInterface;

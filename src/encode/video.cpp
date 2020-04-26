@@ -254,17 +254,16 @@ ZMDVideo::~ZMDVideo()
 {
 }
 
-//PIC_3840x2160
 int ZMDVideo::VideoInit(void)
 {
 	HI_S32                 i;
 	HI_S32                 s32Ret;
 	SIZE_S                 stSize[3];
-	PIC_SIZE_E             enSize[3]       = {PIC_3840x2160, PIC_720P, PIC_CIF};
-	HI_S32                 s32ChnNum       = 1;
+	PIC_SIZE_E             enSize[3]       = {PIC_3840x2160, PIC_1080P, PIC_720P};
+	HI_S32                 s32ChnNum       = ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM;
 	VENC_CHN               VencChn[3]      = {0,1,2};
 	HI_U32                 u32Profile[3]   = {0,0,0};
-	PAYLOAD_TYPE_E         enPayLoad       = PT_H265;
+	PAYLOAD_TYPE_E         enPayLoad[3]     = {PT_H264,PT_H264,PT_H264};
 	VENC_GOP_MODE_E        enGopMode;
 	VENC_GOP_ATTR_S        stGopAttr;
 	SAMPLE_RC_E            enRcMode;
@@ -276,11 +275,11 @@ int ZMDVideo::VideoInit(void)
 
 	VPSS_GRP               VpssGrp         = 0;
 	VPSS_CHN               VpssChn[3]      = {0,1,2};
-	HI_BOOL                abChnEnable[4]  = {HI_TRUE,HI_FALSE,HI_FALSE,HI_FALSE};
+	HI_BOOL                abChnEnable[4]  = {HI_TRUE,HI_TRUE,HI_TRUE,HI_FALSE};
 
 	HI_U32 u32SupplementConfig = HI_FALSE;
 
-	for(i=0; i<s32ChnNum; i++)
+	for(i=0; i<3; i++)
 	{
 		s32Ret = SAMPLE_COMM_SYS_GetPicSize(enSize[i], &stSize[i]);
 		if (HI_SUCCESS != s32Ret)
@@ -354,7 +353,7 @@ int ZMDVideo::VideoInit(void)
 
 	for(i=0; i<s32ChnNum; i++)
 	{
-		s32Ret = SAMPLE_COMM_VENC_Start(VencChn[i], enPayLoad, enSize[i], enRcMode,u32Profile[i],&stGopAttr);
+		s32Ret = SAMPLE_COMM_VENC_Start(VencChn[i], enPayLoad[i], enSize[i], enRcMode,u32Profile[i],&stGopAttr);
 		if (HI_SUCCESS != s32Ret)
 		{
 			SAMPLE_PRT("Venc Start failed for %#x!\n", s32Ret);
