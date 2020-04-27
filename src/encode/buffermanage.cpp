@@ -33,10 +33,10 @@ int GetSysTime(SystemDateTime *pSysTime)
 	return 0;
 }
 
+#ifdef ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION
 int AesEncrypt(unsigned char *input, unsigned char *output)                                                                                                                               
 { 
 	int ret = 0; 
-#ifdef ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION
 	mbedtls_aes_context ctx; 
 	unsigned char iv_str[100]={0};
 	mbedtls_aes_init(&ctx);
@@ -47,9 +47,9 @@ int AesEncrypt(unsigned char *input, unsigned char *output)
 		BUFERR("enc error ret %d\n",ret); 
 	}
 	mbedtls_aes_free( &ctx );
-#endif
 	return ret;
 }
+#endif
 		
 BufferManage::BufferManage()
 {
@@ -341,12 +341,14 @@ int BufferManage::PutOneVFrameToBuffer(VENC_STREAM_BUF_INFO_S *Vbuffinfo,VENC_ST
 		}
 	}
 
+#ifdef ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION
 	if(FrameLen>0 && I_FRAME == frametype)
 	{
 		unsigned char encinput[256]={0};
 		memcpy(encinput,m_FrameBufferPool.bufferstart + m_FrameBufferPool.writepos - FrameLen,256);
 		AesEncrypt(encinput,m_FrameBufferPool.bufferstart + m_FrameBufferPool.writepos - FrameLen);
 	}
+#endif
 
 	m_FrameBufferPool.writepos = (m_FrameBufferPool.writepos + 7)&(~7);  // 采用数据位8字节对齐
 

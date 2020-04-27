@@ -1,4 +1,28 @@
 #include "rtspserver.h"
+#include "aes.h"
+#include "zmdconfig.h"
+#include "modinterfacedef.h"
+
+#ifdef ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION
+int AesDecrypt(unsigned char *input,unsigned char *output)
+{
+	int ret = 0;
+	mbedtls_aes_context ctx;
+	unsigned char iv_str[100]={0};
+	unsigned char key_str[100]={0};
+	ModInterface::GetInstance()->CMD_handle(MOD_ENC,CMD_ENC_GETAESKEY,(void*)key_str);
+
+	mbedtls_aes_init(&ctx);
+	mbedtls_aes_setkey_dec(&ctx, key_str, 256);
+	ret = mbedtls_aes_crypt_cbc(&ctx, MBEDTLS_AES_DECRYPT, 256, iv_str, input, output);
+	if(ret != 0)
+	{
+		printf("dec error ret %d\n",ret);
+	}
+	mbedtls_aes_free(&ctx);
+	return ret;
+}
+#endif
 
 int RTSPSERVER::createTcpSocket()
 {
@@ -105,8 +129,6 @@ int RTSPSERVER::getFrameFromBuffer(char* frame,int* frametype,ParaEncUserInfo *u
 	int audioheadlen = sizeof(AudioFrameHeader);
 	int getRet;
 
-	FILE* fp;
-
 	while(1)
 	{
 		getRet = ModInterface::GetInstance()->CMD_handle(MOD_ENC,CMD_ENC_GETFRAME,(void*)uinf);
@@ -114,7 +136,7 @@ int RTSPSERVER::getFrameFromBuffer(char* frame,int* frametype,ParaEncUserInfo *u
 		{
 			*frametype = uinf->frameinfo->Flag;
 			printf("info.Flag=%d,info.FrmLength=%ld\n",uinf->frameinfo->Flag,uinf->frameinfo->FrmLength);
-			if( uinf->frameinfo->Flag == 3 )
+			if( *frametype == 3 )
 			{
 				memcpy(frame, *(uinf->buffer) + audioheadlen + 4, uinf->frameinfo->FrmLength - audioheadlen - 4);
 				frameSize = uinf->frameinfo->FrmLength - audioheadlen - 4;
@@ -123,10 +145,14 @@ int RTSPSERVER::getFrameFromBuffer(char* frame,int* frametype,ParaEncUserInfo *u
 			{
 				memcpy(frame, *(uinf->buffer) + videoheadlen, uinf->frameinfo->FrmLength - videoheadlen);
 				frameSize = uinf->frameinfo->FrmLength - videoheadlen;
-
-				//fp = fopen("/tmp/111.h264","a+b");
-				//fwrite(uinf->buffer + videoheadlen,1,frameSize,fp);
-				//fclose(fp);
+#ifdef ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION
+				if(*frametype == 1)
+				{
+					unsigned char decinput[256] = {0};
+					memcpy(decinput,frame,256);
+					AesDecrypt(decinput,(unsigned char*)frame);
+				}
+#endif
 			}
 			break;
 		}
@@ -362,7 +388,7 @@ void *RtspPlayProcess(void *arg)
 	unsigned char *video_data = NULL;
 	ParaEncUserInfo uinf;
 
-	uinf.ch = 0;
+	uinf.ch = 1;
 	uinf.userid = 0;
 	uinf.buffer = &video_data;
 	uinf.frameinfo = &frame_info;
@@ -412,8 +438,8 @@ void *RtspPlayProcess(void *arg)
 					nalusize = frameSize - startCode - preoffset;
 				}
 
-				//rs->rtpSendH264Frame(rtpVPacket, (uint8_t*)frame + startCode + preoffset, nalusize);
-				rs->rtpSendH265Frame(rtpVPacket, (uint8_t*)frame + startCode + preoffset, nalusize);
+				rs->rtpSendH264Frame(rtpVPacket, (uint8_t*)frame + startCode + preoffset, nalusize);
+				//rs->rtpSendH265Frame(rtpVPacket, (uint8_t*)frame + startCode + preoffset, nalusize);
 				preoffset = offset;
 			}while(nextStartCode);
 			offset = 0;
@@ -468,7 +494,7 @@ int RTSPSERVER::handleCmd_DESCRIBE(char* result, int cseq, char* url)
                  "t=0 0\r\n"
                  "a=control:*\r\n"
                  "m=video 0 RTP/AVP 96\r\n"
-                 "a=rtpmap:96 H265/90000\r\n"
+                 "a=rtpmap:96 H264/90000\r\n"
                  "a=control:track0\r\n",
 #if 0
                  "m=audio 0 RTP/AVP 8\r\n"
