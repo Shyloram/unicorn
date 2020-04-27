@@ -90,7 +90,11 @@ int BufferManage::CreateBufferPool(int resolution, unsigned long bufsize)
 {
 	if(bufsize == 0)
 	{     
-		if(RES_1080P == resolution)
+		if(RES_4K == resolution)
+		{
+			bufsize = BUFFER_SIZE_4K;
+		}
+		else if(RES_1080P == resolution)
 		{
 			bufsize = BUFFER_SIZE_1080P;
 		}
@@ -562,7 +566,7 @@ BufferManageCtrl::~BufferManageCtrl()
 int BufferManageCtrl::BufferManageInit(void)
 {
 	int i;
-	Resolution_E resize[3] = {RES_1080P, RES_VGA, RES_QVGA};
+	Resolution_E resize[3] = {RES_4K, RES_1080P, RES_720P};
 
 	for(i = 0;i < ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM;i++)
 	{
