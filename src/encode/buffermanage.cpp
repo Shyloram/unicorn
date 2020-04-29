@@ -54,6 +54,7 @@ int AesEncrypt(unsigned char *input, unsigned char *output)
 BufferManage::BufferManage()
 {
 	memset(&m_FrameBufferPool, 0, sizeof(FrameBufferPool));
+	m_VencType = PT_BUTT;
 	InitBufferLock();
 }
 
@@ -84,6 +85,11 @@ int BufferManage::ResetUserInfo(int userid)
 	m_FrameBufferUser[userid].throwframcount = 0; 
 	ReleaseBufferLock(); 
 	return 0; 
+}
+
+PAYLOAD_TYPE_E BufferManage::GetVencType()
+{
+	return m_VencType;
 }
 
 int BufferManage::CreateBufferPool(int resolution, unsigned long bufsize)
@@ -181,7 +187,7 @@ int BufferManage::GetVideoFrameInfo(VENC_STREAM_S *Vstream, int *frametype, int 
 	return -1;
 }
 
-int BufferManage::PutOneVFrameToBuffer(VENC_STREAM_BUF_INFO_S *Vbuffinfo,VENC_STREAM_S *Vstream)
+int BufferManage::PutOneVFrameToBuffer(VENC_STREAM_BUF_INFO_S *Vbuffinfo, VENC_STREAM_S *Vstream, PAYLOAD_TYPE_E venctype)
 {
 	VENC_STREAM_S *stream = Vstream;
 	VENC_STREAM_BUF_INFO_S *buffinfo = Vbuffinfo;
@@ -196,6 +202,11 @@ int BufferManage::PutOneVFrameToBuffer(VENC_STREAM_BUF_INFO_S *Vbuffinfo,VENC_ST
 	unsigned int TimeInfo = 0;	
 	SystemDateTime systime;
 	AddBufferLock();
+
+	if(m_VencType == PT_BUTT)
+	{
+		m_VencType = venctype;
+	}
 
 	//解析此帧的信息
 	if(GetVideoFrameInfo(Vstream, &frametype, &FrameLen, &pts) < 0)
@@ -656,4 +667,23 @@ int BufferManageCtrl::GetAesKey(void* para)
 	}
 	memcpy(para,(unsigned char*)AES_KEY,36);
 	return 0;
+}
+
+int BufferManageCtrl::GetVencType(void* para)
+{
+	ParaEncUserInfo* uinf = (ParaEncUserInfo*)para;
+	if(uinf != NULL)
+	{
+		if(uinf->ch < 0 || uinf->ch >= ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM)
+		{
+			BUFERR("ch error!\n");
+			return -1;
+		}
+		if(m_pBufferManage[uinf->ch] != NULL)
+		{
+			uinf->venctype = m_pBufferManage[uinf->ch]->GetVencType();
+			return 0;
+		}
+	}
+	return -1;
 }

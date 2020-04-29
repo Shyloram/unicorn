@@ -17,75 +17,23 @@ int AesDecrypt(unsigned char *input,unsigned char *output)
 	ret = mbedtls_aes_crypt_cbc(&ctx, MBEDTLS_AES_DECRYPT, 256, iv_str, input, output);
 	if(ret != 0)
 	{
-		printf("dec error ret %d\n",ret);
+		RTSPERR("dec error ret %d\n",ret);
 	}
 	mbedtls_aes_free(&ctx);
 	return ret;
 }
 #endif
 
-int RTSPSERVER::createTcpSocket()
+RTSPCLIENT::RTSPCLIENT()
 {
-    int sockfd;
-    int on = 1;
-
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if(sockfd < 0)
-        return -1;
-
-    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
-
-    return sockfd;
+	m_free = 1;
 }
 
-int RTSPSERVER::createUdpSocket()
+RTSPCLIENT::~RTSPCLIENT()
 {
-    int sockfd;
-    int on = 1;
-
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if(sockfd < 0)
-        return -1;
-
-    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
-
-    return sockfd;
 }
 
-int RTSPSERVER::bindSocketAddr(int sockfd, const char* ip, int port)
-{
-    struct sockaddr_in addr;
-
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr(ip);
-
-    if(bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr)) < 0)
-        return -1;
-
-    return 0;
-}
-
-int RTSPSERVER::acceptClient(int sockfd, char* ip, int* port)
-{
-    int clientfd;
-    socklen_t len = 0;
-    struct sockaddr_in addr;
-
-    memset(&addr, 0, sizeof(addr));
-    len = sizeof(addr);
-
-    clientfd = accept(sockfd, (struct sockaddr *)&addr, &len);
-    if(clientfd < 0)
-        return -1;
-    
-    strcpy(ip, inet_ntoa(addr.sin_addr));
-    *port = ntohs(addr.sin_port);
-
-    return clientfd;
-}
-
-inline int RTSPSERVER::startCode3(char* buf)
+inline int RTSPCLIENT::startCode3(char* buf)
 {
     if(buf[0] == 0 && buf[1] == 0 && buf[2] == 1)
         return 1;
@@ -93,7 +41,7 @@ inline int RTSPSERVER::startCode3(char* buf)
         return 0;
 }
 
-inline int RTSPSERVER::startCode4(char* buf)
+inline int RTSPCLIENT::startCode4(char* buf)
 {
     if(buf[0] == 0 && buf[1] == 0 && buf[2] == 0 && buf[3] == 1)
         return 1;
@@ -101,7 +49,7 @@ inline int RTSPSERVER::startCode4(char* buf)
         return 0;
 }
 
-char* RTSPSERVER::findNextStartCode(char* buf, int len)
+char* RTSPCLIENT::findNextStartCode(char* buf, int len)
 {
     int i;
 
@@ -122,7 +70,7 @@ char* RTSPSERVER::findNextStartCode(char* buf, int len)
     return NULL;
 }
 
-int RTSPSERVER::getFrameFromBuffer(char* frame,int* frametype,ParaEncUserInfo *uinf)
+int RTSPCLIENT::getFrameFromBuffer(char* frame,int* frametype,ParaEncUserInfo *uinf)
 {
 	int frameSize;
 	int videoheadlen = sizeof(VideoFrameHeader);
@@ -135,7 +83,7 @@ int RTSPSERVER::getFrameFromBuffer(char* frame,int* frametype,ParaEncUserInfo *u
 		if( getRet!= -1 && *(uinf->buffer) && uinf->frameinfo->FrmLength > 0 )
 		{
 			*frametype = uinf->frameinfo->Flag;
-			printf("info.Flag=%d,info.FrmLength=%ld\n",uinf->frameinfo->Flag,uinf->frameinfo->FrmLength);
+			//RTSPLOG("info.Flag=%d,info.FrmLength=%ld\n",uinf->frameinfo->Flag,uinf->frameinfo->FrmLength);
 			if( *frametype == 3 )
 			{
 				memcpy(frame, *(uinf->buffer) + audioheadlen + 4, uinf->frameinfo->FrmLength - audioheadlen - 4);
@@ -160,7 +108,7 @@ int RTSPSERVER::getFrameFromBuffer(char* frame,int* frametype,ParaEncUserInfo *u
 	return frameSize;
 }
 
-int RTSPSERVER::rtpSendg711uFrame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize)
+int RTSPCLIENT::rtpSendg711uFrame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize)
 {
     int sendBytes = 0;
     int ret;
@@ -179,7 +127,7 @@ int RTSPSERVER::rtpSendg711uFrame(struct RtpPacket* rtpPacket, uint8_t* frame, u
     return sendBytes;
 }
 
-int RTSPSERVER::rtpSendH264Frame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize)
+int RTSPCLIENT::rtpSendH264Frame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize)
 {
     uint8_t naluType; // nalu第一个字节
     int sendBytes = 0;
@@ -273,7 +221,7 @@ int RTSPSERVER::rtpSendH264Frame(struct RtpPacket* rtpPacket, uint8_t* frame, ui
     return sendBytes;
 }
 
-int RTSPSERVER::rtpSendH265Frame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize)
+int RTSPCLIENT::rtpSendH265Frame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize)
 {
     uint8_t naluType[2]; // nalu前两个字节
     int sendBytes = 0;
@@ -371,40 +319,35 @@ int RTSPSERVER::rtpSendH265Frame(struct RtpPacket* rtpPacket, uint8_t* frame, ui
     return sendBytes;
 }
 
-void *RtspPlayProcess(void *arg)
+void RTSPCLIENT::DoPlay()
 {
-	prctl(PR_SET_NAME, __FUNCTION__);
-	pthread_detach(pthread_self());
 	/* 开始播放，发送RTP包 */
 	int frameSize, nalusize, startCode,frametype;
 	char* frame = (char*)malloc(500000);
 	struct RtpPacket* rtpVPacket = (struct RtpPacket*)malloc(500000);
 	struct RtpPacket* rtpAPacket = (struct RtpPacket*)malloc(500);
-	RTSPSERVER *rs = (RTSPSERVER *)arg;
 	int offset = 0;
 	int preoffset = 0;
 	char *nextStartCode;
 	FrameInfo frame_info;
 	unsigned char *video_data = NULL;
-	ParaEncUserInfo uinf;
 
-	uinf.ch = 1;
-	uinf.userid = 0;
-	uinf.buffer = &video_data;
-	uinf.frameinfo = &frame_info;
+	m_uinf.userid = 0;
+	m_uinf.buffer = &video_data;
+	m_uinf.frameinfo = &frame_info;
 
 	rtpHeaderInit(rtpVPacket, 0, 0, 0, RTP_VESION, RTP_PAYLOAD_TYPE_H264, 0, 0, 0, 0x88923423);
 	rtpHeaderInit(rtpAPacket, 0, 0, 0, RTP_VESION, RTP_PAYLOAD_TYPE_PCMA, 0, 0, 0, 0x88923423);
 
-	printf("start play\n");
-	printf("client ip:%s\n", rs->m_ClientIp);
-	printf("client audio port:%d\n", rs->m_ClientARtpPort);
-	printf("client video port:%d\n", rs->m_ClientVRtpPort);
+	RTSPLOG("start play\n");
+	RTSPLOG("client ip:%s\n", m_ClientIp);
+	RTSPLOG("client audio port:%d\n", m_ClientARtpPort);
+	RTSPLOG("client video port:%d\n", m_ClientVRtpPort);
 
-	ModInterface::GetInstance()->CMD_handle(MOD_ENC,CMD_ENC_RESETUSER,(void*)&uinf);
-	while (rs->g_OnPlay)
+	ModInterface::GetInstance()->CMD_handle(MOD_ENC,CMD_ENC_RESETUSER,(void*)&(m_uinf));
+	while (g_OnPlay)
 	{
-		frameSize = rs->getFrameFromBuffer(frame,&frametype,&uinf);
+		frameSize = getFrameFromBuffer(frame,&frametype,&(m_uinf));
 		if(frameSize < 0)
 		{
 			break;
@@ -412,14 +355,14 @@ void *RtspPlayProcess(void *arg)
 
 		if(frametype == 3)
 		{
-			rs->rtpSendg711uFrame(rtpAPacket, (uint8_t*)frame, frameSize);
+			rtpSendg711uFrame(rtpAPacket, (uint8_t*)frame, frameSize);
 			rtpAPacket->rtpHeader.timestamp += 160;
 		}
 		else
 		{
 			do
 			{
-				if(rs->startCode3(frame + preoffset))
+				if(startCode3(frame + preoffset))
 				{
 					startCode = 3;
 				}
@@ -427,7 +370,7 @@ void *RtspPlayProcess(void *arg)
 				{
 					startCode = 4;
 				}
-				nextStartCode = rs->findNextStartCode(frame + preoffset + 3,frameSize - preoffset - 3);
+				nextStartCode = findNextStartCode(frame + preoffset + 3,frameSize - preoffset - 3);
 				if(nextStartCode)
 				{
 					offset = nextStartCode - frame;
@@ -438,8 +381,14 @@ void *RtspPlayProcess(void *arg)
 					nalusize = frameSize - startCode - preoffset;
 				}
 
-				rs->rtpSendH264Frame(rtpVPacket, (uint8_t*)frame + startCode + preoffset, nalusize);
-				//rs->rtpSendH265Frame(rtpVPacket, (uint8_t*)frame + startCode + preoffset, nalusize);
+				if(m_venctype == PT_H264)
+				{
+					rtpSendH264Frame(rtpVPacket, (uint8_t*)frame + startCode + preoffset, nalusize);
+				}
+				else if(m_venctype == PT_H265)
+				{
+					rtpSendH265Frame(rtpVPacket, (uint8_t*)frame + startCode + preoffset, nalusize);
+				}
 				preoffset = offset;
 			}while(nextStartCode);
 			offset = 0;
@@ -451,10 +400,18 @@ void *RtspPlayProcess(void *arg)
 	free(frame);
 	free(rtpAPacket);
 	free(rtpVPacket);
-	pthread_exit(0);
 }
 
-char* RTSPSERVER::getLineFromBuf(char* buf, char* line)
+void *RtspPlayProcess(void *arg)
+{
+	prctl(PR_SET_NAME, __FUNCTION__);
+	pthread_detach(pthread_self());
+	RTSPCLIENT *rc = (RTSPCLIENT *)arg;
+	rc->DoPlay();
+	return 0;
+}
+
+char* RTSPCLIENT::getLineFromBuf(char* buf, char* line)
 {
     while(*buf != '\n')
     {
@@ -471,7 +428,7 @@ char* RTSPSERVER::getLineFromBuf(char* buf, char* line)
     return buf; 
 }
 
-int RTSPSERVER::handleCmd_OPTIONS(char* result, int cseq)
+int RTSPCLIENT::handleCmd_OPTIONS(char* result, int cseq)
 {
     sprintf(result, "RTSP/1.0 200 OK\r\n"
                     "CSeq: %d\r\n"
@@ -482,26 +439,30 @@ int RTSPSERVER::handleCmd_OPTIONS(char* result, int cseq)
     return 0;
 }
 
-int RTSPSERVER::handleCmd_DESCRIBE(char* result, int cseq, char* url)
+int RTSPCLIENT::handleCmd_DESCRIBE(char* result, int cseq, char* url)
 {
     char sdp[500];
     char localIp[100];
+	int ch = -1;
 
-    sscanf(url, "rtsp://%[^:]:", localIp);
+    sscanf(url, "rtsp://%[^:]:%*[^/]/live%d", localIp, &ch);
+	m_uinf.ch = ch;
+	ModInterface::GetInstance()->CMD_handle(MOD_ENC,CMD_ENC_GETVENCTYPE,(void*)&m_uinf);
+	m_venctype = m_uinf.venctype;
 
     sprintf(sdp, "v=0\r\n"
                  "o=- 9%ld 1 IN IP4 %s\r\n"
                  "t=0 0\r\n"
                  "a=control:*\r\n"
                  "m=video 0 RTP/AVP 96\r\n"
-                 "a=rtpmap:96 H264/90000\r\n"
+                 "a=rtpmap:96 %s/90000\r\n"
                  "a=control:track0\r\n",
-#if 0
+#ifdef ZMD_APP_ENCODE_AUDIO
                  "m=audio 0 RTP/AVP 8\r\n"
                  "a=rtpmap:8 PCMA/8000/1\r\n"
                  "a=control:track1\r\n",
 #endif
-                 time(NULL), localIp);
+                 time(NULL), localIp, (m_venctype==PT_H264)?"H264":"H265");
     
     sprintf(result, "RTSP/1.0 200 OK\r\nCSeq: %d\r\n"
                     "Content-Base: %s\r\n"
@@ -516,7 +477,7 @@ int RTSPSERVER::handleCmd_DESCRIBE(char* result, int cseq, char* url)
     return 0;
 }
 
-int RTSPSERVER::handleCmd_SETUP(char* result, int cseq, char* url)
+int RTSPCLIENT::handleCmd_SETUP(char* result, int cseq, char* url)
 {
 	if(strstr(url,"track0") != NULL)
 	{
@@ -548,7 +509,7 @@ int RTSPSERVER::handleCmd_SETUP(char* result, int cseq, char* url)
 	return 0;
 }
 
-int RTSPSERVER::handleCmd_PLAY(char* result, int cseq)
+int RTSPCLIENT::handleCmd_PLAY(char* result, int cseq)
 {
 	pthread_t pid;
     sprintf(result, "RTSP/1.0 200 OK\r\n"
@@ -560,13 +521,13 @@ int RTSPSERVER::handleCmd_PLAY(char* result, int cseq)
 	g_OnPlay = 1;
 	if(pthread_create(&pid,NULL,RtspPlayProcess,(void *)this) < 0)
 	{
-		printf("pthread create failed!\n");
+		RTSPERR("pthread create failed!\n");
 		return -1;
 	}
     return 0;
 }
 
-int RTSPSERVER::handleCmd_TEARDOWN(char* result, int cseq)
+int RTSPCLIENT::handleCmd_TEARDOWN(char* result, int cseq)
 {
     sprintf(result, "RTSP/1.0 200 OK\r\n"
                     "CSeq: %d\r\n\r\n",
@@ -576,7 +537,32 @@ int RTSPSERVER::handleCmd_TEARDOWN(char* result, int cseq)
     return 0;
 }
 
-void RTSPSERVER::doClient()
+int RTSPCLIENT::GetFreeFlag()
+{
+	return m_free;
+}
+
+void RTSPCLIENT::SetFreeFlag()
+{
+	m_free = 1;
+}
+
+void RTSPCLIENT::ClearFreeFlag()
+{
+	m_free = 0;
+}
+
+int RTSPCLIENT::InitClientPara(int srtpsockfd,int srtcpsockfd, int csockfd,char *ip,int port)
+{
+	m_ServerRtpSockfd = srtpsockfd;
+	m_ServerRtcpSockfd = srtcpsockfd;
+	m_ClientSockfd = csockfd;
+	m_ClientPort = port;
+	strncpy(m_ClientIp,ip,40);
+	return 0;
+}
+
+void RTSPCLIENT::DoClient()
 {
     char method[40];
     char url[100];
@@ -598,14 +584,14 @@ void RTSPSERVER::doClient()
 		}
 
         rBuf[recvLen] = '\0';
-        printf("---------------C->S--------------\n");
-        printf("%s", rBuf);
+        RTSPLOG("---------------C->S--------------\n");
+        RTSPLOG("/n%s", rBuf);
 
         /* 解析方法 */
         bufPtr = getLineFromBuf(rBuf, line);
         if(sscanf(line, "%s %s %s\r\n", method, url, version) != 3)
         {
-            printf("parse err\n");
+            RTSPERR("parse err\n");
             break;
         }
 
@@ -613,7 +599,7 @@ void RTSPSERVER::doClient()
         bufPtr = getLineFromBuf(bufPtr, line);
         if(sscanf(line, "CSeq: %d\r\n", &cseq) != 1)
         {
-            printf("parse err\n");
+            RTSPERR("parse err\n");
             break;
         }
 
@@ -652,7 +638,7 @@ void RTSPSERVER::doClient()
         {
             if(handleCmd_OPTIONS(sBuf, cseq))
             {
-                printf("failed to handle options\n");
+                RTSPERR("failed to handle options\n");
                 break;
             }
         }
@@ -660,7 +646,7 @@ void RTSPSERVER::doClient()
         {
             if(handleCmd_DESCRIBE(sBuf, cseq, url))
             {
-                printf("failed to handle describe\n");
+                RTSPERR("failed to handle describe\n");
                 break;
             }
         }
@@ -668,7 +654,7 @@ void RTSPSERVER::doClient()
         {
             if(handleCmd_SETUP(sBuf, cseq, url))
             {
-                printf("failed to handle setup\n");
+                RTSPERR("failed to handle setup\n");
                 break;
             }
         }
@@ -676,7 +662,7 @@ void RTSPSERVER::doClient()
         {
             if(handleCmd_PLAY(sBuf, cseq))
             {
-                printf("failed to handle play\n");
+                RTSPERR("failed to handle play\n");
                 break;
             }
         }
@@ -684,7 +670,7 @@ void RTSPSERVER::doClient()
 		{
             if(handleCmd_TEARDOWN(sBuf, cseq))
             {
-                printf("failed to handle TEARDOWN\n");
+                RTSPERR("failed to handle TEARDOWN\n");
                 break;
             }
 		}
@@ -693,66 +679,176 @@ void RTSPSERVER::doClient()
             break;
         }
 
-        printf("---------------S->C--------------\n");
-        printf("%s", sBuf);
+        RTSPLOG("---------------S->C--------------\n");
+        RTSPLOG("\n%s", sBuf);
         send(m_ClientSockfd, sBuf, strlen(sBuf), 0);
     }
-    printf("finish\n");
+    RTSPLOG("finish\n");
+	RTSPLOG("client exit;client ip:%s,client port:%d\n", m_ClientIp, m_ClientPort);
     close(m_ClientSockfd);
     free(rBuf);
     free(sBuf);
+	SetFreeFlag();
+}
+
+/*******************************************
+ *     CLASS     RTES SERVER
+ ******************************************/
+RTSPSERVER::RTSPSERVER()
+{
+}
+
+RTSPSERVER::~RTSPSERVER()
+{
+}
+
+int RTSPSERVER::CreateSocket(enum  SOCKETTYPE stype)
+{
+	int sockfd;
+	int on = 1;
+
+	if(stype == SOCKET_TCP) 
+	{
+		sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	}
+	else if(stype == SOCKET_UDP)
+	{
+		sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	}
+	if(sockfd < 0)
+		return -1;
+
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
+
+	return sockfd;
+}
+
+int RTSPSERVER::BindSocketAddr(int sockfd, const char* ip, int port)
+{
+    struct sockaddr_in addr;
+
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = inet_addr(ip);
+
+    if(bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr)) < 0)
+        return -1;
+
+    return 0;
+}
+
+int RTSPSERVER::AcceptClient(int sockfd, char* ip, int* port)
+{
+    int clientfd;
+    socklen_t len = 0;
+    struct sockaddr_in addr;
+
+    memset(&addr, 0, sizeof(addr));
+    len = sizeof(addr);
+
+    clientfd = accept(sockfd, (struct sockaddr *)&addr, &len);
+    if(clientfd < 0)
+        return -1;
+    
+    strcpy(ip, inet_ntoa(addr.sin_addr));
+    *port = ntohs(addr.sin_port);
+
+    return clientfd;
+}
+
+RTSPCLIENT * RTSPSERVER::GetFreeClient()
+{
+	int i = 0;
+	for(i = 0;i < 10;i++)
+	{
+		if(m_rtsp_client[i].GetFreeFlag())
+		{
+			m_rtsp_client[i].ClearFreeFlag();
+			return &m_rtsp_client[i];
+		}
+	}
+	return NULL;
+}
+
+void *RtspClientProcess(void *arg)
+{
+	prctl(PR_SET_NAME, __FUNCTION__);
+	pthread_detach(pthread_self());
+	RTSPCLIENT *rc = (RTSPCLIENT *)arg;
+	rc->DoClient();
+    return 0;
 }
 
 int RTSPSERVER::StartRtspServer()
 {
-    m_ServerTcpSockfd = createTcpSocket();
+	RTSPCLIENT *client = NULL;
+	int clientsockfd = 0;
+	char clientip[40] = {0};
+	int clientport;
+	pthread_t pid;
+
+    m_ServerTcpSockfd = CreateSocket(SOCKET_TCP);
     if(m_ServerTcpSockfd < 0)
     {
-        printf("failed to create tcp socket\n");
+        RTSPERR("failed to create tcp socket\n");
         return -1;
     }
 
-    if(bindSocketAddr(m_ServerTcpSockfd, "0.0.0.0", SERVER_PORT) < 0)
+    if(BindSocketAddr(m_ServerTcpSockfd, "0.0.0.0", SERVER_PORT) < 0)
     {
-        printf("failed to bind addr\n");
+        RTSPERR("failed to bind addr\n");
         return -1;
     }
 
     if(listen(m_ServerTcpSockfd, 10) < 0)
     {
-        printf("failed to listen\n");
+        RTSPERR("failed to listen\n");
         return -1;
     }
 
-    m_ServerRtpSockfd = createUdpSocket();
-    m_ServerRtcpSockfd = createUdpSocket();
+    m_ServerRtpSockfd = CreateSocket(SOCKET_UDP);
+    m_ServerRtcpSockfd = CreateSocket(SOCKET_UDP);
     if(m_ServerRtpSockfd < 0 || m_ServerRtcpSockfd < 0)
     {
-        printf("failed to create udp socket\n");
+        RTSPERR("failed to create udp socket\n");
         return -1;
     }
 
-    if(bindSocketAddr(m_ServerRtpSockfd, "0.0.0.0", SERVER_RTP_PORT) < 0 ||
-        bindSocketAddr(m_ServerRtcpSockfd, "0.0.0.0", SERVER_RTCP_PORT) < 0)
+    if(BindSocketAddr(m_ServerRtpSockfd, "0.0.0.0", SERVER_RTP_PORT) < 0 ||
+        BindSocketAddr(m_ServerRtcpSockfd, "0.0.0.0", SERVER_RTCP_PORT) < 0)
     {
-        printf("failed to bind addr\n");
+        RTSPERR("failed to bind addr\n");
         return -1;
     }
     
-    printf("rtsp://127.0.0.1:%d\n", SERVER_PORT);
+    RTSPLOG("rtsp://127.0.0.1:%d\n", SERVER_PORT);
 
     while(1)
     {
-        m_ClientSockfd = acceptClient(m_ServerTcpSockfd, m_ClientIp, &m_ClientPort);
-        if(m_ClientSockfd < 0)
+        clientsockfd = AcceptClient(m_ServerTcpSockfd, clientip, &clientport);
+        if(clientsockfd < 0)
         {
-            printf("failed to accept client\n");
+            RTSPERR("failed to accept client\n");
             return -1;
         }
 
-        printf("accept client;client ip:%s,client port:%d\n", m_ClientIp, m_ClientPort);
+        RTSPLOG("accept client;client ip:%s,client port:%d\n", clientip, clientport);
 
-        doClient();
+		client = GetFreeClient();
+		if(client)
+		{
+			client->InitClientPara(m_ServerRtpSockfd,m_ServerRtcpSockfd,clientsockfd,clientip,clientport);
+			if(pthread_create(&pid,NULL,RtspClientProcess,(void*)client) < 0)
+			{
+				RTSPERR("pthread create failed!\n");
+				return -1;
+			}
+		}
+		else
+		{
+			RTSPERR("the client is full!\n");
+			close(clientsockfd);
+		}
     }
 	return 0;
 }
@@ -771,7 +867,7 @@ int InitRtspServer()
 	pthread_t pid;
 	if(pthread_create(&pid,NULL,RtspServerProcess,NULL) < 0)
 	{
-		printf("pthread create failed!\n");
+		RTSPERR("pthread create failed!\n");
 		return -1;
 	}
 	return 0;

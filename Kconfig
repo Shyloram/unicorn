@@ -90,6 +90,13 @@ config ZMD_APP_DEBUG_MSH
 	default y
 	help
 		this module provide meshare debug log.
+
+config ZMD_APP_DEBUG_RTSP
+	depends on ZMD_APP_RTSP
+	bool "rtsp server debug log"
+	default y
+	help
+		this module provide rtsp server debug log.
 endif
 
 menu "Release Note"

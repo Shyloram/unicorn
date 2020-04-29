@@ -35,7 +35,7 @@ int RTSPInterface::release()
 int RTSPInterface::start()
 {
 	InitRtspServer();
-	printf("RTSPInterface start success!\n");
+	RTSPLOG("RTSPInterface start success!\n");
 	return 0;
 }
 

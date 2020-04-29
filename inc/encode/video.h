@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include "zmdconfig.h"
+#include "sample_comm.h"
 
 #ifdef ZMD_APP_DEBUG_VID
 #define VIDLOG(format, ...)     fprintf(stdout, "[VIDLOG][Func:%s][Line:%d], " format, __FUNCTION__,  __LINE__, ##__VA_ARGS__)
@@ -23,9 +24,12 @@ class Video
 class ZMDVideo : public Video
 {
 	private:
-		static ZMDVideo* m_instance;
-		int			  m_ThreadStat;/*线程状态1:running 0:stop*/
-		pthread_t	  m_pid;
+		static ZMDVideo*       m_instance;
+		int			           m_ThreadStat;/*线程状态1:running 0:stop*/
+		pthread_t	           m_pid;
+		HI_BOOL                m_abChnEnable[4] = {HI_TRUE,HI_TRUE,HI_TRUE,HI_FALSE};
+		PAYLOAD_TYPE_E         m_enPayLoad[3] = {PT_H265,PT_H265,PT_H264};
+		SAMPLE_VI_CONFIG_S     m_stViConfig;
 
 	private:
 		ZMDVideo();

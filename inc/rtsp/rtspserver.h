@@ -18,32 +18,29 @@
 #include <assert.h>
 #include "buffermanage.h"
 #include "modinterface.h"
-
 #include "rtp.h"
+
+#ifdef ZMD_APP_DEBUG_RTSP
+#define RTSPLOG(format, ...)     fprintf(stdout, "[RTSPLOG][Func:%s][Line:%d], " format, __FUNCTION__,  __LINE__, ##__VA_ARGS__)
+#else
+#define RTSPLOG(format, ...)
+#endif
+#define RTSPERR(format, ...)     fprintf(stdout, "\033[31m[RTSPERR][Func:%s][Line:%d], " format"\033[0m", __FUNCTION__,  __LINE__, ##__VA_ARGS__)
 
 #define SERVER_PORT      8554
 #define SERVER_RTP_PORT  55532
 #define SERVER_RTCP_PORT 55533
 #define BUF_MAX_SIZE     (1024*1024)
 
-class RTSPSERVER
+enum  SOCKETTYPE
+{
+	SOCKET_TCP = 0,
+	SOCKET_UDP
+};
+
+class RTSPCLIENT
 {
 	private:
-		int createTcpSocket();
-		int createUdpSocket();
-		int bindSocketAddr(int sockfd, const char* ip, int port);
-		int acceptClient(int sockfd, char* ip, int* port);
-		char* getLineFromBuf(char* buf, char* line);
-		int handleCmd_OPTIONS(char* result, int cseq);
-		int handleCmd_DESCRIBE(char* result, int cseq, char* url);
-		int handleCmd_SETUP(char* result, int cseq, char* url);
-		int handleCmd_PLAY(char* result, int cseq);
-		int handleCmd_TEARDOWN(char* result, int cseq);
-		void doClient();
-
-
-	public:
-		int m_ServerTcpSockfd;
 		int m_ServerRtpSockfd;
 		int m_ServerRtcpSockfd;
 		int m_ClientSockfd;
@@ -53,9 +50,17 @@ class RTSPSERVER
 		int m_ClientVRtcpPort;
 		int m_ClientARtpPort;
 		int m_ClientARtcpPort;
+		int m_free;
 		int g_OnPlay;
+		ParaEncUserInfo m_uinf;
+		PAYLOAD_TYPE_E m_venctype;
 
-		int StartRtspServer();
+		int handleCmd_OPTIONS(char* result, int cseq);
+		int handleCmd_DESCRIBE(char* result, int cseq, char* url);
+		int handleCmd_SETUP(char* result, int cseq, char* url);
+		int handleCmd_PLAY(char* result, int cseq);
+		int handleCmd_TEARDOWN(char* result, int cseq);
+		char* getLineFromBuf(char* buf, char* line);
 		int getFrameFromBuffer(char* frame,int* frametype,ParaEncUserInfo* uinf);
 		inline int startCode3(char* buf);
 		inline int startCode4(char* buf);
@@ -63,6 +68,36 @@ class RTSPSERVER
 		int rtpSendH264Frame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize);
 		int rtpSendH265Frame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize);
 		int rtpSendg711uFrame(struct RtpPacket* rtpPacket, uint8_t* frame, uint32_t frameSize);
+
+	public:
+
+		RTSPCLIENT();
+		~RTSPCLIENT();
+		int GetFreeFlag();
+		void SetFreeFlag();
+		void ClearFreeFlag();
+		int InitClientPara(int srtpsockfd,int srtcpsockfd, int csockfd,char *ip,int port);
+		void DoClient();
+		void DoPlay();
+};
+
+class RTSPSERVER
+{
+	private:
+		int m_ServerTcpSockfd;
+		int m_ServerRtpSockfd;
+		int m_ServerRtcpSockfd;
+		RTSPCLIENT m_rtsp_client[10];
+
+		int CreateSocket(enum  SOCKETTYPE stype);
+		int BindSocketAddr(int sockfd, const char* ip, int port);
+		int AcceptClient(int sockfd, char* ip, int* port);
+		RTSPCLIENT * GetFreeClient();
+
+	public:
+		RTSPSERVER();
+		~RTSPSERVER();
+		int StartRtspServer();
 };
 
 int InitRtspServer();

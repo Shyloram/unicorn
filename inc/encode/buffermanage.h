@@ -142,6 +142,7 @@ typedef struct
 	int				userid;
 	unsigned char   **buffer;
 	FrameInfo		*frameinfo;
+	PAYLOAD_TYPE_E  venctype;
 }ParaEncUserInfo;
 
 class BufferManage
@@ -151,6 +152,7 @@ class BufferManage
 		FrameBufferUser		m_FrameBufferUser[MAX_FRAME_USER];
 		unsigned int 		m_u32IFrameOffset;
 		pthread_mutex_t		BufManageMutex;
+		PAYLOAD_TYPE_E      m_VencType;
 
 	private:
 		inline void InitBufferLock()
@@ -180,9 +182,10 @@ class BufferManage
 		~BufferManage();
 		int CreateBufferPool(int resolution, unsigned long bufsize = 0);
 		int DestroyBufferPool();
-		int PutOneVFrameToBuffer(VENC_STREAM_BUF_INFO_S *Vbuffinfo, VENC_STREAM_S *Vstream);
+		int PutOneVFrameToBuffer(VENC_STREAM_BUF_INFO_S *Vbuffinfo, VENC_STREAM_S *Vstream, PAYLOAD_TYPE_E venctype);
 		int PutOneAFrameToBuffer(AUDIO_STREAM_S *Astream,bool talk);
 		int ResetUserInfo(int userid);
+		PAYLOAD_TYPE_E GetVencType();
 		int GetOneFrameFromBuffer(int userid, unsigned char **buffer, FrameInfo *pFrameInfo);
 };
 
@@ -204,6 +207,7 @@ class BufferManageCtrl
 		int GetFrame(void* para);
 		int ResetUser(void* para);
 		int GetAesKey(void* para);
+		int GetVencType(void* para);
 };
 
 #endif //__BUFFER_MANAGE_H__

@@ -263,7 +263,6 @@ int ZMDVideo::VideoInit(void)
 	HI_S32                 s32ChnNum       = ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM;
 	VENC_CHN               VencChn[3]      = {0,1,2};
 	HI_U32                 u32Profile[3]   = {0,0,0};
-	PAYLOAD_TYPE_E         enPayLoad[3]     = {PT_H264,PT_H264,PT_H264};
 	VENC_GOP_MODE_E        enGopMode;
 	VENC_GOP_ATTR_S        stGopAttr;
 	SAMPLE_RC_E            enRcMode;
@@ -271,11 +270,9 @@ int ZMDVideo::VideoInit(void)
 	VI_DEV                 ViDev           = 0;
 	VI_PIPE                ViPipe          = 0;
 	VI_CHN                 ViChn           = 0;
-	SAMPLE_VI_CONFIG_S     stViConfig;
 
 	VPSS_GRP               VpssGrp         = 0;
 	VPSS_CHN               VpssChn[3]      = {0,1,2};
-	HI_BOOL                abChnEnable[4]  = {HI_TRUE,HI_TRUE,HI_TRUE,HI_FALSE};
 
 	HI_U32 u32SupplementConfig = HI_FALSE;
 
@@ -289,14 +286,14 @@ int ZMDVideo::VideoInit(void)
 		}
 	}
 
-	SAMPLE_COMM_VI_GetSensorInfo(&stViConfig);
-	if(SAMPLE_SNS_TYPE_BUTT == stViConfig.astViInfo[0].stSnsInfo.enSnsType)
+	SAMPLE_COMM_VI_GetSensorInfo(&m_stViConfig);
+	if(SAMPLE_SNS_TYPE_BUTT == m_stViConfig.astViInfo[0].stSnsInfo.enSnsType)
 	{
 		SAMPLE_PRT("Not set SENSOR%d_TYPE !\n",0);
 		return HI_FAILURE;
 	}
 
-	s32Ret = SAMPLE_VENC_CheckSensor(stViConfig.astViInfo[0].stSnsInfo.enSnsType,stSize[0]);
+	s32Ret = SAMPLE_VENC_CheckSensor(m_stViConfig.astViInfo[0].stSnsInfo.enSnsType,stSize[0]);
 	if(s32Ret != HI_SUCCESS)
 	{
 		SAMPLE_PRT("Check Sensor err!\n");
@@ -306,14 +303,14 @@ int ZMDVideo::VideoInit(void)
 	/******************************************
 	  step 3: start vi dev & chn to capture
 	 ******************************************/
-	stViConfig.s32WorkingViNum       = 1;
-	stViConfig.astViInfo[0].stDevInfo.ViDev     = ViDev;
-	stViConfig.astViInfo[0].stPipeInfo.aPipe[0] = ViPipe;
-	stViConfig.astViInfo[0].stChnInfo.ViChn     = ViChn;
-	stViConfig.astViInfo[0].stChnInfo.enDynamicRange = DYNAMIC_RANGE_SDR8;
-	stViConfig.astViInfo[0].stChnInfo.enPixFormat    = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
+	m_stViConfig.s32WorkingViNum       = 1;
+	m_stViConfig.astViInfo[0].stDevInfo.ViDev     = ViDev;
+	m_stViConfig.astViInfo[0].stPipeInfo.aPipe[0] = ViPipe;
+	m_stViConfig.astViInfo[0].stChnInfo.ViChn     = ViChn;
+	m_stViConfig.astViInfo[0].stChnInfo.enDynamicRange = DYNAMIC_RANGE_SDR8;
+	m_stViConfig.astViInfo[0].stChnInfo.enPixFormat    = PIXEL_FORMAT_YVU_SEMIPLANAR_420;
 
-	s32Ret = SAMPLE_VENC_VI_Init(&stViConfig, HI_FALSE,u32SupplementConfig);
+	s32Ret = SAMPLE_VENC_VI_Init(&m_stViConfig, HI_FALSE,u32SupplementConfig);
 	if(s32Ret != HI_SUCCESS)
 	{
 		SAMPLE_PRT("Init VI err for %#x!\n", s32Ret);
@@ -324,7 +321,7 @@ int ZMDVideo::VideoInit(void)
 	  step 4: start vpss and vi bind vpss
 	 ******************************************/
 
-	s32Ret = SAMPLE_VENC_VPSS_Init(VpssGrp,abChnEnable,DYNAMIC_RANGE_SDR8,PIXEL_FORMAT_YVU_SEMIPLANAR_420,stSize,stViConfig.astViInfo[0].stSnsInfo.enSnsType);
+	s32Ret = SAMPLE_VENC_VPSS_Init(VpssGrp,m_abChnEnable,DYNAMIC_RANGE_SDR8,PIXEL_FORMAT_YVU_SEMIPLANAR_420,stSize,m_stViConfig.astViInfo[0].stSnsInfo.enSnsType);
 	if (HI_SUCCESS != s32Ret)
 	{
 		SAMPLE_PRT("Init VPSS err for %#x!\n", s32Ret);
@@ -353,7 +350,7 @@ int ZMDVideo::VideoInit(void)
 
 	for(i=0; i<s32ChnNum; i++)
 	{
-		s32Ret = SAMPLE_COMM_VENC_Start(VencChn[i], enPayLoad[i], enSize[i], enRcMode,u32Profile[i],&stGopAttr);
+		s32Ret = SAMPLE_COMM_VENC_Start(VencChn[i], m_enPayLoad[i], enSize[i], enRcMode,u32Profile[i],&stGopAttr);
 		if (HI_SUCCESS != s32Ret)
 		{
 			SAMPLE_PRT("Venc Start failed for %#x!\n", s32Ret);
@@ -373,10 +370,11 @@ int ZMDVideo::VideoInit(void)
 
 int ZMDVideo::VideoRelease(void)
 {
-#if 0
 	VPSS_GRP VpssGrp = 0;
 	VPSS_CHN VpssChn = 0;
 	VENC_CHN VencChn = 0;
+	VI_PIPE  ViPipe  = 0;
+	VI_CHN   ViChn   = 0;
 	HI_S32 i;
 
 	VideoStop();
@@ -387,25 +385,19 @@ int ZMDVideo::VideoRelease(void)
 	{
 		VpssChn = i;
 		VencChn = i;
-		SAMPLE_COMM_VENC_UnBindVpss(VencChn, VpssGrp, VpssChn);
+		SAMPLE_COMM_VPSS_UnBind_VENC(VpssGrp,VpssChn,VencChn);
 		SAMPLE_COMM_VENC_Stop(VencChn);
 	}
-	SAMPLE_COMM_VI_UnBindVpss(SENSOR_TYPE);
+	SAMPLE_COMM_VI_UnBind_VPSS(ViPipe,ViChn,VpssGrp);
 
 	//vpss stop
-	for(i = ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM - 1; i >= 0; i--)
-	{
-		VpssChn = i;
-		SAMPLE_COMM_VPSS_DisableChn(VpssGrp, VpssChn);
-	}
-	SAMPLE_COMM_VPSS_StopGroup(VpssGrp);
+	SAMPLE_COMM_VPSS_Stop(VpssGrp,m_abChnEnable);
 
 	//vi stop
-	SAMPLE_COMM_VI_StopIsp();
+	SAMPLE_COMM_VI_StopVi(&m_stViConfig);
 
 	//system exit
 	SAMPLE_COMM_SYS_Exit();
-#endif
 
 	return 0;
 }
@@ -552,9 +544,9 @@ int ZMDVideo::VideoEncStreamThreadBody(void)
 					if(pbuffer != NULL)
 					{
 #ifndef __HuaweiLite__
-						pbuffer->PutOneVFrameToBuffer(NULL, &stStream);
+						pbuffer->PutOneVFrameToBuffer(NULL, &stStream, m_enPayLoad[i]);
 #else
-						pbuffer->PutOneVFrameToBuffer(&stStreamBufInfo[i], &stStream);
+						pbuffer->PutOneVFrameToBuffer(&stStreamBufInfo[i], &stStream, m_enPayLoad[i]);
 #endif
 					}
 
