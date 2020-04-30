@@ -46,7 +46,8 @@ class ModInterface
 extern "C"{
 #endif
 #endif /* End of #ifdef __cplusplus */
-int mainloop(void);
+int startmodinterface(void);
+int stopmodinterface(void);
 #ifdef __cplusplus
 #if __cplusplus
 }

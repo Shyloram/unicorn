@@ -24,6 +24,9 @@ int AesDecrypt(unsigned char *input,unsigned char *output)
 }
 #endif
 
+/*******************************************
+ *     CLASS     RTES CLIENT
+ ******************************************/
 RTSPCLIENT::RTSPCLIENT()
 {
 	m_free = 1;
@@ -562,6 +565,15 @@ int RTSPCLIENT::InitClientPara(int srtpsockfd,int srtcpsockfd, int csockfd,char 
 	return 0;
 }
 
+void RTSPCLIENT::CloseClient()
+{
+	if(m_free == 0)
+	{
+		g_OnPlay = 0;
+		g_OnClient = 0;
+	}
+}
+
 void RTSPCLIENT::DoClient()
 {
     char method[40];
@@ -573,8 +585,9 @@ void RTSPCLIENT::DoClient()
     char* sBuf = (char*)malloc(BUF_MAX_SIZE);
     char line[400];
 	int recvLen;
+	g_OnClient = 1;
 
-    while(1)
+    while(g_OnClient)
     {
 
         recvLen = recv(m_ClientSockfd, rBuf, BUF_MAX_SIZE, 0);
@@ -585,7 +598,7 @@ void RTSPCLIENT::DoClient()
 
         rBuf[recvLen] = '\0';
         RTSPLOG("---------------C->S--------------\n");
-        RTSPLOG("/n%s", rBuf);
+        RTSPLOG("\n%s", rBuf);
 
         /* ½âÎö·½·¨ */
         bufPtr = getLineFromBuf(rBuf, line);
@@ -694,6 +707,12 @@ void RTSPCLIENT::DoClient()
 /*******************************************
  *     CLASS     RTES SERVER
  ******************************************/
+RTSPSERVER* RTSPSERVER::m_instance = new RTSPSERVER;
+RTSPSERVER* RTSPSERVER::GetInstance(void)
+{
+	return m_instance;
+}
+
 RTSPSERVER::RTSPSERVER()
 {
 }
@@ -704,7 +723,7 @@ RTSPSERVER::~RTSPSERVER()
 
 int RTSPSERVER::CreateSocket(enum  SOCKETTYPE stype)
 {
-	int sockfd;
+	int sockfd = 0;
 	int on = 1;
 
 	if(stype == SOCKET_TCP) 
@@ -785,6 +804,7 @@ int RTSPSERVER::StartRtspServer()
 	int clientsockfd = 0;
 	char clientip[40] = {0};
 	int clientport;
+	g_OnServer = 1;
 	pthread_t pid;
 
     m_ServerTcpSockfd = CreateSocket(SOCKET_TCP);
@@ -823,7 +843,7 @@ int RTSPSERVER::StartRtspServer()
     
     RTSPLOG("rtsp://127.0.0.1:%d\n", SERVER_PORT);
 
-    while(1)
+    while(g_OnServer)
     {
         clientsockfd = AcceptClient(m_ServerTcpSockfd, clientip, &clientport);
         if(clientsockfd < 0)
@@ -850,6 +870,21 @@ int RTSPSERVER::StartRtspServer()
 			close(clientsockfd);
 		}
     }
+	close(m_ServerRtcpSockfd);
+	close(m_ServerRtpSockfd);
+	close(m_ServerTcpSockfd);
+	return 0;
+}
+
+int RTSPSERVER::StopRtspServer()
+{
+	int i;
+	
+	for(i = 0;i < 10;i++)
+	{
+		m_rtsp_client[i].CloseClient();
+	}
+	g_OnServer = 0;
 	return 0;
 }
 
@@ -857,12 +892,12 @@ void *RtspServerProcess(void *arg)
 {
 	prctl(PR_SET_NAME, __FUNCTION__);
 	pthread_detach(pthread_self());
-	RTSPSERVER rs;
-	rs.StartRtspServer();
+	RTSPSERVER *rs = RTSPSERVER::GetInstance();
+	rs->StartRtspServer();
     return 0;
 }
 
-int InitRtspServer()
+int StartRtspServer()
 {
 	pthread_t pid;
 	if(pthread_create(&pid,NULL,RtspServerProcess,NULL) < 0)
@@ -870,5 +905,12 @@ int InitRtspServer()
 		RTSPERR("pthread create failed!\n");
 		return -1;
 	}
+	return 0;
+}
+
+int StopRtspServer()
+{
+	RTSPSERVER *rs = RTSPSERVER::GetInstance();
+	rs->StopRtspServer();
 	return 0;
 }

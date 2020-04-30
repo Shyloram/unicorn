@@ -34,13 +34,15 @@ int RTSPInterface::release()
 
 int RTSPInterface::start()
 {
-	InitRtspServer();
-	RTSPLOG("RTSPInterface start success!\n");
+	StartRtspServer();
+	ITFLOG("RTSPInterface start success!\n");
 	return 0;
 }
 
 int RTSPInterface::stop()
 {
+	StopRtspServer();
+	ITFLOG("RTSPInterface stop success!\n");
 	return 0;
 }
 

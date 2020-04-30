@@ -592,6 +592,7 @@ int BufferManageCtrl::BufferManageInit(void)
 		{
 			return -1;
 		}
+		BUFLOG("CreateBufferPool VeChn:%d success \n",i);
 	}
 	return 0;
 }

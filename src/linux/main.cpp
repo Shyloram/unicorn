@@ -9,8 +9,6 @@
 /*进程与线程信号处理函数*/
 void SignalHandler(int signum)
 {
-	int fd,ret;
-	unsigned int wifi_on = 0;
 	if(signum == 11)
 	sleep(3);
 	
@@ -18,7 +16,7 @@ void SignalHandler(int signum)
 	unsigned int pid = getpid();
 	unsigned long int tid = pthread_self();
   	int ppid = getppid();
-  	printf("%s %d %s Utid:[%lu] tid:[%d] pid:[%d] ppid:[%d] Receive Signal %s  \n", __FILE__,__LINE__,__FUNCTION__,(unsigned int)tid,tid,pid,ppid, strsignal(signum));
+  	printf("%s %d %s tid:[%lu] pid:[%d] ppid:[%d] Receive Signal %s  \n", __FILE__,__LINE__,__FUNCTION__,tid,pid,ppid,strsignal(signum));
 
 	switch( signum)
 	{
@@ -35,6 +33,7 @@ void SignalHandler(int signum)
 		case SIGINT:
 		case SIGTERM:
 		case SIGKILL:	
+			stopmodinterface();
 			exit(0);
 			break;
 			
@@ -52,35 +51,19 @@ void SignalRegister()
 {
 	//系统信号处理
 	signal(SIGINT,SignalHandler);	
-
 	signal(SIGQUIT,SignalHandler);
-
 	signal(SIGABRT,SignalHandler );
-
 	signal(SIGFPE,SignalHandler );
-	
 	signal(SIGILL,SignalHandler);
-
 	signal(SIGKILL,SignalHandler);
-
 	signal(SIGSEGV,SignalHandler);
-
 	signal(SIGSEGV,SignalHandler);
-
 	signal(SIGPIPE,SignalHandler);
-
 	signal(SIGTERM,SignalHandler );
-
 	signal(SIGCHLD,SignalHandler);
-	
-
 	signal(SIGSTOP,SignalHandler);
-
 	signal(SIGUSR1,SignalHandler);	
-
 	signal(SIGUSR2,SignalHandler);
-
-	
 /*
        SIGHUP        1       Term    Hangup detected on controlling terminal
                                      or death of controlling process
@@ -104,13 +87,11 @@ void SignalRegister()
        SIGTTIN   21,21,26    Stop    tty input for background process
        SIGTTOU   22,22,27    Stop    tty output for background process	
 */  
-
 }
 
 int main(void)
 {
 	SignalRegister();
-	mainloop();
+	startmodinterface();
 	while(1)sleep(1000);
 }
-

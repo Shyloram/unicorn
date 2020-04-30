@@ -52,6 +52,7 @@ class RTSPCLIENT
 		int m_ClientARtcpPort;
 		int m_free;
 		int g_OnPlay;
+		int g_OnClient;
 		ParaEncUserInfo m_uinf;
 		PAYLOAD_TYPE_E m_venctype;
 
@@ -77,6 +78,7 @@ class RTSPCLIENT
 		void SetFreeFlag();
 		void ClearFreeFlag();
 		int InitClientPara(int srtpsockfd,int srtcpsockfd, int csockfd,char *ip,int port);
+		void CloseClient();
 		void DoClient();
 		void DoPlay();
 };
@@ -84,21 +86,26 @@ class RTSPCLIENT
 class RTSPSERVER
 {
 	private:
+		static RTSPSERVER* m_instance;
 		int m_ServerTcpSockfd;
 		int m_ServerRtpSockfd;
 		int m_ServerRtcpSockfd;
+		int g_OnServer;
 		RTSPCLIENT m_rtsp_client[10];
 
+		RTSPSERVER();
+		~RTSPSERVER();
 		int CreateSocket(enum  SOCKETTYPE stype);
 		int BindSocketAddr(int sockfd, const char* ip, int port);
 		int AcceptClient(int sockfd, char* ip, int* port);
 		RTSPCLIENT * GetFreeClient();
 
 	public:
-		RTSPSERVER();
-		~RTSPSERVER();
+		static RTSPSERVER* GetInstance(void);
 		int StartRtspServer();
+		int StopRtspServer();
 };
 
-int InitRtspServer();
+int StartRtspServer();
+int StopRtspServer();
 #endif

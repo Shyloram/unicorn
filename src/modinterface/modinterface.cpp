@@ -40,7 +40,7 @@ int ModInterface::init()
 {
 	int i;
 	Interface* pinterface;
-	ITFLOG("ModInterface init launch --------->\n");
+	ITFLOG("ModInterface init launch ----------------------------->\n");
 	for(i = 0;i < (int)MOD_MAX;i++)
 	{
 		pinterface = GetModInstance((MFI_MOD)i);
@@ -49,7 +49,7 @@ int ModInterface::init()
 			pinterface->init();
 		}
 	}
-	ITFLOG("ModInterface init finish <---------\n");
+	ITFLOG("ModInterface init finish <-----------------------------\n");
 	return 0;
 }
 
@@ -57,7 +57,7 @@ int ModInterface::release()
 {
 	int i;
 	Interface* pinterface;
-	ITFLOG("ModInterface release launch --------->\n");
+	ITFLOG("ModInterface release launch ----------------------------->\n");
 	for(i = 0;i < (int)MOD_MAX;i++)
 	{
 		pinterface = GetModInstance((MFI_MOD)i);
@@ -66,7 +66,7 @@ int ModInterface::release()
 			pinterface->release();
 		}
 	}
-	ITFLOG("ModInterface release finish <---------\n");
+	ITFLOG("ModInterface release finish <-----------------------------\n");
 	return 0;
 }
 
@@ -74,7 +74,7 @@ int ModInterface::start()
 {
 	int i;
 	Interface* pinterface;
-	ITFLOG("ModInterface start launch --------->\n");
+	ITFLOG("ModInterface start launch ----------------------------->\n");
 	for(i = 0;i < (int)MOD_MAX;i++)
 	{
 		pinterface = GetModInstance((MFI_MOD)i);
@@ -83,7 +83,7 @@ int ModInterface::start()
 			pinterface->start();
 		}
 	}
-	ITFLOG("ModInterface start finish <---------\n");
+	ITFLOG("ModInterface start finish <-----------------------------\n");
 	return 0;
 }
 
@@ -91,7 +91,7 @@ int ModInterface::stop()
 {
 	int i;
 	Interface* pinterface;
-	ITFLOG("ModInterface stop launch --------->\n");
+	ITFLOG("ModInterface stop launch ----------------------------->\n");
 	for(i = 0;i < (int)MOD_MAX;i++)
 	{
 		pinterface = GetModInstance((MFI_MOD)i);
@@ -100,7 +100,7 @@ int ModInterface::stop()
 			pinterface->stop();
 		}
 	}
-	ITFLOG("ModInterface stop finish <---------\n");
+	ITFLOG("ModInterface stop finish <-----------------------------\n");
 	return 0;
 }
 
@@ -116,16 +116,24 @@ int ModInterface::CMD_handle(MFI_MOD mod,MFI_CMD cmd,void* para)
 	return ret;
 }
 
-extern "C"
+int startmodinterface(void)
 {
-	int mainloop(void)
+	ModInterface* modinterface = ModInterface::GetInstance(); 
+	if(modinterface != NULL)
 	{
-		ModInterface* modinterface = ModInterface::GetInstance(); 
-		if(modinterface != NULL)
-		{
-			modinterface->init();
-			modinterface->start();
-		}
-		return 0;
+		modinterface->init();
+		modinterface->start();
 	}
+	return 0;
+}
+
+int stopmodinterface(void)
+{
+	ModInterface* modinterface = ModInterface::GetInstance(); 
+	if(modinterface != NULL)
+	{
+		modinterface->stop();
+		modinterface->release();
+	}
+	return 0;
 }
