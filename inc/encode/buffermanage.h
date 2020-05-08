@@ -133,6 +133,7 @@ typedef struct
 	unsigned long		ReadCircleNum;			/*此用户对帧缓冲池的访问圈数，初始时等于帧缓冲池中的circlenum*/
 	unsigned int		diffpos;				/*读指针和写指针位置差值，单位为帧*/
 	unsigned int 		throwframcount;			/*从开始计数丢帧的个数*/
+	int                 OnUsed;
 }FrameBufferUser;
 
 //Encode para
@@ -184,9 +185,11 @@ class BufferManage
 		int DestroyBufferPool();
 		int PutOneVFrameToBuffer(VENC_STREAM_BUF_INFO_S *Vbuffinfo, VENC_STREAM_S *Vstream, PAYLOAD_TYPE_E venctype);
 		int PutOneAFrameToBuffer(AUDIO_STREAM_S *Astream,bool talk);
-		int ResetUserInfo(int userid);
-		PAYLOAD_TYPE_E GetVencType();
 		int GetOneFrameFromBuffer(int userid, unsigned char **buffer, FrameInfo *pFrameInfo);
+		int ResetUserInfo(int userid);
+		int GetFreeUserId();
+		int SetFreeUserId(int userid);
+		PAYLOAD_TYPE_E GetVencType();
 };
 
 class BufferManageCtrl
@@ -207,7 +210,8 @@ class BufferManageCtrl
 		int GetFrame(void* para);
 		int ResetUser(void* para);
 		int GetAesKey(void* para);
-		int GetVencType(void* para);
+		int RegisterUser(void* para);
+		int ReleaseUser(void* para);
 };
 
 #endif //__BUFFER_MANAGE_H__

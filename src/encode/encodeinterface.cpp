@@ -180,8 +180,10 @@ int EncodeInterface::handle(MFI_CMD cmd,void* para)
 			return BufferManageCtrl::GetInstance() != NULL ? BufferManageCtrl::GetInstance()->ResetUser(para) : -1;
 		case CMD_ENC_GETAESKEY:
 			return BufferManageCtrl::GetInstance() != NULL ? BufferManageCtrl::GetInstance()->GetAesKey(para) : -1;
-		case CMD_ENC_GETVENCTYPE:
-			return BufferManageCtrl::GetInstance() != NULL ? BufferManageCtrl::GetInstance()->GetVencType(para) : -1;
+		case CMD_ENC_REGISTERUSER:
+			return BufferManageCtrl::GetInstance() != NULL ? BufferManageCtrl::GetInstance()->RegisterUser(para) : -1;
+		case CMD_ENC_RELEASEUSER:
+			return BufferManageCtrl::GetInstance() != NULL ? BufferManageCtrl::GetInstance()->ReleaseUser(para) : -1;
 #ifdef ZMD_APP_ENCODE_AUDIO
 		case CMD_ENC_AUDIODECODE:
 			return ZMDAudio::GetInstance() != NULL ? ZMDAudio::GetInstance()->AudioDecHandle(para) : -1;

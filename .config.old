@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Zmodo App Configuration
-# Thu Apr 30 05:35:51 2020
+# Thu Apr 30 05:39:39 2020
 #
 
 #
@@ -36,6 +36,7 @@ ZMD_APP_DEBUG=y
 ZMD_APP_DEBUG_ITF=y
 ZMD_APP_DEBUG_BUF=y
 ZMD_APP_DEBUG_VID=y
+ZMD_APP_DEBUG_RTSP=y
 
 #
 # Release Note

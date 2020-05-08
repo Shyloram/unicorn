@@ -335,7 +335,6 @@ void RTSPCLIENT::DoPlay()
 	FrameInfo frame_info;
 	unsigned char *video_data = NULL;
 
-	m_uinf.userid = 0;
 	m_uinf.buffer = &video_data;
 	m_uinf.frameinfo = &frame_info;
 
@@ -343,6 +342,7 @@ void RTSPCLIENT::DoPlay()
 	rtpHeaderInit(rtpAPacket, 0, 0, 0, RTP_VESION, RTP_PAYLOAD_TYPE_PCMA, 0, 0, 0, 0x88923423);
 
 	RTSPLOG("start play\n");
+	RTSPLOG("ch:%d,userid:%d,venctype:%d\n", m_uinf.ch, m_uinf.userid, m_uinf.venctype);
 	RTSPLOG("client ip:%s\n", m_ClientIp);
 	RTSPLOG("client audio port:%d\n", m_ClientARtpPort);
 	RTSPLOG("client video port:%d\n", m_ClientVRtpPort);
@@ -400,6 +400,7 @@ void RTSPCLIENT::DoPlay()
 		}
 		usleep(20 * 1000);
 	}
+	ModInterface::GetInstance()->CMD_handle(MOD_ENC,CMD_ENC_RELEASEUSER,(void*)&(m_uinf));
 	free(frame);
 	free(rtpAPacket);
 	free(rtpVPacket);
@@ -450,7 +451,7 @@ int RTSPCLIENT::handleCmd_DESCRIBE(char* result, int cseq, char* url)
 
     sscanf(url, "rtsp://%[^:]:%*[^/]/live%d", localIp, &ch);
 	m_uinf.ch = ch;
-	ModInterface::GetInstance()->CMD_handle(MOD_ENC,CMD_ENC_GETVENCTYPE,(void*)&m_uinf);
+	ModInterface::GetInstance()->CMD_handle(MOD_ENC,CMD_ENC_REGISTERUSER,(void*)&m_uinf);
 	m_venctype = m_uinf.venctype;
 
     sprintf(sdp, "v=0\r\n"

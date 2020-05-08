@@ -87,6 +87,26 @@ int BufferManage::ResetUserInfo(int userid)
 	return 0; 
 }
 
+int BufferManage::GetFreeUserId()
+{
+	int i;
+	for(i = 0;i < MAX_FRAME_USER;i++)
+	{
+		if(m_FrameBufferUser[i].OnUsed == 0)
+		{
+			m_FrameBufferUser[i].OnUsed = 1;
+			return i;
+		}
+	}
+	return -1;
+}
+
+int BufferManage::SetFreeUserId(int userid)
+{
+	m_FrameBufferUser[userid].OnUsed = 0;
+	return 0;
+}
+
 PAYLOAD_TYPE_E BufferManage::GetVencType()
 {
 	return m_VencType;
@@ -670,7 +690,7 @@ int BufferManageCtrl::GetAesKey(void* para)
 	return 0;
 }
 
-int BufferManageCtrl::GetVencType(void* para)
+int BufferManageCtrl::RegisterUser(void* para)
 {
 	ParaEncUserInfo* uinf = (ParaEncUserInfo*)para;
 	if(uinf != NULL)
@@ -682,7 +702,27 @@ int BufferManageCtrl::GetVencType(void* para)
 		}
 		if(m_pBufferManage[uinf->ch] != NULL)
 		{
+			uinf->userid = m_pBufferManage[uinf->ch]->GetFreeUserId();
 			uinf->venctype = m_pBufferManage[uinf->ch]->GetVencType();
+			return 0;
+		}
+	}
+	return -1;
+}
+
+int BufferManageCtrl::ReleaseUser(void* para)
+{
+	ParaEncUserInfo* uinf = (ParaEncUserInfo*)para;
+	if(uinf != NULL)
+	{
+		if(uinf->ch < 0 || uinf->ch >= ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM)
+		{
+			BUFERR("ch error!\n");
+			return -1;
+		}
+		if(m_pBufferManage[uinf->ch] != NULL)
+		{
+			m_pBufferManage[uinf->ch]->SetFreeUserId(uinf->userid);
 			return 0;
 		}
 	}
