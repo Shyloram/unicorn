@@ -13,7 +13,7 @@
 
 
 /****************** for test begin *********************************/
-#define DEVICE_ID_TEST      "BOONE12345TEST0"    /* 长度:15位 */
+#define DEVICE_ID_TEST      "NEIL123456TEST0"    /* 长度:15位 */
 #define ZSP_TEST_DEVNAME    "SD-H2001-A-H"
 #define ZSP_TEST_SERIALNUM  "112233445566"
 #define ZSP_TEST_HARDWARE_VERSION    "V8.8.8.88"

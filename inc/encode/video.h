@@ -28,7 +28,7 @@ class ZMDVideo : public Video
 		int			           m_ThreadStat;/*线程状态1:running 0:stop*/
 		pthread_t	           m_pid;
 		HI_BOOL                m_abChnEnable[4] = {HI_TRUE,HI_TRUE,HI_TRUE,HI_FALSE};
-		PAYLOAD_TYPE_E         m_enPayLoad[3] = {PT_H265,PT_H265,PT_H264};
+		PAYLOAD_TYPE_E         m_enPayLoad[3] = {PT_H264,PT_H264,PT_H264};
 		SAMPLE_VI_CONFIG_S     m_stViConfig;
 
 	private:

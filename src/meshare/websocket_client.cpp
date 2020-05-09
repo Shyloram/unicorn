@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#include <liteos/tcp.h>
-
 #include <json.h>
+#include <netinet/tcp.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include "dev_common.h"
 #include "meshare_common.h"     /* meshare 库的公共头文件 */

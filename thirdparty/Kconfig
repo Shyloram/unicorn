@@ -1,19 +1,19 @@
 menu "Thirdparty"
 
 config ZMD_APP_THI_CURL
-    bool "curl-7.59.0"
+    bool "curl-7.48.0"
 	default n
 	help
 		command line tool and library for transferring data with URLs
 
 config ZMD_APP_THI_JSON
-    bool "json-c-0.13"
+    bool "json-c"
 	default n
 	help
 		JSON (JavaScript Object Notation) is a lightweight data-interchange format. 
 
 config ZMD_APP_THI_MBEDTLS
-    bool "mbedtls-2.9.0"
+    bool "mbedtls-2.2.1"
 	default n
 	help
 		mbed TLS (formerly known as PolarSSL) makes it trivially easy for developers to 

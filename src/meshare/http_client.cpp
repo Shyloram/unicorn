@@ -11,6 +11,7 @@
 
 #include <curl.h>
 #include <json.h>
+#include <pthread.h>
 #include "dev_common.h"
 #include "http_client.h"
 #include "meshare_common.h" /* meshare 库的公共头文件 */
@@ -176,6 +177,7 @@ static int __http_do_get_post(char * url, http_post_t post_data[],
     return (int)ret;
 }
 
+#if 0
 /***********************************************
  *@brief 执行 http post 请求
  *@param url 参数1 URL
@@ -191,6 +193,7 @@ static int __http_do_post(char * url, http_result_t *result, int len, int timeou
 
     return MSH_SUCCESS;
 }
+#endif
 
 /***********************************************
  *@brief 获取 web 服务器 URL 并设置设备ID参数
@@ -218,7 +221,7 @@ static int __http_get_web_server_url(char * url, int url_len)
  *      成功：返回 MSH_SUCCESS  0
  *      失败：返回 MSH_FAILURE -1 
  **********************************************/
-static int __http_get_parameter_server(char *url, char * server_name)
+static int __http_get_parameter_server(char *url, char const * server_name)
 {
     int rand_num = 0;   /* 用于保存一个随机的数值 */
     server_addr_t * server_addr = NULL;
@@ -304,7 +307,7 @@ int http_get_parameter_server(char *url, char * server_name)
  *      成功：返回 MSH_SUCCESS  0
  *      失败：返回 MSH_FAILURE -1 
  **********************************************/
-static int __http_set_parameter_server(json_object * json_obj, char * server_name)
+static int __http_set_parameter_server(json_object * json_obj, char const * server_name)
 {
     int ret = MSH_FAILURE;
     char * addr_str = NULL;
@@ -407,7 +410,7 @@ static int __http_set_parameter_server(json_object * json_obj, char * server_nam
  *      成功：返回 MSH_SUCCESS  0
  *      失败：返回 MSH_FAILURE -1 
  **********************************************/
-static int __http_get_parameter_web_info(void * para, char * para_name)
+static int __http_get_parameter_web_info(void * para, char const * para_name)
 {
 
     if((NULL == para) || (NULL == para_name))
@@ -466,7 +469,7 @@ int http_get_parameter_web_info(void * para, char * para_name)
  *      成功：返回 MSH_SUCCESS  0
  *      失败：返回 MSH_FAILURE -1 
  **********************************************/
-static int __http_set_parameter_web_info(json_object * json_obj, char * para_name)
+static int __http_set_parameter_web_info(json_object * json_obj, char const * para_name)
 {
     char * tmp_str = NULL;  /* 临时存储字符串 */
     int tmp_int = 0;      /* 临时存储 json 数据中的 timestamp 值 */
@@ -798,7 +801,7 @@ static int __http_do_report_info(int timeout_ms)
     json_object * conf_json = NULL; /* post 参数 */
     json_object * resolution_json = NULL; /* post 参数 */
     char tokenid[128] = { 0 };
-    char aes_key[128] = { 0 };
+    //char aes_key[128] = { 0 };
 
     /* 获取 dev_mng_addr 服务器地址 */
     ret = __http_get_parameter_server(url, DEV_MNG_ADDR);
