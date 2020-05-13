@@ -1,17 +1,6 @@
 #ifndef __DEV_COMMON_H__
 #define __DEV_COMMON_H__
 
-//此头文件禁止使用 #include "xxxx.h" 包含其他自定义的头文件
-
-/*****************************************************************
- * 各个模块可能会共用的结构体类型请定义在此头文件中
- *
- * !!!!!!!!注意：此头文件真的禁止再包含其他头文件进行结构体类型定义
- *               否则可能导致一场灾难
- * 仅禁止包含自定义的头文件，系统默认支持的标准头文件可以包含
- *****************************************************************/
-
-
 /****************** for test begin *********************************/
 #define DEVICE_ID_TEST      "NEIL123456TEST0"    /* 长度:15位 */
 #define ZSP_TEST_DEVNAME    "SD-H2001-A-H"
@@ -19,30 +8,6 @@
 #define ZSP_TEST_HARDWARE_VERSION    "V8.8.8.88"
 #define ZSP_TEST_SOFTWARE_VERSION    "V8.8.8.88"
 /****************** for test end *********************************/
-
-/* ZSP 产测工具同时播放视频的最大用户数量 */
-#define ZSP_VIDEO_USER_MAX  (4) 
-
-/* 为避免userid冲突，meshare 库使用的 userid 为 userid + ZSP_VIDEO_USER_MAX */
-/* MSH 手机APP同时播放视频的最大用户数量 */ 
-#define MSH_VIDEO_USER_MAX  (4) 
-
-/* 视频播放用户列表中的用户状态 */
-typedef enum
-{
-    VIDEO_USER_USED,    /* 0:已在使用中 */
-    VIDEO_USER_UNUSED,  /* 1:未使用 */
-}VIDEO_USER_STATUS;
-
-/* 为了支持多个产测工具连接播放视频，增加视频用户列表 */
-typedef struct
-{
-    int userid;
-    unsigned int ip;
-    unsigned int port;
-    int devType;
-    int used ;
-}STRUCT_VIDEO_USER;
 
 typedef struct
 {

@@ -1,5 +1,5 @@
 #include "zspinterface.h"
-#include "zsp_main.h"
+#include "zsp.h"
 #include "zmdconfig.h"
 
 #ifdef ZMD_APP_ZSP
@@ -34,19 +34,20 @@ int ZSPInterface::release()
 
 int ZSPInterface::start()
 {
-    zsp_main();
+	StartZspServer();
 	ITFLOG("ZSPInterface start success!\n");
 	return 0;
 }
 
 int ZSPInterface::stop()
 {
+	StopZspServer();
+	ITFLOG("ZSPInterface stop success!\n");
 	return 0;
 }
 
 int ZSPInterface::handle(MFI_CMD cmd,void* para)
 {
-
 #if 0
 	switch(cmd)
 	{

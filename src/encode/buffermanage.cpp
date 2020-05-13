@@ -83,6 +83,7 @@ int BufferManage::ResetUserInfo(int userid)
 	m_FrameBufferUser[userid].reserve = 0; 
 	m_FrameBufferUser[userid].diffpos = 0; 
 	m_FrameBufferUser[userid].throwframcount = 0; 
+
 	ReleaseBufferLock(); 
 	return 0; 
 }
@@ -90,20 +91,29 @@ int BufferManage::ResetUserInfo(int userid)
 int BufferManage::GetFreeUserId()
 {
 	int i;
+
+	AddBufferLock(); 
+
 	for(i = 0;i < MAX_FRAME_USER;i++)
 	{
 		if(m_FrameBufferUser[i].OnUsed == 0)
 		{
 			m_FrameBufferUser[i].OnUsed = 1;
+			ReleaseBufferLock(); 
 			return i;
 		}
 	}
+
+	ReleaseBufferLock(); 
+	BUFERR("All userId(%d) are busy!\n",MAX_FRAME_USER);
 	return -1;
 }
 
 int BufferManage::SetFreeUserId(int userid)
 {
+	AddBufferLock(); 
 	m_FrameBufferUser[userid].OnUsed = 0;
+	ReleaseBufferLock(); 
 	return 0;
 }
 
@@ -704,6 +714,7 @@ int BufferManageCtrl::RegisterUser(void* para)
 		{
 			uinf->userid = m_pBufferManage[uinf->ch]->GetFreeUserId();
 			uinf->venctype = m_pBufferManage[uinf->ch]->GetVencType();
+			BUFLOG("RegisterUser CH:%d, Userid:%d, Venctype:%d \n",uinf->ch, uinf->userid, uinf->venctype);
 			return 0;
 		}
 	}
@@ -723,6 +734,7 @@ int BufferManageCtrl::ReleaseUser(void* para)
 		if(m_pBufferManage[uinf->ch] != NULL)
 		{
 			m_pBufferManage[uinf->ch]->SetFreeUserId(uinf->userid);
+			BUFLOG("ReleaseUser CH:%d, Userid:%d, Venctype:%d \n",uinf->ch, uinf->userid, uinf->venctype);
 			return 0;
 		}
 	}

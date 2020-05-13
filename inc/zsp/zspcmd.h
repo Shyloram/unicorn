@@ -1,22 +1,19 @@
-#ifndef __ZSP_INTERFACEDEF_H_
-#define __ZSP_INTERFACEDEF_H_
+#ifndef __ZSP_CMD_H__
+#define __ZSP_CMD_H__
 
 #include "zmdconfig.h"
 #include "dev_common.h"
 
-#define ZSP_SUCCESS         (0)
-#define ZSP_FAILURE         (-1)
-
-#ifdef ZMD_APP_DEBUG_ZSP
-#define ZSPLOG(format, ...)     fprintf(stdout, "\033[37m[ZSPLOG][Func:%s][Line:%d], " format"\033[0m", __FUNCTION__,  __LINE__, ##__VA_ARGS__)
+#ifdef ZMD_APP_WIFI
+#define ZSP_IF_NAME "wlan0"
 #else
-#define ZSPLOG(format, ...)
+#define ZSP_IF_NAME "eth0"
 #endif
-#define ZSPERR(format, ...)     fprintf(stdout, "\033[31m[ZSPERR][Func:%s][Line:%d], " format"\033[0m", __FUNCTION__,  __LINE__, ##__VA_ARGS__)
-#define ZSPINF(format, ...)     fprintf(stdout, "\033[34m[ZSPINF][Func:%s][Line:%d], " format"\033[0m", __FUNCTION__,  __LINE__, ##__VA_ARGS__)
 
-#define ZSP_TCP_SERVER_PORT (8000)
-#define ZSP_UDP_SERVER_PORT (8080)
+#define ZSP_CMD_TCP_BUF_SIZE      (256)  /* TCP 服务器接收数据的 buffer 大小 */
+#define ZSP_CMD_UDP_BUF_SIZE      (256)  /* UDP 服务器接收数据的 buffer 大小 */
+#define ZSP_CMD_TCP_RETRY_TIMES   (3)    /* TCP 服务器接收数据出错的重试次数 */
+#define GET_VIDEO_DATA_RETRY_MAX  (25)   /* 从buffer中获取视频数据出错时，连续重试最大次数 */
 
 #define GET_HEADER_LEN(type)      (sizeof(type)-sizeof(Cmd_Header))
 
@@ -33,13 +30,11 @@ typedef struct
 /* 用来定义消息头的宏.后期协议扩展后的消息体定义也要使用该宏 */
 /* 保障每个消息体中消息头的定义都一样 */
 #define DEF_CMD_HEADER      Cmd_Header      header
-    
 
 /* 请求实时视频直播 */
-#define CMD_START_720P          0x5000  /* 请求720P   对应产测工具的：高清  */
-#define CMD_START_1080P			0x5000  /* 请求1080P  对应产测工具的：高清  */
-#define CMD_START_VGA           0x9002  /* 请求视频   对应产测工具的：标清  */
-#define CMD_START_QVGA          0x90a2  /* 请求子码流 对应产测工具的：普清  */
+#define CMD_START_HD			0x5000  /* 请求主码流    对应产测工具的：高清  */
+#define CMD_START_MD            0x9002  /* 请求子码流1   对应产测工具的：标清  */
+#define CMD_START_LD            0x90a2  /* 请求子码流2   对应产测工具的：普清  */
 #define CMD_STOP_VIDEO          0x9003  /* 关闭视频                         */
 
 /* 音频对讲相关指令 begin */
@@ -96,7 +91,7 @@ typedef struct
 } STRUCT_G_VIDEO_KEY_RESP;
 
 /* 音频对讲相关结构体 */
-#pragma pack(1) /* 为适配产测工具，改为 1 字节对齐，注意，是1字节对齐！！！！ */
+#pragma pack(1) /* 为适配产测工具，改为 1 字节对齐 */
 typedef struct
 {
     unsigned char   sampleRate;     //采样率 0:8K ,1:12K,  2: 11.025K, 3:16K ,4:22.050K ,5:24K ,6:32K ,7:48K;   
@@ -206,5 +201,7 @@ typedef struct
     char    deviceID[16] ;
 }STRUCT_ID_PING_ECHO;   /* CMD_ID_PING 0x9050 的响应数据包 */
 
+void UdpCmdProcessor(void * arg);
+void TcpCmdProcessor(void * arg);
 
-#endif /* __ZSP_INTERFACEDEF_H_ */
+#endif /* __ZSP_CMD_H__ */
