@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
+#include "zmdconfig.h"
+
+#ifdef ZMD_APP_DEBUG_TPL
+#define TPLLOG(format, ...)     fprintf(stdout, "[TPLLOG][Func:%s][Line:%d], " format, __FUNCTION__,  __LINE__, ##__VA_ARGS__)
+#else
+#define TPLLOG(format, ...)
+#endif
+#define TPLERR(format, ...)     fprintf(stdout, "\033[31m[TPLERR][Func:%s][Line:%d], " format"\033[0m", __FUNCTION__,  __LINE__, ##__VA_ARGS__)
 
 typedef struct task
 {

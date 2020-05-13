@@ -17,7 +17,6 @@
 
 void *AudioEncoderThreadEntry(void *para)
 {
-	AUDLOG("threadid %d\n",(unsigned)pthread_self()); 
 	ZMDAudio *paudio = (ZMDAudio *)para;
 	paudio->AudioEncStreamThreadBody();
 	return NULL;

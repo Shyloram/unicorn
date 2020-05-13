@@ -95,7 +95,7 @@ int ThreadPool::DestroyCondition()
 
 void *thread_handle(void *arg)
 {
-	printf("thread %d is starting\n", (int)pthread_self());
+	TPLLOG("thread %d is starting\n", (int)pthread_self());
 	ThreadPool *pool = (ThreadPool*)arg;
 	task_t *t = NULL;
 
@@ -105,13 +105,14 @@ void *thread_handle(void *arg)
 		pool->AddIdle();
 		while((t = pool->GetTask()) == NULL && pool->CheckExit() != 1)
 		{
-			printf("thread %d is waiting\n", (int)pthread_self());
+			TPLLOG("thread %d is waiting\n", (int)pthread_self());
 			pool->WaitCondition();
 		}
 		pool->DelIdle();
 		if(t != NULL)
 		{
 			pool->UnlockCondition();
+			TPLLOG("thread %d is dealing the task\n", (int)pthread_self());
 			t->run(t->arg);
 			delete t;
 			pool->LockCondition();
@@ -125,7 +126,7 @@ void *thread_handle(void *arg)
 		pool->UnlockCondition();
 	}
 
-	printf("thread %d is exiting\n", (int)pthread_self());
+	TPLLOG("thread %d is exiting\n", (int)pthread_self());
 	return NULL;
 }
 
@@ -155,7 +156,7 @@ int ThreadPool::InitThreadPool()
 
 int ThreadPool::DestroyThreadPool()
 {
-	printf("destory thread pool\n");
+	TPLLOG("destory thread pool\n");
 	if(g_exit)
 	{
 		return 0;
@@ -171,7 +172,7 @@ int ThreadPool::DestroyThreadPool()
 		while(m_sum)
 		{
 			UnlockCondition();
-			printf("sum:%d\n",m_sum);
+			TPLLOG("sum:%d\n",m_sum);
 			sleep(1);
 			LockCondition();
 		}
@@ -199,8 +200,14 @@ int ThreadPool::AddTask(void *arg)
 	}
 	else
 	{
-		pthread_create(&pid,NULL,thread_handle,this);
-		AddSum();
+		if(pthread_create(&pid,NULL,thread_handle,this))
+		{
+			TPLERR("pthread create failed\n");
+		}
+		else
+		{
+			AddSum();
+		}
 	}
 	UnlockCondition();
 	return 0;

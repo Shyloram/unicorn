@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Zmodo App Configuration
- * Thu May 14 03:53:40 2020
+ * Thu May 14 05:10:39 2020
  */
 
 #ifndef ZMD_APP_AUTO_CONFIG
@@ -19,6 +19,7 @@
 #define ZMD_APP_ENCODE 1
 #define ZMD_APP_ENCODE_BUFFERMANAGE 1
 #define ZMD_APP_ENCODE_VIDEO_MAX_CH_SRTEAM 3
+#define ZMD_APP_DEBUG_TPL 1
 #define ZMD_APP_THI_MBEDTLS 1
 #define ZMD_APP_DEBUG 1
 #define ZMD_APP_DEBUG_VID 1

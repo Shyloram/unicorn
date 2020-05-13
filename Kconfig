@@ -97,6 +97,13 @@ config ZMD_APP_DEBUG_RTSP
 	default y
 	help
 		this module provide rtsp server debug log.
+
+config ZMD_APP_DEBUG_TPL
+	depends on ZMD_APP_THREADPOOL
+	bool "threadpool debug log"
+	default y
+	help
+		this module provide threadpool debug log.
 endif
 
 menu "Release Note"

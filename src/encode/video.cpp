@@ -233,7 +233,6 @@ static HI_S32 SAMPLE_VENC_VPSS_Init(VPSS_GRP VpssGrp, HI_BOOL* pabChnEnable, DYN
 
 void *VideoEncoderThreadEntry(void *para)
 {
-	VIDLOG("threadid %d\n",(unsigned)pthread_self()); 
 	ZMDVideo *pvideo = (ZMDVideo *)para;
 	pvideo->VideoEncStreamThreadBody();
 	return NULL;

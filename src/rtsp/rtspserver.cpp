@@ -1,7 +1,12 @@
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 #include "rtspserver.h"
 #include "aes.h"
 #include "zmdconfig.h"
-#include "modinterfacedef.h"
+#include "modinterface.h"
+#include "threadpool.h"
 
 #ifdef ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION
 int AesDecrypt(unsigned char *input,unsigned char *output)
@@ -23,6 +28,30 @@ int AesDecrypt(unsigned char *input,unsigned char *output)
 	return ret;
 }
 #endif
+
+int GetLocalIP(char *ip)
+{
+	int ret = 0;
+	int sockfd = 0;
+	struct ifreq ifr;
+
+	strcpy(ifr.ifr_name, "eth0");
+
+	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	if(sockfd)
+	{
+		ret = ioctl(sockfd, SIOCGIFADDR, &ifr);
+		if(!ret)
+		{
+			strcpy(ip, inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+		}
+		else
+		{
+			strcpy(ip,"127.0.0.1");
+		}
+	}
+	return 0;
+}
 
 /*******************************************
  *     CLASS     RTES CLIENT
@@ -409,7 +438,6 @@ void RtspClient::DoPlay()
 void *RtspPlayProcess(void *arg)
 {
 	prctl(PR_SET_NAME, __FUNCTION__);
-	pthread_detach(pthread_self());
 	RtspClient *rc = (RtspClient *)arg;
 	rc->DoPlay();
 	return 0;
@@ -458,14 +486,14 @@ int RtspClient::handleCmd_DESCRIBE(char* result, int cseq, char* url)
                  "o=- 9%ld 1 IN IP4 %s\r\n"
                  "t=0 0\r\n"
                  "a=control:*\r\n"
-                 "m=video 0 RTP/AVP 96\r\n"
-                 "a=rtpmap:96 %s/90000\r\n"
-                 "a=control:track0\r\n",
 #ifdef ZMD_APP_ENCODE_AUDIO
                  "m=audio 0 RTP/AVP 8\r\n"
                  "a=rtpmap:8 PCMA/8000/1\r\n"
-                 "a=control:track1\r\n",
+                 "a=control:track1\r\n"
 #endif
+                 "m=video 0 RTP/AVP 96\r\n"
+                 "a=rtpmap:96 %s/90000\r\n"
+                 "a=control:track0\r\n\r\n",
                  time(NULL), localIp, (m_venctype==PT_H264)?"H264":"H265");
     
     sprintf(result, "RTSP/1.0 200 OK\r\nCSeq: %d\r\n"
@@ -515,7 +543,7 @@ int RtspClient::handleCmd_SETUP(char* result, int cseq, char* url)
 
 int RtspClient::handleCmd_PLAY(char* result, int cseq)
 {
-	pthread_t pid;
+	task_t task = {};
     sprintf(result, "RTSP/1.0 200 OK\r\n"
                     "CSeq: %d\r\n"
                     "Range: npt=0.000-\r\n"
@@ -523,11 +551,9 @@ int RtspClient::handleCmd_PLAY(char* result, int cseq)
                     cseq);
     
 	g_OnPlay = 1;
-	if(pthread_create(&pid,NULL,RtspPlayProcess,(void *)this) < 0)
-	{
-		RTSPERR("pthread create failed!\n");
-		return -1;
-	}
+	task.run = RtspPlayProcess;
+	task.arg = (void*)this;
+	ModInterface::GetInstance()->CMD_handle(MOD_TPL,CMD_TPL_ADDTASK,(void*)&task);
     return 0;
 }
 
@@ -598,8 +624,9 @@ void RtspClient::DoClient()
 		}
 
         rBuf[recvLen] = '\0';
-        RTSPLOG("---------------C->S--------------\n");
-        RTSPLOG("\n%s", rBuf);
+        RTSPLOG("recv from client\n");
+        printf("---------------C->S--------------\n");
+        printf("%s", rBuf);
 
         /* ½âÎö·½·¨ */
         bufPtr = getLineFromBuf(rBuf, line);
@@ -693,8 +720,9 @@ void RtspClient::DoClient()
             break;
         }
 
-        RTSPLOG("---------------S->C--------------\n");
-        RTSPLOG("\n%s", sBuf);
+        RTSPLOG("send to client\n");
+        printf("---------------S->C--------------\n");
+        printf("%s", sBuf);
         send(m_ClientSockfd, sBuf, strlen(sBuf), 0);
     }
     RTSPLOG("finish\n");
@@ -793,7 +821,6 @@ RtspClient * RtspServer::GetFreeClient()
 void *RtspClientProcess(void *arg)
 {
 	prctl(PR_SET_NAME, __FUNCTION__);
-	pthread_detach(pthread_self());
 	RtspClient *rc = (RtspClient *)arg;
 	rc->DoClient();
     return 0;
@@ -803,10 +830,11 @@ int RtspServer::StartRtspServer()
 {
 	RtspClient *client = NULL;
 	int clientsockfd = 0;
+	char localip[40] = {0};
 	char clientip[40] = {0};
 	int clientport;
 	g_OnServer = 1;
-	pthread_t pid;
+	task_t task = {};
 
     m_ServerTcpSockfd = CreateSocket(SOCKET_TCP);
     if(m_ServerTcpSockfd < 0)
@@ -842,7 +870,8 @@ int RtspServer::StartRtspServer()
         return -1;
     }
     
-    RTSPLOG("rtsp://127.0.0.1:%d\n", SERVER_PORT);
+	GetLocalIP(localip);
+    RTSPLOG("rtsp://%s:%d/live[ch] (ch:0/1/2 ----HD/MD/LD)\n", localip, SERVER_PORT);
 
     while(g_OnServer)
     {
@@ -859,11 +888,9 @@ int RtspServer::StartRtspServer()
 		if(client)
 		{
 			client->InitClientPara(m_ServerRtpSockfd,m_ServerRtcpSockfd,clientsockfd,clientip,clientport);
-			if(pthread_create(&pid,NULL,RtspClientProcess,(void*)client) < 0)
-			{
-				RTSPERR("pthread create failed!\n");
-				return -1;
-			}
+			task.run = RtspClientProcess;
+			task.arg = (void*)client;
+			ModInterface::GetInstance()->CMD_handle(MOD_TPL,CMD_TPL_ADDTASK,(void*)&task);
 		}
 		else
 		{
@@ -892,7 +919,6 @@ int RtspServer::StopRtspServer()
 void *RtspServerProcess(void *arg)
 {
 	prctl(PR_SET_NAME, __FUNCTION__);
-	pthread_detach(pthread_self());
 	RtspServer *rs = RtspServer::GetInstance();
 	rs->StartRtspServer();
     return 0;

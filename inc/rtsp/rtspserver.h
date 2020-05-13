@@ -16,8 +16,8 @@
 #include <sys/prctl.h>
 #include <fcntl.h>
 #include <assert.h>
+#include "zmdconfig.h"
 #include "buffermanage.h"
-#include "modinterface.h"
 #include "rtp.h"
 
 #ifdef ZMD_APP_DEBUG_RTSP
