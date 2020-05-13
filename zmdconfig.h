@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Zmodo App Configuration
- * Sun May 10 03:20:26 2020
+ * Thu May 14 03:53:40 2020
  */
 
 #ifndef ZMD_APP_AUTO_CONFIG
@@ -12,7 +12,6 @@
 #define ZMD_APP_HARDWARE_VERSION "V0.0.0.01"
 #define ZMD_APP_DEBUG_ITF 1
 #define ZMD_APP_RTSP 1
-#define ZMD_APP_DEBUG_ZSP 1
 #define ZMD_APP_DEBUG_RTSP 1
 #define ZMD_APP_SOFTWARE_VERSION "V0.0.0.01"
 #define ZMD_APP_ENCODE_VIDEO 1
@@ -26,6 +25,5 @@
 #define ZMD_APP_THREADPOOL 1
 #define ZMD_APP_HISI 1
 #define ZMD_APP_HISI_LINUX 1
-#define ZMD_APP_ZSP 1
 
 #endif  /* ZMD_APP_AUTO_CONFIG */

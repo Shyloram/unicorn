@@ -32,13 +32,13 @@
 #define SERVER_RTCP_PORT 55533
 #define BUF_MAX_SIZE     (1024*1024)
 
-enum  SOCKETTYPE
+enum  SocketType
 {
 	SOCKET_TCP = 0,
 	SOCKET_UDP
 };
 
-class RTSPCLIENT
+class RtspClient
 {
 	private:
 		int m_ServerRtpSockfd;
@@ -72,8 +72,8 @@ class RTSPCLIENT
 
 	public:
 
-		RTSPCLIENT();
-		~RTSPCLIENT();
+		RtspClient();
+		~RtspClient();
 		int GetFreeFlag();
 		void SetFreeFlag();
 		void ClearFreeFlag();
@@ -83,25 +83,25 @@ class RTSPCLIENT
 		void DoPlay();
 };
 
-class RTSPSERVER
+class RtspServer
 {
 	private:
-		static RTSPSERVER* m_instance;
+		static RtspServer* m_instance;
 		int m_ServerTcpSockfd;
 		int m_ServerRtpSockfd;
 		int m_ServerRtcpSockfd;
 		int g_OnServer;
-		RTSPCLIENT m_rtsp_client[10];
+		RtspClient m_rtsp_client[10];
 
-		RTSPSERVER();
-		~RTSPSERVER();
-		int CreateSocket(enum  SOCKETTYPE stype);
+		RtspServer();
+		~RtspServer();
+		int CreateSocket(enum SocketType stype);
 		int BindSocketAddr(int sockfd, const char* ip, int port);
 		int AcceptClient(int sockfd, char* ip, int* port);
-		RTSPCLIENT * GetFreeClient();
+		RtspClient * GetFreeClient();
 
 	public:
-		static RTSPSERVER* GetInstance(void);
+		static RtspServer* GetInstance(void);
 		int StartRtspServer();
 		int StopRtspServer();
 };

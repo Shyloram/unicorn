@@ -13,6 +13,7 @@ source src/encode/Kconfig
 config ZMD_APP_RTSP
 	bool "rtsp server"
 	default n
+	select ZMD_APP_THREADPOOL
 	help
 		this module provide rtsp server.
 

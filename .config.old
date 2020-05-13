@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Zmodo App Configuration
-# Sun May 10 03:20:19 2020
+# Thu May 14 03:53:03 2020
 #
 
 #
@@ -22,21 +22,20 @@ ZMD_APP_ENCODE_BUFFERMANAGE=y
 ZMD_APP_ENCODE_BUFFERMANAGE_IFRAME_ENCRYPTION=y
 ZMD_APP_RTSP=y
 # ZMD_APP_MESHARE is not set
-ZMD_APP_ZSP=y
+# ZMD_APP_ZSP is not set
 ZMD_APP_THREADPOOL=y
 
 #
 # Thirdparty
 #
-ZMD_APP_THI_CURL=y
-ZMD_APP_THI_JSON=y
+# ZMD_APP_THI_CURL is not set
+# ZMD_APP_THI_JSON is not set
 ZMD_APP_THI_MBEDTLS=y
-ZMD_APP_THI_NOPOLL=y
+# ZMD_APP_THI_NOPOLL is not set
 ZMD_APP_DEBUG=y
 ZMD_APP_DEBUG_ITF=y
 ZMD_APP_DEBUG_BUF=y
 ZMD_APP_DEBUG_VID=y
-ZMD_APP_DEBUG_ZSP=y
 ZMD_APP_DEBUG_RTSP=y
 
 #

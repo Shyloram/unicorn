@@ -13,6 +13,9 @@ typedef enum
 	CMD_ENC_AUDIODECODESWON,
 	CMD_ENC_AUDIODECODESWOFF,
 
+	//ThreadPool
+	CMD_TPL_ADDTASK,
+
 	//Meshare
 	CMD_MSH_FUNC1,
 	CMD_MSH_FUNC2,
@@ -32,6 +35,7 @@ typedef enum
 	MOD_RTSP,
 	MOD_MSH,
 	MOD_ZSP,
+	MOD_TPL,
 	MOD_MAX
 }MFI_MOD;
 

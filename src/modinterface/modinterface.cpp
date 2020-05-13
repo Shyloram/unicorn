@@ -3,6 +3,7 @@
 #include "meshareinterface.h"
 #include "zspinterface.h"
 #include "rtspinterface.h"
+#include "thpoolinterface.h"
 
 ModInterface* ModInterface::m_instance = new ModInterface;
 
@@ -23,6 +24,8 @@ Interface* ModInterface::GetModInstance(MFI_MOD mod)
 			return MeshareInterface::GetInstance();
 		case MOD_ZSP:
 			return ZSPInterface::GetInstance();
+		case MOD_TPL:
+			return TPLInterface::GetInstance();
 		default:
 			return NULL;
 	}
