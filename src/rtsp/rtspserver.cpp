@@ -543,7 +543,7 @@ int RtspClient::handleCmd_SETUP(char* result, int cseq, char* url)
 
 int RtspClient::handleCmd_PLAY(char* result, int cseq)
 {
-	task_t task = {};
+	ptask_t task = {};
     sprintf(result, "RTSP/1.0 200 OK\r\n"
                     "CSeq: %d\r\n"
                     "Range: npt=0.000-\r\n"
@@ -834,7 +834,7 @@ int RtspServer::StartRtspServer()
 	char clientip[40] = {0};
 	int clientport;
 	g_OnServer = 1;
-	task_t task = {};
+	ptask_t task = {};
 
     m_ServerTcpSockfd = CreateSocket(SOCKET_TCP);
     if(m_ServerTcpSockfd < 0)

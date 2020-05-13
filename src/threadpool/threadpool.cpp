@@ -11,7 +11,7 @@ TaskList::TaskList()
 
 TaskList::~TaskList()
 {
-	task_t *task = NULL;
+	ptask_t *task = NULL;
 	while(m_first != NULL)
 	{
 		task = m_first;
@@ -20,7 +20,7 @@ TaskList::~TaskList()
 	}
 }
 
-int TaskList::PushTask(task_t *task)
+int TaskList::PushTask(ptask_t *task)
 {
 	if(m_first == NULL)
 	{
@@ -34,9 +34,9 @@ int TaskList::PushTask(task_t *task)
 	return 0;
 }
 
-task_t* TaskList::PullTask()
+ptask_t* TaskList::PullTask()
 {
-	task_t *task = NULL;
+	ptask_t *task = NULL;
 	if(m_first != NULL)
 	{
 		task = m_first;
@@ -97,7 +97,7 @@ void *thread_handle(void *arg)
 {
 	TPLLOG("thread %d is starting\n", (int)pthread_self());
 	ThreadPool *pool = (ThreadPool*)arg;
-	task_t *t = NULL;
+	ptask_t *t = NULL;
 
 	while(1)
 	{
@@ -185,8 +185,8 @@ int ThreadPool::DestroyThreadPool()
 int ThreadPool::AddTask(void *arg)
 {
 	pthread_t pid;
-	task_t *task = new task_t;
-	task_t *input = (task_t*)arg;
+	ptask_t *task = new ptask_t;
+	ptask_t *input = (ptask_t*)arg;
 	task->run = input->run;
 	task->arg = input->arg;
 	task->next = NULL;
@@ -213,9 +213,9 @@ int ThreadPool::AddTask(void *arg)
 	return 0;
 }
 
-task_t* ThreadPool::GetTask()
+ptask_t* ThreadPool::GetTask()
 {
-	task_t *t = NULL;
+	ptask_t *t = NULL;
 	t = l_task.PullTask();
 	return t;
 }

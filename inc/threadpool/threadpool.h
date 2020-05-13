@@ -15,19 +15,19 @@ typedef struct task
 	void *(*run)(void *args);
 	void *arg;
 	struct task *next;
-}task_t;
+}ptask_t;
 
 class TaskList
 {
 	private:
-		task_t *m_first;
-		task_t *m_last;
+		ptask_t *m_first;
+		ptask_t *m_last;
 
 	public:
 		TaskList();
 		~TaskList();
-		int PushTask(task_t *task);
-		task_t* PullTask();
+		int PushTask(ptask_t *task);
+		ptask_t* PullTask();
 };
 
 class ThreadPool
@@ -56,7 +56,7 @@ class ThreadPool
 		int CheckIdle();
 		int CheckExit();
 		int AddTask(void *arg);
-		task_t* GetTask();
+		ptask_t* GetTask();
 		int InitCondition();
 		int LockCondition();
 		int UnlockCondition();
