@@ -734,7 +734,7 @@ static int StartLive(char * data, int len, int socket_fd, int ch)
     return 0;
 }
 
-void TcpCmdProcessor(void * arg)
+void *TcpCmdProcessor(void * arg)
 {
     int ret = 0;
     int retry_times = 0;
@@ -746,7 +746,7 @@ void TcpCmdProcessor(void * arg)
     if(NULL == arg)
     {
        ZSPERR("arg is NULL\n");
-       return;
+       return NULL;
     }
 
     socket_fd = *((int*)arg);
@@ -835,7 +835,7 @@ void TcpCmdProcessor(void * arg)
 
     ZSPLOG("close socket_fd:%d\n\n", socket_fd);
 	close(socket_fd);
-    return;
+    return NULL;
 }
 
 /**********************UDP SERVER**************************/
@@ -952,7 +952,7 @@ static int CmdIdPing(STRUCT_UDP_THPOOL_ARG * udp_thpool_arg)
     return ret;
 }
 
-void UdpCmdProcessor(void *arg)
+void *UdpCmdProcessor(void *arg)
 {
     STRUCT_UDP_THPOOL_ARG *udp_thpool_arg = NULL;
     Cmd_Header *cmd_header = NULL;
@@ -960,7 +960,7 @@ void UdpCmdProcessor(void *arg)
     if(NULL == arg)
     {
         ZSPERR("arg is NULL\n");
-        return;
+        return NULL;
     }
 
     udp_thpool_arg = (STRUCT_UDP_THPOOL_ARG *)arg;
@@ -991,5 +991,5 @@ void UdpCmdProcessor(void *arg)
 
 	free(udp_thpool_arg->cmd_buf);
 	free(udp_thpool_arg);
-    return;
+    return NULL;
 }

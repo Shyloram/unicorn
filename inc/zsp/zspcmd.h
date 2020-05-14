@@ -201,7 +201,7 @@ typedef struct
     char    deviceID[16] ;
 }STRUCT_ID_PING_ECHO;   /* CMD_ID_PING 0x9050 的响应数据包 */
 
-void UdpCmdProcessor(void * arg);
-void TcpCmdProcessor(void * arg);
+void *UdpCmdProcessor(void * arg);
+void *TcpCmdProcessor(void * arg);
 
 #endif /* __ZSP_CMD_H__ */

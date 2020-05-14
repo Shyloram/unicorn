@@ -14,13 +14,12 @@
 #include <sys/ioctl.h>
 #include <pthread.h>
 
-#include "thpool.h"
 #include "zsp.h"
 #include "zspcmd.h"
+#include "threadpool.h"
+#include "modinterface.h"
 
-static threadpool zsp_thpool = NULL;
-
-static int CreateTcpServer(void * arg)
+void *CreateTcpServer(void * arg)
 {
     int ret = 0;
     int server_fd = 0;
@@ -29,6 +28,7 @@ static int CreateTcpServer(void * arg)
     struct sockaddr_in from_addr;
     socklen_t from_addr_len = sizeof(from_addr);
     int * thpool_arg = NULL;    
+	ptask_t task = {};
 
     addr.sin_port = htons(ZSP_TCP_SERVER_PORT);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -38,7 +38,7 @@ static int CreateTcpServer(void * arg)
     if(server_fd < 0)
     {
         ZSPERR("Create TCP socket failed:%s\r\n", strerror(errno));
-		return -1;
+		return NULL;
     }
 
     ret = bind(server_fd, (struct sockaddr *)&addr, sizeof(addr));
@@ -46,7 +46,7 @@ static int CreateTcpServer(void * arg)
     {
         ZSPERR("bind failed:%s\r\n", strerror(errno));
 		close(server_fd);
-		return -1;
+		return NULL;
     }
 
     ret = listen(server_fd, 3); 
@@ -54,7 +54,7 @@ static int CreateTcpServer(void * arg)
     {
         ZSPERR("listen socket failed:%s\r\n", strerror(errno));
 		close(server_fd);
-		return -1;
+		return NULL;
     }
 
     while(1)
@@ -78,21 +78,15 @@ static int CreateTcpServer(void * arg)
 		}
 		*thpool_arg = accept_fd;
 
-		ret = thpool_add_work(zsp_thpool, TcpCmdProcessor, (void *)thpool_arg);
-		if(0 != ret)
-		{
-			ZSPERR("add work failed\r\n");
-			free(thpool_arg);
-			close(accept_fd);
-			sleep(1);
-			continue;
-		}
+		task.run = TcpCmdProcessor;
+		task.arg = (void*)thpool_arg;
+		ModInterface::GetInstance()->CMD_handle(MOD_TPL,CMD_TPL_ADDTASK,(void*)&task);
 		usleep(50*1000);
 	}
-    return 0;
+    return NULL;
 }
 
-static int CreateUdpServer(void * arg)
+void *CreateUdpServer(void * arg)
 {
     int ret = 0;
     int server_fd = 0;
@@ -101,6 +95,7 @@ static int CreateUdpServer(void * arg)
     socklen_t from_addr_len = sizeof(from_addr);
     char cmd_buf[ZSP_CMD_UDP_BUF_SIZE] = {0};
     STRUCT_UDP_THPOOL_ARG * udp_thpool_arg = NULL;
+	ptask_t task = {};
 
     addr.sin_port=htons(ZSP_UDP_SERVER_PORT);  
     addr.sin_addr.s_addr=htonl(INADDR_ANY);
@@ -110,7 +105,7 @@ static int CreateUdpServer(void * arg)
     if(server_fd < 0)
     {
         ZSPERR("UDP socket failed:%s\n", strerror(errno));
-		return -1;
+		return NULL;
     }
 
     ret = bind(server_fd, (struct sockaddr *)&addr, sizeof(addr));
@@ -118,7 +113,7 @@ static int CreateUdpServer(void * arg)
     {
         ZSPERR("bind failed:%s\n", strerror(errno));
 		close(server_fd);
-		return -1;
+		return NULL;
     }
 
     int udp_optval = 1; /* 1表示 true:支持发送广播数据 */
@@ -127,7 +122,7 @@ static int CreateUdpServer(void * arg)
     {
         ZSPERR("set BROADCAST failed,ret:%d, %s\r\n", ret, strerror(errno));
 		close(server_fd);
-		return -1;
+		return NULL;
     }
 
     while(1)
@@ -164,34 +159,28 @@ static int CreateUdpServer(void * arg)
         memcpy(&(udp_thpool_arg->from_addr), &from_addr, sizeof(struct sockaddr_in));
         udp_thpool_arg->socket_fd = server_fd;
 
-        ret = thpool_add_work(zsp_thpool, UdpCmdProcessor, (void *)udp_thpool_arg);
-        if(0 != ret)
-        {
-            ZSPERR("thpool add work failed\r\n");
-			free(udp_thpool_arg->cmd_buf);
-			free(udp_thpool_arg);
-        }
+		task.run = UdpCmdProcessor;
+		task.arg = (void*)udp_thpool_arg;
+		ModInterface::GetInstance()->CMD_handle(MOD_TPL,CMD_TPL_ADDTASK,(void*)&task);
     }
-    return 0;
+    return NULL;
 }
 
 int StartZspServer(void)
 {
-    if(NULL == zsp_thpool)
-    {
-        zsp_thpool = thpool_init(8);
-    }
+	pthread_t Upid,Tpid;
 
-    if(NULL != zsp_thpool)
-    {
-        thpool_add_work(zsp_thpool, (void (*)(void*))CreateTcpServer, NULL);
-    }
+	if(pthread_create(&Upid,NULL,CreateUdpServer,NULL) < 0)
+	{
+		ZSPERR("pthread create failed!\n");
+		return -1;
+	}
 
-    if(NULL != zsp_thpool)
-    {
-        thpool_add_work(zsp_thpool, (void (*)(void*))CreateUdpServer, NULL);
-    }
-
+	if(pthread_create(&Tpid,NULL,CreateTcpServer,NULL) < 0)
+	{
+		ZSPERR("pthread create failed!\n");
+		return -1;
+	}
     return 0;
 }
 
